@@ -1,6 +1,5 @@
-package co.edu.uniquindio.servify.ui.theme
+package co.edu.uniquindio.servify.core.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

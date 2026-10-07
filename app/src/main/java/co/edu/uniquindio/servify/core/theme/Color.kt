@@ -1,4 +1,4 @@
-package co.edu.uniquindio.servify.ui.theme
+package co.edu.uniquindio.servify.core.theme
 
 import androidx.compose.ui.graphics.Color
 

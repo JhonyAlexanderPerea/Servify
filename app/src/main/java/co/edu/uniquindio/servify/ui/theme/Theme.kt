@@ -46,7 +46,6 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun ServifyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color can be disabled by default to enforce brand colors consistently
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

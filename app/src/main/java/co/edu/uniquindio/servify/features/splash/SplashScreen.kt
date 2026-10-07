@@ -1,6 +1,14 @@
 package co.edu.uniquindio.servify.features.splash
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,14 +16,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,12 +35,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import co.edu.uniquindio.servify.ui.components.icons.ServifyIcons
+import co.edu.uniquindio.servify.ui.theme.ServifyGold
+import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
+import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import co.edu.uniquindio.servify.ui.theme.cssLinearGradient
 import kotlinx.coroutines.delay
+
+private val SplashBackground = cssLinearGradient(
+    145f,
+    0f to Color(0xFF1A55E3),
+    0.6f to Color(0xFF0D3EBD),
+    1f to Color(0xFF07288F)
+)
 
 @Composable
 fun SplashScreen(
@@ -52,40 +71,43 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF1A55E3),
-                        Color(0xFF0D3EBD),
-                        Color(0xFF07288F)
-                    )
-                )
-            )
+            .background(SplashBackground)
     ) {
 
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(),
+            enter = fadeIn(
+                animationSpec = tween(
+                    durationMillis = 800,
+                    easing = EaseIn
+                )
+            ),
             modifier = Modifier.align(Alignment.Center)
         ) {
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+
+                val logoShape = RoundedCornerShape(32.dp)
 
                 Box(
                     modifier = Modifier
                         .size(112.dp)
-                        .clip(
-                            RoundedCornerShape(32.dp)
+                        .shadow(
+                            elevation = 24.dp,
+                            shape = logoShape,
+                            clip = false,
+                            ambientColor = Color.Black.copy(alpha = 0.25f),
+                            spotColor = Color.Black.copy(alpha = 0.25f)
                         )
-                        .background(
-                            Color.White.copy(alpha = 0.20f)
-                        )
+                        .clip(logoShape)
+                        .background(Color.White.copy(alpha = 0.20f))
                         .border(
                             width = 1.dp,
                             color = Color.White.copy(alpha = 0.30f),
-                            shape = RoundedCornerShape(32.dp)
+                            shape = logoShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -93,7 +115,7 @@ fun SplashScreen(
                     Box {
 
                         Icon(
-                            imageVector = Icons.Filled.Shield,
+                            imageVector = ServifyIcons.ShieldWithHeart,
                             contentDescription = "Servify",
                             tint = Color.White,
                             modifier = Modifier.size(56.dp)
@@ -101,39 +123,41 @@ fun SplashScreen(
 
                         Box(
                             modifier = Modifier
-                                .size(20.dp)
                                 .align(Alignment.BottomEnd)
-                                .clip(RoundedCornerShape(50))
-                                .background(Color(0xFFFFD700)),
+                                .offset(x = 4.dp, y = 4.dp)
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(ServifyGold),
                             contentAlignment = Alignment.Center
                         ) {
 
                             Icon(
                                 imageVector = Icons.Filled.LocationOn,
                                 contentDescription = null,
-                                tint = Color(0xFF1A55E3),
-                                modifier = Modifier.size(13.dp)
+                                tint = ServifyPrimary,
+                                modifier = Modifier.size(12.dp)
                             )
                         }
                     }
                 }
 
-                Spacer(
-                    modifier = Modifier.height(24.dp)
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
 
-                Text(
-                    text = "Servify",
-                    color = Color.White,
-                    fontSize = 36.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                )
+                    Text(
+                        text = "Servify",
+                        style = ServifyTextStyle.Display,
+                        color = Color.White
+                    )
 
-                Text(
-                    text = "Servicios locales de confianza",
-                    color = Color.White.copy(alpha = 0.70f),
-                    fontSize = 16.sp
-                )
+                    Text(
+                        text = "Servicios locales de confianza",
+                        style = ServifyTextStyle.BodyLight,
+                        color = Color.White.copy(alpha = 0.70f)
+                    )
+                }
             }
         }
 
@@ -144,24 +168,52 @@ fun SplashScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
-            repeat(3) {
+            repeat(3) { index ->
 
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(Color.White.copy(alpha = 0.50f))
+                PulsingDot(
+                    delayMillis = index * 200
                 )
             }
         }
 
         Text(
             text = "v1.0.0",
+            style = ServifyTextStyle.Caption,
             color = Color.White.copy(alpha = 0.40f),
-            fontSize = 12.sp,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp)
         )
     }
+}
+
+@Composable
+private fun PulsingDot(
+    delayMillis: Int
+) {
+
+    val transition = rememberInfiniteTransition(label = "dot")
+
+    val pulse by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 2000
+                1f at 0 using CubicBezierEasing(0.4f, 0f, 0.6f, 1f)
+                0.5f at 1000 using CubicBezierEasing(0.4f, 0f, 0.6f, 1f)
+                1f at 2000
+            },
+            initialStartOffset = StartOffset(delayMillis)
+        ),
+        label = "pulse"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .graphicsLayer { alpha = pulse }
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.50f))
+    )
 }

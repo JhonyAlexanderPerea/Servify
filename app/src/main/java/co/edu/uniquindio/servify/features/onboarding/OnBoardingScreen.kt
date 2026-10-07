@@ -1,5 +1,7 @@
 package co.edu.uniquindio.servify.features.onboarding
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,24 +11,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.WorkspacePremium
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.RocketLaunch
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -37,15 +35,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
+import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
+import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
+import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
+import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import co.edu.uniquindio.servify.ui.theme.cssLinearGradient
 
 private data class OnboardingPage(
     val title: String,
     val description: String,
     val color: Color,
-    val background: List<Color>,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
+    val background: Brush,
+    val icon: ImageVector
 )
 
 private val pages = listOf(
@@ -55,9 +64,10 @@ private val pages = listOf(
         description =
             "Descubre proveedores de confianza en tu ciudad y barrio. Plomeros, electricistas, tutores y más, a unos pasos de tu hogar.",
         color = Color(0xFF1A55E3),
-        background = listOf(
-            Color(0xFFE8F0FF),
-            Color(0xFFC7D8FF)
+        background = cssLinearGradient(
+            160f,
+            0f to Color(0xFFE8F0FF),
+            1f to Color(0xFFC7D8FF)
         ),
         icon = Icons.Filled.LocationOn
     ),
@@ -67,9 +77,10 @@ private val pages = listOf(
         description =
             "Todos los proveedores están verificados. Consulta su índice de confianza, calificaciones y reseñas de otros usuarios.",
         color = Color(0xFF006B53),
-        background = listOf(
-            Color(0xFFE8FFF8),
-            Color(0xFFB3F0DC)
+        background = cssLinearGradient(
+            160f,
+            0f to Color(0xFFE8FFF8),
+            1f to Color(0xFFB3F0DC)
         ),
         icon = Icons.Filled.VerifiedUser
     ),
@@ -79,9 +90,10 @@ private val pages = listOf(
         description =
             "Reserva horarios en tiempo real, publica tus servicios, acumula puntos y sube de nivel. De Principiante a Maestro, tu reputación habla por ti.",
         color = Color(0xFFB45309),
-        background = listOf(
-            Color(0xFFFFF8E8),
-            Color(0xFFFFE4B3)
+        background = cssLinearGradient(
+            160f,
+            0f to Color(0xFFFFF8E8),
+            1f to Color(0xFFFFE4B3)
         ),
         icon = Icons.Filled.WorkspacePremium
     )
@@ -107,50 +119,43 @@ fun OnboardingScreen(
             .navigationBarsPadding()
     ) {
 
-        // Omitir
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    top = 8.dp,
-                    end = 16.dp
-                )
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 4.dp
+                ),
+            contentAlignment = Alignment.CenterEnd
         ) {
 
             if (!isLast) {
 
-                TextButton(
-                    onClick = onFinish,
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-
-                    Text(
-                        text = "Omitir",
-                        color = Color(0xFF1A55E3)
-                    )
-                }
+                ServifyTextButton(
+                    text = "Omitir",
+                    onClick = onFinish
+                )
             }
         }
 
-        // Ilustración + texto
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(
+                32.dp,
+                Alignment.CenterVertically
+            )
         ) {
 
             Box(
                 modifier = Modifier
                     .size(256.dp)
                     .clip(RoundedCornerShape(48.dp))
-                    .background(
-                        Brush.linearGradient(
-                            page.background
-                        )
-                    ),
+                    .background(page.background),
                 contentAlignment = Alignment.Center
             ) {
 
@@ -158,8 +163,9 @@ fun OnboardingScreen(
                     modifier = Modifier
                         .size(144.dp)
                         .clip(CircleShape)
+                        // color + "22" en hex = 34/255 de opacidad
                         .background(
-                            page.color.copy(alpha = 0.13f)
+                            page.color.copy(alpha = 34f / 255f)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -173,31 +179,33 @@ fun OnboardingScreen(
                 }
             }
 
-            Spacer(
-                modifier = Modifier.height(32.dp)
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-            Text(
-                text = page.title,
-                color = Color(0xFF1B1B1F),
-                fontSize = 24.sp,
-                lineHeight = 29.sp,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-            )
+                Text(
+                    text = page.title,
+                    style = ServifyTextStyle.TitleTight,
+                    color = ServifyOnSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
 
-            Text(
-                text = page.description,
-                color = Color(0xFF45464F),
-                fontSize = 16.sp,
-                lineHeight = 24.sp
-            )
+                Text(
+                    text = page.description,
+                    style = ServifyTextStyle.BodyRelaxed,
+                    color = ServifyOnSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
-        // Controles
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -209,34 +217,28 @@ fun OnboardingScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.spacedBy(
+                    8.dp,
+                    Alignment.CenterHorizontally
+                )
             ) {
 
-                pages.forEachIndexed { index, _ ->
+                pages.indices.forEach { index ->
 
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .size(
-                                width =
-                                    if (index == currentPage) 24.dp
-                                    else 8.dp,
-                                height = 8.dp
-                            )
-                            .clip(RoundedCornerShape(50))
-                            .background(
-                                if (index == currentPage)
-                                    Color(0xFF1A55E3)
-                                else
-                                    Color(0xFFC8C5D0)
-                            )
+                    PageDot(
+                        selected = index == currentPage
                     )
                 }
             }
 
-            Button(
+            ServifyFilledButton(
+                text = if (isLast) "Comenzar" else "Continuar",
+                icon =
+                    if (isLast) Icons.Outlined.RocketLaunch
+                    else Icons.AutoMirrored.Outlined.ArrowForward,
                 onClick = {
                     if (isLast) {
                         onFinish()
@@ -244,52 +246,39 @@ fun OnboardingScreen(
                         currentPage++
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1A55E3),
-                    contentColor = Color.White
-                )
-            ) {
-
-                Icon(
-                    imageVector =
-                        if (isLast)
-                            Icons.Filled.RocketLaunch
-                        else
-                            Icons.Filled.ArrowForward,
-                    contentDescription = null
-                )
-
-                Spacer(
-                    modifier = Modifier.size(8.dp)
-                )
-
-                Text(
-                    text =
-                        if (isLast)
-                            "Comenzar"
-                        else
-                            "Continuar"
-                )
-            }
+                modifier = Modifier.fillMaxWidth()
+            )
 
             if (isLast) {
 
-                OutlinedButton(
+                ServifyOutlinedButton(
+                    text = "Ya tengo una cuenta",
                     onClick = onFinish,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(50)
-                ) {
-
-                    Text(
-                        text = "Ya tengo una cuenta",
-                        color = Color(0xFF1A55E3)
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
+}
+
+@Composable
+private fun PageDot(
+    selected: Boolean
+) {
+
+    val width: Dp by animateDpAsState(
+        targetValue = if (selected) 24.dp else 8.dp,
+        animationSpec = tween(150),
+        label = "dotWidth"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(width = width, height = 8.dp)
+            .clip(CircleShape)
+            .background(
+                if (selected) ServifyPrimary
+                else ServifyOutlineVariant
+            )
+    )
 }

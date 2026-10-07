@@ -1,35 +1,33 @@
 package co.edu.uniquindio.servify.features.login
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,12 +35,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
+import co.edu.uniquindio.servify.ui.components.icons.ServifyIcons
+import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
+import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
+import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
+import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
+import co.edu.uniquindio.servify.ui.theme.ServifySurface
+import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
 fun LoginScreen(
@@ -57,289 +67,246 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFEFBFF))
+            .background(ServifySurface)
             .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp)
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(
+                start = 24.dp,
+                end = 24.dp,
+                bottom = 32.dp
+            )
     ) {
 
-        Spacer(
-            modifier = Modifier.height(32.dp)
-        )
-
-        // Header
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    top = 32.dp,
+                    bottom = 32.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
             Box(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF1A55E3)),
+                    .background(ServifyPrimary),
                 contentAlignment = Alignment.Center
             ) {
 
                 Icon(
-                    imageVector = Icons.Filled.Shield,
+                    imageVector = ServifyIcons.ShieldWithHeart,
                     contentDescription = "Servify",
                     tint = Color.White,
                     modifier = Modifier.size(32.dp)
                 )
             }
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
-
             Text(
                 text = "Bienvenido de nuevo",
-                color = Color(0xFF1B1B1F),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(
-                modifier = Modifier.height(4.dp)
+                style = ServifyTextStyle.Title,
+                color = ServifyOnSurface
             )
 
             Text(
                 text = "Ingresa a tu cuenta de Servify",
-                color = Color(0xFF45464F),
-                fontSize = 14.sp
+                style = ServifyTextStyle.Small,
+                color = ServifyOnSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
 
-        Spacer(
-            modifier = Modifier.height(32.dp)
-        )
-
         Column(
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Email
+
             ServifyTextField(
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
-                modifier = Modifier.fillMaxWidth(),
                 label = "Correo electrónico",
-                leadingIcon = {
-                    Icon(
-                        Icons.Filled.Email,
-                        contentDescription = null
-                    )
-                },
+                leadingIcon = Icons.Outlined.Email,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email
+                ),
                 singleLine = true,
                 isError = state.emailError != null,
-                supportingText = {
-                    state.emailError?.let {
-                        Text(it)
-                    }
-                }
+                supportingText = state.emailError
             )
 
-            // Password
             ServifyTextField(
                 value = state.password,
                 onValueChange = viewModel::onPasswordChange,
-                modifier = Modifier.fillMaxWidth(),
                 label = "Contraseña",
-                leadingIcon = {
-                    Icon(
-                        Icons.Filled.Lock,
-                        contentDescription = null
-                    )
-                },
-                trailingIcon = {
-
-                    IconButton(
-                        onClick = viewModel::togglePasswordVisibility
-                    ) {
-
-                        Icon(
-                            imageVector =
-                                if (state.showPassword)
-                                    Icons.Filled.VisibilityOff
-                                else
-                                    Icons.Filled.Visibility,
-                            contentDescription = "Mostrar contraseña"
-                        )
-                    }
-                },
+                leadingIcon = Icons.Outlined.Lock,
+                trailingIcon =
+                    if (state.showPassword)
+                        Icons.Outlined.VisibilityOff
+                    else
+                        Icons.Outlined.Visibility,
+                trailingIconDescription = "Mostrar contraseña",
+                onTrailingIconClick = viewModel::togglePasswordVisibility,
                 visualTransformation =
                     if (state.showPassword)
                         VisualTransformation.None
                     else
                         PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password
+                ),
                 singleLine = true,
                 isError = state.passwordError != null,
-                supportingText = {
-                    state.passwordError?.let {
-                        Text(it)
-                    }
-                }
+                supportingText = state.passwordError
             )
 
-            // Remember
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .toggleable(
+                        value = state.rememberMe,
+                        role = Role.Checkbox,
+                        onValueChange = { viewModel.toggleRememberMe() }
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-                IconButton(
-                    onClick = viewModel::toggleRememberMe,
-                    modifier = Modifier.size(24.dp)
-                ) {
-
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(
-                                if (state.rememberMe)
-                                    Color(0xFF1A55E3)
-                                else
-                                    Color.Transparent
-                            )
-                    ) {
-
-                        if (state.rememberMe) {
-
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(
-                    modifier = Modifier.size(8.dp)
+                ServifyCheckbox(
+                    checked = state.rememberMe
                 )
 
                 Text(
                     text = "Recordarme",
-                    color = Color(0xFF45464F),
-                    fontSize = 14.sp
+                    style = ServifyTextStyle.Small,
+                    color = ServifyOnSurfaceVariant
                 )
             }
 
-            // Login
-            Button(
+            ServifyFilledButton(
+                text = "Iniciar sesión",
                 onClick = {
                     viewModel.login()
                     onLoginSuccess()
                 },
+                enabled = state.isValid,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-                enabled = state.isValid,
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1A55E3),
-                    contentColor = Color.White
-                )
-            ) {
+                    .padding(top = 8.dp)
+            )
 
-                Text(
-                    text = "Iniciar sesión"
-                )
-            }
-
-            // Forgot password
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
 
-                TextButton(
+                ServifyTextButton(
+                    text = "¿Olvidaste tu contraseña?",
                     onClick = onForgotPasswordClick
-                ) {
-
-                    Text(
-                        text = "¿Olvidaste tu contraseña?",
-                        color = Color(0xFF1A55E3)
-                    )
-                }
+                )
             }
 
-            // Divider
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(1.dp)
-                        .background(Color(0xFFC8C5D0))
+                        .background(ServifyOutlineVariant)
                 )
 
                 Text(
-                    text = "  o continúa con  ",
-                    color = Color(0xFF45464F),
-                    fontSize = 12.sp
+                    text = "o continúa con",
+                    style = ServifyTextStyle.Caption,
+                    color = ServifyOnSurfaceVariant
                 )
 
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(1.dp)
-                        .background(Color(0xFFC8C5D0))
+                        .background(ServifyOutlineVariant)
                 )
             }
 
-            // Google
-            OutlinedButton(
-                onClick = onLoginSuccess,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(50)
-            ) {
+            GoogleButton(
+                onClick = onLoginSuccess
+            )
 
-                Text(
-                    text = "G",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF4285F4),
-                    fontSize = 18.sp
-                )
-
-                Spacer(
-                    modifier = Modifier.size(10.dp)
-                )
-
-                Text(
-                    text = "Continuar con Google",
-                    color = Color(0xFF1B1B1F)
-                )
-            }
-
-            // Register
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(
+                    4.dp,
+                    Alignment.CenterHorizontally
+                ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
                 Text(
                     text = "¿No tienes cuenta?",
-                    color = Color(0xFF45464F),
-                    fontSize = 14.sp
+                    style = ServifyTextStyle.Small,
+                    color = ServifyOnSurfaceVariant
                 )
 
-                TextButton(
+                ServifyTextButton(
+                    text = "Crear cuenta",
                     onClick = onRegisterClick
-                ) {
-
-                    Text(
-                        text = "Crear cuenta",
-                        color = Color(0xFF1A55E3)
-                    )
-                }
+                )
             }
         }
+    }
+}
+
+
+@Composable
+private fun GoogleButton(
+    onClick: () -> Unit
+) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp)
+            .clip(CircleShape)
+            .border(
+                width = 1.dp,
+                color = ServifyOutlineVariant,
+                shape = CircleShape
+            )
+            .clickable(
+                role = Role.Button,
+                onClick = onClick
+            ),
+        horizontalArrangement = Arrangement.spacedBy(
+            12.dp,
+            Alignment.CenterHorizontally
+        ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Icon(
+            imageVector = ServifyIcons.GoogleLogo,
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(18.dp)
+        )
+
+        Text(
+            text = "Continuar con Google",
+            style = ServifyTextStyle.SmallMedium,
+            color = ServifyOnSurface
+        )
     }
 }

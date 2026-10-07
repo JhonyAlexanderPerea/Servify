@@ -8,37 +8,50 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.LockReset
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.MarkEmailRead
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
+import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
+import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
+import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
+import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
+import co.edu.uniquindio.servify.ui.theme.ServifySuccessContainer
+import co.edu.uniquindio.servify.ui.theme.ServifySurface
+import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
+import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
 fun ForgotPasswordScreen(
@@ -57,151 +70,143 @@ fun ForgotPasswordScreen(
             onResend = viewModel::resend
         )
 
-        return
+    } else {
+
+        RecoveryFormScreen(
+            email = state.email,
+            error = state.error,
+            onEmailChange = viewModel::onEmailChange,
+            onSend = viewModel::sendRecoveryEmail,
+            onBack = onBack,
+            onBackToLogin = onBackToLogin
+        )
     }
+}
+
+@Composable
+private fun RecoveryFormScreen(
+    email: String,
+    error: String?,
+    onEmailChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onBack: () -> Unit,
+    onBackToLogin: () -> Unit
+) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFEFBFF))
+            .background(ServifySurface)
             .statusBarsPadding()
             .navigationBarsPadding()
+            .imePadding()
     ) {
 
-        // Back
-        Box(
+        // Back (px-2 py-1)
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    start = 4.dp,
-                    top = 4.dp
+                    horizontal = 8.dp,
+                    vertical = 4.dp
                 )
         ) {
 
-            androidx.compose.material3.IconButton(
+            ServifyIconButton(
+                icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = "Atrás",
                 onClick = onBack
-            ) {
-
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Atrás"
-                )
-            }
+            )
         }
 
         Column(
             modifier = Modifier
+                .weight(1f)
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = 24.dp,
+                    end = 24.dp,
+                    bottom = 32.dp
+                )
         ) {
 
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFD6E2FF)),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-                Icon(
-                    imageVector = Icons.Filled.LockReset,
-                    contentDescription = null,
-                    tint = Color(0xFF1A55E3),
-                    modifier = Modifier.size(40.dp)
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(ServifyPrimaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Filled.LockReset,
+                        contentDescription = null,
+                        tint = ServifyPrimary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                Text(
+                    text = "Recuperar contraseña",
+                    style = ServifyTextStyle.Title,
+                    color = ServifyOnSurface
+                )
+
+                Text(
+                    text = "Ingresa el correo de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.",
+                    style = ServifyTextStyle.SmallRelaxed,
+                    color = ServifyOnSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
-
-            Text(
-                text = "Recuperar contraseña",
-                color = Color(0xFF1B1B1F),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
-
-            Text(
-                text = "Ingresa el correo de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.",
-                color = Color(0xFF45464F),
-                fontSize = 14.sp,
-                lineHeight = 21.sp
-            )
 
             Spacer(
                 modifier = Modifier.height(32.dp)
             )
 
-            ServifyTextField(
-                value = state.email,
-                onValueChange = viewModel::onEmailChange,
+            // Form (gap-5)
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                label = "Correo electrónico",
-                leadingIcon = {
-                    Icon(Icons.Filled.Email, null)
-                },
-                singleLine = true,
-                isError = state.error != null,
-                supportingText = {
-                    state.error?.let {
-                        Text(it)
-                    }
-                }
-            )
-
-            Spacer(
-                modifier = Modifier.height(20.dp)
-            )
-
-            Button(
-                onClick = viewModel::sendRecoveryEmail,
-                enabled =
-                    state.email.isNotBlank() &&
-                            state.error == null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1A55E3),
-                    contentColor = Color.White
-                )
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
-                Icon(
-                    imageVector = Icons.Filled.Send,
-                    contentDescription = null
+                ServifyTextField(
+                    value = email,
+                    onValueChange = onEmailChange,
+                    label = "Correo electrónico",
+                    leadingIcon = Icons.Outlined.Email,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email
+                    ),
+                    singleLine = true,
+                    isError = error != null,
+                    supportingText = error
                 )
 
-                Spacer(
-                    modifier = Modifier.size(8.dp)
+                ServifyFilledButton(
+                    text = "Enviar enlace",
+                    icon = Icons.AutoMirrored.Outlined.Send,
+                    onClick = onSend,
+                    enabled = email.isNotBlank() && error == null,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                Text("Enviar enlace")
-            }
-
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-
-                TextButton(
-                    onClick = onBackToLogin
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
 
-                    Text(
+                    ServifyTextButton(
                         text = "Volver al inicio de sesión",
-                        color = Color(0xFF1A55E3)
+                        onClick = onBackToLogin
                     )
                 }
             }
@@ -216,103 +221,84 @@ private fun RecoverySentScreen(
     onResend: () -> Unit
 ) {
 
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFEFBFF))
+            .background(ServifySurface)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(
+            24.dp,
+            Alignment.CenterVertically
+        )
     ) {
 
         Box(
             modifier = Modifier
                 .size(96.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFDCFCE7)),
+                .background(ServifySuccessContainer),
             contentAlignment = Alignment.Center
         ) {
 
             Icon(
                 imageVector = Icons.Filled.MarkEmailRead,
                 contentDescription = null,
-                tint = Color(0xFF006B53),
+                tint = ServifyTertiary,
                 modifier = Modifier.size(48.dp)
             )
         }
 
-        Spacer(
-            modifier = Modifier.height(24.dp)
-        )
-
-        Text(
-            text = "Correo enviado",
-            color = Color(0xFF1B1B1F),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        Text(
-            text = "Enviamos un enlace de recuperación a ",
-            color = Color(0xFF45464F),
-            fontSize = 16.sp
-        )
-
-        Text(
-            text = email,
-            color = Color(0xFF1B1B1F),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
-
-        Text(
-            text = "Revisa tu bandeja de entrada.",
-            color = Color(0xFF45464F),
-            fontSize = 16.sp
-        )
-
-        Spacer(
-            modifier = Modifier.height(24.dp)
-        )
-
-        Button(
-            onClick = onBackToLogin,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1A55E3),
-                contentColor = Color.White
-            )
-        ) {
-
-            Icon(
-                imageVector = Icons.Filled.ArrowBack,
-                contentDescription = null
-            )
-
-            Spacer(
-                modifier = Modifier.size(8.dp)
-            )
-
-            Text("Volver al inicio")
-        }
-
-        TextButton(
-            onClick = onResend
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
             Text(
-                text = "Reenviar enlace",
-                color = Color(0xFF1A55E3)
+                text = "Correo enviado",
+                style = ServifyTextStyle.Title,
+                color = ServifyOnSurface
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Text(
+                text = buildAnnotatedString {
+
+                    append("Enviamos un enlace de recuperación a ")
+
+                    withStyle(
+                        SpanStyle(
+                            color = ServifyOnSurface,
+                            fontWeight = FontWeight.Medium
+                        )
+                    ) {
+                        append(email)
+                    }
+
+                    append(". Revisa tu bandeja de entrada.")
+                },
+                style = ServifyTextStyle.BodyRelaxed,
+                color = ServifyOnSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
+
+        ServifyFilledButton(
+            text = "Volver al inicio",
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = onBackToLogin
+        )
+
+        ServifyTextButton(
+            text = "Reenviar enlace",
+            onClick = onResend
+        )
     }
 }

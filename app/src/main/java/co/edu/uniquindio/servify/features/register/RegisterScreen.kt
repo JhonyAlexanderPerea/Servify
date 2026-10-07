@@ -8,38 +8,47 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Text
-import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
+import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
+import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
+import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
+import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
+import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
+import co.edu.uniquindio.servify.ui.theme.ServifySurface
+import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
 fun RegisterScreen(
@@ -53,23 +62,26 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFEFBFF))
+            .background(ServifySurface)
             .statusBarsPadding()
             .navigationBarsPadding()
+            .imePadding()
     ) {
 
-        // Top bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = 8.dp,
+                    horizontal = 16.dp,
                     vertical = 8.dp
                 ),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
-            IconButton(
+            ServifyIconButton(
+                icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = "Atrás",
                 onClick = {
                     if (state.step == 1) {
                         onBack()
@@ -77,13 +89,7 @@ fun RegisterScreen(
                         viewModel.previousStep()
                     }
                 }
-            ) {
-
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Atrás"
-                )
-            }
+            )
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -91,19 +97,12 @@ fun RegisterScreen(
 
                 Text(
                     text = "Paso ${state.step} de 2",
-                    color = Color(0xFF45464F),
-                    fontSize = 12.sp
+                    style = ServifyTextStyle.Caption,
+                    color = ServifyOnSurfaceVariant
                 )
 
-                LinearProgressIndicator(
-                    progress = {
-                        state.step / 2f
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp),
-                    color = Color(0xFF1A55E3),
-                    trackColor = Color(0xFFE3E1EC)
+                ServifyProgressBar(
+                    progress = state.step / 2f
                 )
             }
         }
@@ -111,10 +110,13 @@ fun RegisterScreen(
         Column(
             modifier = Modifier
                 .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(
-                    horizontal = 24.dp
-                ),
-            verticalArrangement = Arrangement.Top
+                    start = 24.dp,
+                    end = 24.dp,
+                    bottom = 32.dp
+                )
         ) {
 
             if (state.step == 1) {
@@ -148,16 +150,18 @@ private fun RegisterStepOne(
 
     Text(
         text = "Crear cuenta",
-        color = Color(0xFF1B1B1F),
-        fontSize = 24.sp,
-        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+        style = ServifyTextStyle.Title,
+        color = ServifyOnSurface
+    )
+
+    Spacer(
+        modifier = Modifier.height(4.dp)
     )
 
     Text(
         text = "Únete a Servify y encuentra servicios confiables",
-        color = Color(0xFF45464F),
-        fontSize = 14.sp,
-        modifier = Modifier.padding(top = 4.dp)
+        style = ServifyTextStyle.Small,
+        color = ServifyOnSurfaceVariant
     )
 
     Spacer(
@@ -165,66 +169,44 @@ private fun RegisterStepOne(
     )
 
     Column(
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
         ServifyTextField(
             value = state.name,
             onValueChange = viewModel::onNameChange,
-            modifier = Modifier.fillMaxWidth(),
             label = "Nombre",
-            leadingIcon = {
-                Icon(Icons.Filled.Person, null)
-            },
+            leadingIcon = Icons.Outlined.Person,
             singleLine = true
         )
 
         ServifyTextField(
             value = state.lastName,
             onValueChange = viewModel::onLastNameChange,
-            modifier = Modifier.fillMaxWidth(),
             label = "Apellido",
-            leadingIcon = {
-                Icon(Icons.Filled.Person, null)
-            },
+            leadingIcon = Icons.Outlined.Person,
             singleLine = true
         )
 
         ServifyTextField(
             value = state.email,
             onValueChange = viewModel::onEmailChange,
-            modifier = Modifier.fillMaxWidth(),
             label = "Correo electrónico",
-            leadingIcon = {
-                Icon(Icons.Filled.Email, null)
-            },
+            leadingIcon = Icons.Outlined.Email,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email
+            ),
             singleLine = true
         )
 
-        Button(
+        ServifyFilledButton(
+            text = "Continuar",
+            icon = Icons.AutoMirrored.Outlined.ArrowForward,
             onClick = viewModel::nextStep,
             enabled = state.firstStepValid,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1A55E3),
-                contentColor = Color.White
-            )
-        ) {
-
-            Text("Continuar")
-
-            Spacer(
-                modifier = Modifier.size(8.dp)
-            )
-
-            Icon(
-                imageVector = Icons.Filled.ArrowForward,
-                contentDescription = null
-            )
-        }
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -235,22 +217,28 @@ private fun RegisterStepTwo(
     onRegisterSuccess: () -> Unit
 ) {
 
+    val passwordsMismatch =
+        state.confirmPassword.isNotEmpty() &&
+                state.password != state.confirmPassword
+
     Spacer(
         modifier = Modifier.height(16.dp)
     )
 
     Text(
         text = "Seguridad y ubicación",
-        color = Color(0xFF1B1B1F),
-        fontSize = 24.sp,
-        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+        style = ServifyTextStyle.Title,
+        color = ServifyOnSurface
+    )
+
+    Spacer(
+        modifier = Modifier.height(4.dp)
     )
 
     Text(
         text = "Casi listo. Ingresa tu contraseña y ciudad",
-        color = Color(0xFF45464F),
-        fontSize = 14.sp,
-        modifier = Modifier.padding(top = 4.dp)
+        style = ServifyTextStyle.Small,
+        color = ServifyOnSurfaceVariant
     )
 
     Spacer(
@@ -258,108 +246,104 @@ private fun RegisterStepTwo(
     )
 
     Column(
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
         ServifyTextField(
             value = state.password,
             onValueChange = viewModel::onPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
             label = "Contraseña",
-            leadingIcon = {
-                Icon(Icons.Filled.Lock, null)
-            },
-            supportingText = {
-                Text("Mínimo 8 caracteres")
-            },
+            leadingIcon = Icons.Outlined.Lock,
             visualTransformation = PasswordVisualTransformation(),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            ),
+            singleLine = true,
+            supportingText = "Mínimo 8 caracteres"
         )
 
         ServifyTextField(
             value = state.confirmPassword,
             onValueChange = viewModel::onConfirmPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
             label = "Confirmar contraseña",
-            leadingIcon = {
-                Icon(Icons.Filled.Lock, null)
-            },
-            isError =
-                state.confirmPassword.isNotEmpty() &&
-                        state.password != state.confirmPassword,
-            supportingText = {
-
-                if (
-                    state.confirmPassword.isNotEmpty() &&
-                    state.password != state.confirmPassword
-                ) {
-                    Text("Las contraseñas no coinciden")
-                }
-            },
+            leadingIcon = Icons.Outlined.Lock,
             visualTransformation = PasswordVisualTransformation(),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            ),
+            singleLine = true,
+            isError = passwordsMismatch,
+            supportingText =
+                if (passwordsMismatch) "Las contraseñas no coinciden"
+                else null
         )
 
         ServifyTextField(
             value = state.city,
             onValueChange = viewModel::onCityChange,
-            modifier = Modifier.fillMaxWidth(),
             label = "Ciudad",
-            leadingIcon = {
-                Icon(Icons.Filled.LocationOn, null)
-            },
-            supportingText = {
-                Text("Ej: Armenia, Quindío")
-            },
-            singleLine = true
+            leadingIcon = Icons.Outlined.LocationOn,
+            singleLine = true,
+            supportingText = "Ej: Armenia, Quindío"
         )
 
         Row(
-            verticalAlignment = Alignment.Top
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .toggleable(
+                    value = state.termsAccepted,
+                    role = Role.Checkbox,
+                    onValueChange = { viewModel.toggleTerms() }
+                ),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            Checkbox(
+            ServifyCheckbox(
                 checked = state.termsAccepted,
-                onCheckedChange = {
-                    viewModel.toggleTerms()
-                }
+                modifier = Modifier.padding(top = 2.dp)
             )
 
             Text(
-                text = "Acepto los Términos y condiciones y la Política de privacidad",
-                color = Color(0xFF45464F),
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                modifier = Modifier.padding(top = 12.dp)
+                text = buildAnnotatedString {
+
+                    append("Acepto los ")
+
+                    withStyle(
+                        SpanStyle(
+                            color = ServifyPrimary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    ) {
+                        append("Términos y condiciones")
+                    }
+
+                    append(" y la ")
+
+                    withStyle(
+                        SpanStyle(
+                            color = ServifyPrimary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    ) {
+                        append("Política de privacidad")
+                    }
+                },
+                style = ServifyTextStyle.SmallRelaxed,
+                color = ServifyOnSurfaceVariant
             )
         }
 
-        Button(
+        ServifyFilledButton(
+            text = "Crear cuenta",
+            icon = Icons.Outlined.Check,
             onClick = {
                 viewModel.register()
                 onRegisterSuccess()
             },
             enabled = state.secondStepValid,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1A55E3),
-                contentColor = Color.White
-            )
-        ) {
-
-            Icon(
-                imageVector = Icons.Filled.Check,
-                contentDescription = null
-            )
-
-            Spacer(
-                modifier = Modifier.size(8.dp)
-            )
-
-            Text("Crear cuenta")
-        }
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }

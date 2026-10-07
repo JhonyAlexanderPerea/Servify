@@ -1,4 +1,4 @@
-package co.edu.uniquindio.servify.core.theme
+package co.edu.uniquindio.servify.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

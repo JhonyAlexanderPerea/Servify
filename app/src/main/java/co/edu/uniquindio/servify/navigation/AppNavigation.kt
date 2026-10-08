@@ -9,6 +9,7 @@ import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
 import co.edu.uniquindio.servify.features.home.HomeScreen
 import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
+import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
 import co.edu.uniquindio.servify.features.splash.SplashScreen
@@ -193,6 +194,26 @@ fun AppNavigation(
                 },
                 onBookClick = {
                     // Acción para agendar cita
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // CREATE PUBLICATION (CREACIÓN DE PUBLICACIÓN + IA)
+        // -----------------------------------------
+
+        composable(Screen.CreatePublication.route) {
+
+            CreatePublicationScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPublishSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }

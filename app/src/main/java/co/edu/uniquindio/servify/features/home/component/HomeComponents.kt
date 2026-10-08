@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -490,8 +491,9 @@ fun StarRatingRow(
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(2.dp))
+        val currentLocale = LocalConfiguration.current.locales[0]
         Text(
-            text = String.format(Locale.getDefault(), "%.1f", rating),
+            text = String.format(currentLocale, "%.1f", rating),
             style = ServifyTextStyle.SmallMedium,
             color = ServifyOnSurface
         )

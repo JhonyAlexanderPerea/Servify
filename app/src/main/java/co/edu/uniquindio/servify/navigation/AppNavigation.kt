@@ -6,9 +6,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
+import co.edu.uniquindio.servify.features.home.HomeScreen
 import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
+import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
 import co.edu.uniquindio.servify.features.splash.SplashScreen
 
 @Composable
@@ -149,7 +151,7 @@ fun AppNavigation(
                     ) {
 
                         popUpTo(
-                            Screen.Login.route
+                            Screen.ForgotPassword.route
                         ) {
                             inclusive = true
                         }
@@ -159,13 +161,40 @@ fun AppNavigation(
         }
 
         // -----------------------------------------
-        // HOME
+        // HOME (FEED DE SERVICIOS)
         // -----------------------------------------
 
         composable(Screen.Home.route) {
 
-            // Temporalmente vacío.
-            // Aquí posteriormente irá HomeScreen.
+            HomeScreen(
+                onServiceClick = { serviceId ->
+                    navController.navigate(
+                        Screen.ServiceDetail.createRoute(serviceId)
+                    )
+                },
+                onBookClick = { serviceId ->
+                    navController.navigate(
+                        Screen.ServiceDetail.createRoute(serviceId)
+                    )
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // SERVICE DETAIL (DETALLE DE LA PUBLICACIÓN)
+        // -----------------------------------------
+
+        composable(Screen.ServiceDetail.route) {
+
+            ServiceDetailScreen(
+                serviceId = "1",
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onBookClick = {
+                    // Acción para agendar cita
+                }
+            )
         }
     }
 }

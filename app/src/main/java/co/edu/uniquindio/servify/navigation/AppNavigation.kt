@@ -5,11 +5,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import co.edu.uniquindio.servify.features.dashboard.MainScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
-import co.edu.uniquindio.servify.features.home.HomeScreen
 import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
-import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
 import co.edu.uniquindio.servify.features.splash.SplashScreen
@@ -162,27 +161,29 @@ fun AppNavigation(
         }
 
         // -----------------------------------------
-        // HOME (FEED DE SERVICIOS)
+        // DASHBOARD PRINCIPAL CON BOTTOM NAVIGATION BAR
         // -----------------------------------------
 
         composable(Screen.Home.route) {
 
-            HomeScreen(
-                onServiceClick = { serviceId ->
+            MainScreen(
+                onNavigateToServiceDetail = { serviceId ->
                     navController.navigate(
                         Screen.ServiceDetail.createRoute(serviceId)
                     )
                 },
-                onBookClick = { serviceId ->
-                    navController.navigate(
-                        Screen.ServiceDetail.createRoute(serviceId)
-                    )
+                onLogoutClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }
 
         // -----------------------------------------
-        // SERVICE DETAIL (DETALLE DE LA PUBLICACIÓN)
+        // DETALLE DE PUBLICACIÓN (PANTALLA SECUNDARIA)
         // -----------------------------------------
 
         composable(Screen.ServiceDetail.route) {
@@ -194,26 +195,6 @@ fun AppNavigation(
                 },
                 onBookClick = {
                     // Acción para agendar cita
-                }
-            )
-        }
-
-        // -----------------------------------------
-        // CREATE PUBLICATION (CREACIÓN DE PUBLICACIÓN + IA)
-        // -----------------------------------------
-
-        composable(Screen.CreatePublication.route) {
-
-            CreatePublicationScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onPublishSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) {
-                            inclusive = true
-                        }
-                    }
                 }
             )
         }

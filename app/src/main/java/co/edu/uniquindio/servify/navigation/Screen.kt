@@ -12,7 +12,15 @@ sealed class Screen(val route: String) {
 
     data object ForgotPassword : Screen("forgot_password")
 
+    data object Main : Screen("main")
+
     data object Home : Screen("home")
+
+    data object Explore : Screen("explore")
+
+    data object Notifications : Screen("notifications")
+
+    data object Profile : Screen("profile")
 
     data object ServiceDetail : Screen("service_detail/{serviceId}") {
         fun createRoute(serviceId: String) = "service_detail/$serviceId"

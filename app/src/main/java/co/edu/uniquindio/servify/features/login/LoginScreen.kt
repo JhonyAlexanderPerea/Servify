@@ -53,6 +53,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import androidx.compose.foundation.Image
 
 @Composable
 fun LoginScreen(
@@ -90,21 +91,11 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(ServifyPrimary),
-                contentAlignment = Alignment.Center
-            ) {
-
-                Icon(
-                    imageVector = ServifyIcons.ShieldWithHeart,
-                    contentDescription = "Servify",
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+            Image(
+                painter = androidx.compose.ui.res.painterResource(id = co.edu.uniquindio.servify.R.drawable.logo),
+                contentDescription = "Servify Logo",
+                modifier = Modifier.size(64.dp)
+            )
 
             Text(
                 text = "Bienvenido de nuevo",

@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,12 +39,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import co.edu.uniquindio.servify.ui.theme.ServifyError
-import co.edu.uniquindio.servify.ui.theme.ServifyFieldContainer
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutline
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 private val FieldShape = RoundedCornerShape(
@@ -85,9 +80,9 @@ fun ServifyTextField(
     )
 
     val indicatorColor = when {
-        isError -> ServifyError
-        focused -> ServifyPrimary
-        else -> ServifyOutline
+        isError -> MaterialTheme.colorScheme.error
+        focused -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.outline
     }
 
     Column(
@@ -101,19 +96,19 @@ fun ServifyTextField(
                 .fillMaxWidth()
                 .onFocusChanged { focused = it.isFocused },
             textStyle = ServifyTextStyle.Small.copy(
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             ),
             singleLine = singleLine,
             keyboardOptions = keyboardOptions,
             visualTransformation = visualTransformation,
-            cursorBrush = SolidColor(ServifyPrimary),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             decorationBox = { innerTextField ->
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(FieldShape)
-                        .background(ServifyFieldContainer)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                         .drawBehind {
 
                             val stroke = 2.dp.toPx()
@@ -139,7 +134,7 @@ fun ServifyTextField(
                         Icon(
                             imageVector = leadingIcon,
                             contentDescription = null,
-                            tint = ServifyOnSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .padding(top = 2.dp)
                                 .size(20.dp)
@@ -157,7 +152,7 @@ fun ServifyTextField(
                                 lineHeight = (16f + (labelSize - 12f) * 2f).sp,
                                 letterSpacing = 0.sp
                             ),
-                            color = ServifyOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.offset(y = labelTop)
@@ -175,7 +170,7 @@ fun ServifyTextField(
                         Icon(
                             imageVector = trailingIcon,
                             contentDescription = trailingIconDescription,
-                            tint = ServifyOnSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .padding(top = 2.dp)
                                 .size(20.dp)
@@ -196,8 +191,8 @@ fun ServifyTextField(
                 text = supportingText,
                 style = ServifyTextStyle.Caption,
                 color =
-                    if (isError) ServifyError
-                    else ServifyOnSurfaceVariant,
+                    if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(
                     start = 12.dp,
                     end = 12.dp,

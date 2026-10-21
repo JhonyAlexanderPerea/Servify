@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,11 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import co.edu.uniquindio.servify.ui.theme.ServifyDisabledContent
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOutline
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 // -----------------------------------------
@@ -52,10 +48,10 @@ fun ServifyFilledButton(
         shape = CircleShape,
         contentPadding = PaddingValues(horizontal = 24.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = ServifyPrimary,
-            contentColor = Color.White,
-            disabledContainerColor = ServifySurfaceVariant,
-            disabledContentColor = ServifyDisabledContent
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         )
     ) {
 
@@ -85,10 +81,10 @@ fun ServifyOutlinedButton(
         modifier = modifier.height(48.dp),
         enabled = enabled,
         shape = CircleShape,
-        border = BorderStroke(1.dp, ServifyOutline),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         contentPadding = PaddingValues(horizontal = 24.dp),
         colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = ServifyPrimary
+            contentColor = MaterialTheme.colorScheme.primary
         )
     ) {
 
@@ -111,7 +107,7 @@ fun ServifyTextButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    color: Color = ServifyPrimary
+    color: Color? = null
 ) {
 
     Box(
@@ -129,7 +125,7 @@ fun ServifyTextButton(
         Text(
             text = text,
             style = ServifyTextStyle.SmallMedium,
-            color = color
+            color = color ?: MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -160,7 +156,7 @@ fun ServifyIconButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = ServifyOnSurface,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(24.dp)
         )
     }

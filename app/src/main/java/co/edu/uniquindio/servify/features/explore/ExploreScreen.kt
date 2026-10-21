@@ -53,16 +53,10 @@ import androidx.compose.ui.unit.sp
 import co.edu.uniquindio.servify.features.home.component.TrustIndexBadge
 import co.edu.uniquindio.servify.features.home.model.HomeMockData
 import co.edu.uniquindio.servify.features.home.model.ServiceItem
-import co.edu.uniquindio.servify.ui.theme.ServifyGold
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
+import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
+import co.edu.uniquindio.servify.ui.theme.contentColorOn
 
 @Composable
 fun ExploreScreen(
@@ -76,7 +70,7 @@ fun ExploreScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface),
+            .background(MaterialTheme.colorScheme.background),
         topBar = {
             Column(
                 modifier = Modifier
@@ -91,7 +85,7 @@ fun ExploreScreen(
                 Text(
                     text = "Encuentra proveedores de confianza cerca de ti",
                     style = ServifyTextStyle.Small,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -115,7 +109,7 @@ fun ExploreScreen(
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(if (isSelected) ServifyPrimary else ServifySurfaceVariant)
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { selectedCategory = cat }
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
@@ -124,7 +118,7 @@ fun ExploreScreen(
                             style = ServifyTextStyle.Caption.copy(
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                             ),
-                            color = if (isSelected) Color.White else ServifyOnSurfaceVariant
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -139,7 +133,10 @@ fun ExploreScreen(
                     .clip(RoundedCornerShape(24.dp))
                     .background(
                         brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1))
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surfaceContainerHighest,
+                                MaterialTheme.colorScheme.surfaceContainer
+                            )
                         )
                     )
             ) {
@@ -152,18 +149,18 @@ fun ExploreScreen(
                         Icon(
                             imageVector = Icons.Default.Map,
                             contentDescription = "Mapa",
-                            tint = ServifyPrimary.copy(alpha = 0.4f),
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
                             modifier = Modifier.size(80.dp)
                         )
                         Text(
                             text = "Mapa Interactivo de Servicios",
                             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                            color = ServifyOnSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "Armenia y Eje Cafetero",
                             style = ServifyTextStyle.Caption,
-                            color = ServifyOnSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -171,7 +168,7 @@ fun ExploreScreen(
                 // Pines flotantes sobre el mapa
                 MapPinOverlay(
                     title = "Plomería (94%)",
-                    color = ServifyPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(top = 40.dp, start = 40.dp)
@@ -179,14 +176,14 @@ fun ExploreScreen(
 
                 MapPinOverlay(
                     title = "Electricista (91%)",
-                    color = Color(0xFF7B2FBE),
+                    color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier
                         .align(Alignment.Center)
                 )
 
                 MapPinOverlay(
                     title = "Clases (98%)",
-                    color = Color(0xFFEA4C89),
+                    color = ServifyExtra.favorite,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(bottom = 60.dp, end = 50.dp)
@@ -199,14 +196,14 @@ fun ExploreScreen(
                         .size(44.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, ServifyOutlineVariant, CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         .align(Alignment.TopEnd),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.MyLocation,
                         contentDescription = "Mi ubicación",
-                        tint = ServifyPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -218,7 +215,7 @@ fun ExploreScreen(
             Text(
                 text = "Proveedores destacados a menos de 5 km",
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurface,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
 
@@ -249,7 +246,7 @@ private fun MapPinOverlay(
     Row(
         modifier = modifier
             .clip(CircleShape)
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .border(1.5.dp, color, CircleShape)
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -267,7 +264,7 @@ private fun MapPinOverlay(
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp
             ),
-            color = ServifyOnSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -283,7 +280,7 @@ private fun ExploreServiceCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, ServifyOutlineVariant)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -302,7 +299,7 @@ private fun ExploreServiceCard(
                         Text(
                             text = service.providerInitials,
                             style = ServifyTextStyle.Caption.copy(
-                                color = Color.White,
+                                color = contentColorOn(service.providerColor),
                                 fontWeight = FontWeight.Bold
                             )
                         )
@@ -311,7 +308,7 @@ private fun ExploreServiceCard(
                     Text(
                         text = service.providerName,
                         style = ServifyTextStyle.SmallMedium,
-                        color = ServifyOnSurface,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -325,7 +322,7 @@ private fun ExploreServiceCard(
             Text(
                 text = service.title,
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurface,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -333,7 +330,7 @@ private fun ExploreServiceCard(
             Text(
                 text = "${service.priceRange} • ${service.city}",
                 style = ServifyTextStyle.Caption,
-                color = ServifyOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

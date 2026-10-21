@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,12 +50,6 @@ import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
 import co.edu.uniquindio.servify.ui.components.icons.ServifyIcons
 import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyError
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import androidx.compose.foundation.Image
 
@@ -76,7 +71,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
@@ -108,13 +103,13 @@ fun LoginScreen(
             Text(
                 text = "Bienvenido de nuevo",
                 style = ServifyTextStyle.Title,
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = "Ingresa a tu cuenta de Servify",
                 style = ServifyTextStyle.Small,
-                color = ServifyOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -182,7 +177,7 @@ fun LoginScreen(
                 Text(
                     text = "Recordarme",
                     style = ServifyTextStyle.Small,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -190,7 +185,7 @@ fun LoginScreen(
                 Text(
                     text = message,
                     style = ServifyTextStyle.Small,
-                    color = ServifyError
+                    color = MaterialTheme.colorScheme.error
                 )
             }
 
@@ -226,20 +221,20 @@ fun LoginScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(1.dp)
-                        .background(ServifyOutlineVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
 
                 Text(
                     text = "o continúa con",
                     style = ServifyTextStyle.Caption,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(1.dp)
-                        .background(ServifyOutlineVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
             }
 
@@ -261,7 +256,7 @@ fun LoginScreen(
                 Text(
                     text = "¿No tienes cuenta?",
                     style = ServifyTextStyle.Small,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 ServifyTextButton(
@@ -286,7 +281,7 @@ private fun GoogleButton(
             .clip(CircleShape)
             .border(
                 width = 1.dp,
-                color = ServifyOutlineVariant,
+                color = MaterialTheme.colorScheme.outlineVariant,
                 shape = CircleShape
             )
             .clickable(
@@ -310,7 +305,7 @@ private fun GoogleButton(
         Text(
             text = "Continuar con Google",
             style = ServifyTextStyle.SmallMedium,
-            color = ServifyOnSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

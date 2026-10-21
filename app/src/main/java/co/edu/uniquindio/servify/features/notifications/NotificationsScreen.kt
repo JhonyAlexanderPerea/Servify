@@ -43,13 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
+import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
@@ -64,7 +58,9 @@ data class NotificationItemData(
 )
 
 object NotificationsMockData {
-    val sampleNotifications = listOf(
+
+    @Composable
+    fun sampleNotifications(): List<NotificationItemData> = listOf(
         NotificationItemData(
             id = "1",
             title = "Recordatorio de Cita Próxima",
@@ -72,7 +68,7 @@ object NotificationsMockData {
             timeAgo = "Hace 10 min",
             isRead = false,
             icon = Icons.Default.Alarm,
-            iconColor = Color(0xFFB45309)
+            iconColor = ServifyExtra.warning
         ),
         NotificationItemData(
             id = "2",
@@ -81,7 +77,7 @@ object NotificationsMockData {
             timeAgo = "Hace 30 min",
             isRead = false,
             icon = Icons.Default.CheckCircle,
-            iconColor = ServifyTertiary
+            iconColor = MaterialTheme.colorScheme.secondary
         ),
         NotificationItemData(
             id = "3",
@@ -90,7 +86,7 @@ object NotificationsMockData {
             timeAgo = "Hace 1 hora",
             isRead = false,
             icon = Icons.Default.Favorite,
-            iconColor = Color(0xFFEA4C89)
+            iconColor = ServifyExtra.favorite
         ),
         NotificationItemData(
             id = "4",
@@ -99,7 +95,7 @@ object NotificationsMockData {
             timeAgo = "Hace 3 horas",
             isRead = true,
             icon = Icons.Default.EventAvailable,
-            iconColor = ServifyPrimary
+            iconColor = MaterialTheme.colorScheme.primary
         ),
         NotificationItemData(
             id = "5",
@@ -108,7 +104,7 @@ object NotificationsMockData {
             timeAgo = "Ayer",
             isRead = true,
             icon = Icons.Default.WorkspacePremium,
-            iconColor = Color(0xFFFFD700)
+            iconColor = ServifyExtra.gold
         ),
         NotificationItemData(
             id = "6",
@@ -117,7 +113,7 @@ object NotificationsMockData {
             timeAgo = "Hace 2 días",
             isRead = true,
             icon = Icons.Default.ChatBubble,
-            iconColor = ServifyPrimary
+            iconColor = MaterialTheme.colorScheme.primary
         )
     )
 }
@@ -129,7 +125,7 @@ fun NotificationsScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface),
+            .background(MaterialTheme.colorScheme.background),
         topBar = {
             Row(
                 modifier = Modifier
@@ -147,7 +143,7 @@ fun NotificationsScreen(
                     Text(
                         text = "Actualizaciones de tus citas y publicaciones",
                         style = ServifyTextStyle.Small,
-                        color = ServifyOnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -155,19 +151,22 @@ fun NotificationsScreen(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(ServifySurfaceVariant),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = null,
-                        tint = ServifyPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
     ) { paddingValues ->
+
+        // LazyListScope no es composable: la lista se resuelve antes del LazyColumn.
+        val notifications = NotificationsMockData.sampleNotifications()
 
         LazyColumn(
             modifier = Modifier
@@ -176,7 +175,7 @@ fun NotificationsScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(NotificationsMockData.sampleNotifications, key = { it.id }) { item ->
+            items(notifications, key = { it.id }) { item ->
                 NotificationCardItem(notification = item)
             }
         }
@@ -191,11 +190,15 @@ private fun NotificationCardItem(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (notification.isRead) MaterialTheme.colorScheme.surface else Color(0xFFE8EEFF)
+            containerColor = if (notification.isRead) {
+                MaterialTheme.colorScheme.surface
+            } else {
+                MaterialTheme.colorScheme.primaryContainer
+            }
         ),
         border = BorderStroke(
             1.dp,
-            if (notification.isRead) ServifyOutlineVariant else ServifyPrimary.copy(alpha = 0.3f)
+            if (notification.isRead) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
         )
     ) {
         Row(
@@ -230,14 +233,14 @@ private fun NotificationCardItem(
                     Text(
                         text = notification.title,
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                        color = ServifyOnSurface,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
 
                     Text(
                         text = notification.timeAgo,
                         style = ServifyTextStyle.Caption,
-                        color = ServifyOnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -246,7 +249,7 @@ private fun NotificationCardItem(
                 Text(
                     text = notification.message,
                     style = ServifyTextStyle.SmallRelaxed,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

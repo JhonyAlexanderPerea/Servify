@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,9 +37,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import co.edu.uniquindio.servify.R
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import kotlinx.coroutines.delay
 
@@ -60,7 +58,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
 
         AnimatedVisibility(
@@ -94,13 +92,13 @@ fun SplashScreen(
                     Text(
                         text = "Servify",
                         style = ServifyTextStyle.Display,
-                        color = ServifyOnSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
                         text = "Servicios locales de confianza",
                         style = ServifyTextStyle.BodyLight,
-                        color = ServifyOnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -124,7 +122,7 @@ fun SplashScreen(
         Text(
             text = "v1.0.0",
             style = ServifyTextStyle.Caption,
-            color = ServifyOnSurfaceVariant.copy(alpha = 0.50f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.50f),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp)
@@ -159,6 +157,6 @@ private fun PulsingDot(
             .size(8.dp)
             .graphicsLayer { alpha = pulse }
             .clip(CircleShape)
-            .background(ServifyPrimary.copy(alpha = 0.80f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.80f))
     )
 }

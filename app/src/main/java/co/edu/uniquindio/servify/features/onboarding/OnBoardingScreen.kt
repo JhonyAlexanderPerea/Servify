@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.outlined.RocketLaunch
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -42,10 +44,7 @@ import androidx.compose.ui.unit.dp
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
+import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.cssLinearGradient
 
@@ -99,6 +98,25 @@ private val pages = listOf(
     )
 )
 
+/**
+ * En modo oscuro los degradados pastel del mockup se convierten en un tinte
+ * translucido del color de marca, para que no aparezca un bloque glaring.
+ */
+@Composable
+private fun onboardingPages(): List<OnboardingPage> {
+    if (!ServifyExtra.isDark) return pages
+
+    return pages.map { page ->
+        page.copy(
+            background = cssLinearGradient(
+                160f,
+                0f to page.color.copy(alpha = 0.30f),
+                1f to page.color.copy(alpha = 0.10f)
+            )
+        )
+    }
+}
+
 @Composable
 fun OnboardingScreen(
     onFinish: () -> Unit
@@ -108,13 +126,19 @@ fun OnboardingScreen(
         mutableIntStateOf(0)
     }
 
+    val pages = onboardingPages()
     val page = pages[currentPage]
+    val pageAccent = if (ServifyExtra.isDark) {
+        lerp(page.color, Color.White, 0.45f)
+    } else {
+        page.color
+    }
     val isLast = currentPage == pages.lastIndex
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -165,7 +189,7 @@ fun OnboardingScreen(
                         .clip(CircleShape)
                         // color + "22" en hex = 34/255 de opacidad
                         .background(
-                            page.color.copy(alpha = 34f / 255f)
+                            pageAccent.copy(alpha = 34f / 255f)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -173,7 +197,7 @@ fun OnboardingScreen(
                     Icon(
                         imageVector = page.icon,
                         contentDescription = null,
-                        tint = page.color,
+                        tint = pageAccent,
                         modifier = Modifier.size(72.dp)
                     )
                 }
@@ -187,7 +211,7 @@ fun OnboardingScreen(
                 Text(
                     text = page.title,
                     style = ServifyTextStyle.TitleTight,
-                    color = ServifyOnSurface,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -199,7 +223,7 @@ fun OnboardingScreen(
                 Text(
                     text = page.description,
                     style = ServifyTextStyle.BodyRelaxed,
-                    color = ServifyOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -277,8 +301,8 @@ private fun PageDot(
             .size(width = width, height = 8.dp)
             .clip(CircleShape)
             .background(
-                if (selected) ServifyPrimary
-                else ServifyOutlineVariant
+                if (selected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.outlineVariant
             )
     )
 }

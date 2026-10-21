@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,9 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import co.edu.uniquindio.servify.di.AppContainer
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 /**
@@ -37,7 +35,7 @@ fun ModeratorPanelScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(24.dp),
@@ -47,13 +45,13 @@ fun ModeratorPanelScreen(
         Text(
             text = "Panel de moderación",
             style = ServifyTextStyle.Title,
-            color = ServifyOnSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Text(
             text = moderator?.email ?: "",
             style = ServifyTextStyle.Small,
-            color = ServifyOnSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         ServifyOutlinedButton(

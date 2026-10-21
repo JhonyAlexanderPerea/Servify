@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,10 +47,6 @@ import co.edu.uniquindio.servify.features.service.component.ServiceDetailTopBar
 import co.edu.uniquindio.servify.features.service.component.TrustSystemCard
 import co.edu.uniquindio.servify.features.service.model.CommentItemData
 import co.edu.uniquindio.servify.features.service.model.ServiceDetailMockData
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
@@ -62,11 +59,14 @@ fun ServiceDetailScreen(
     onShareClick: () -> Unit = {}
 ) {
     var detailData by remember { mutableStateOf(ServiceDetailMockData.sampleDetail) }
+    // El color se resuelve fuera del lambda porque los lambdas de onSendComment
+    // no son composables.
+    val commentAuthorAvatarColor = MaterialTheme.colorScheme.primary
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding(),
         topBar = {
@@ -106,7 +106,7 @@ fun ServiceDetailScreen(
                     Text(
                         text = detailData.title,
                         style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
-                        color = ServifyOnSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -125,14 +125,14 @@ fun ServiceDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.Place,
                                 contentDescription = null,
-                                tint = ServifyOnSurfaceVariant,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = detailData.city,
                                 style = ServifyTextStyle.Small,
-                                color = ServifyOnSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -143,19 +143,19 @@ fun ServiceDetailScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(ServifyPrimary.copy(alpha = 0.1f))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = "Rango de precio: ",
                             style = ServifyTextStyle.Caption,
-                            color = ServifyOnSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = detailData.priceRange,
                             style = ServifyTextStyle.SmallMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = ServifyPrimary
+                                color = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -199,7 +199,7 @@ fun ServiceDetailScreen(
                     Text(
                         text = "Reseñas y opiniones (${detailData.comments.size})",
                         style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
-                        color = ServifyOnSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -217,7 +217,7 @@ fun ServiceDetailScreen(
                             id = "c_${System.currentTimeMillis()}",
                             authorName = "Tú (Jhony Ramírez)",
                             authorInitials = "JR",
-                            authorAvatarColor = ServifyPrimary,
+                            authorAvatarColor = commentAuthorAvatarColor,
                             rating = rating.toDouble(),
                             date = "Ahora mismo",
                             commentText = commentText

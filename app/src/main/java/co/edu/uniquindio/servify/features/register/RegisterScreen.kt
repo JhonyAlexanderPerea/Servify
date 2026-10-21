@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,11 +46,6 @@ import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
 import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
 import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyError
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
@@ -68,7 +64,7 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
@@ -104,7 +100,7 @@ fun RegisterScreen(
                 Text(
                     text = "Paso ${state.step} de 2",
                     style = ServifyTextStyle.Caption,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 ServifyProgressBar(
@@ -156,7 +152,7 @@ private fun RegisterStepOne(
     Text(
         text = "Crear cuenta",
         style = ServifyTextStyle.Title,
-        color = ServifyOnSurface
+        color = MaterialTheme.colorScheme.onSurface
     )
 
     Spacer(
@@ -166,7 +162,7 @@ private fun RegisterStepOne(
     Text(
         text = "Únete a Servify y encuentra servicios confiables",
         style = ServifyTextStyle.Small,
-        color = ServifyOnSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     Spacer(
@@ -234,7 +230,7 @@ private fun RegisterStepTwo(
     Text(
         text = "Seguridad y ubicación",
         style = ServifyTextStyle.Title,
-        color = ServifyOnSurface
+        color = MaterialTheme.colorScheme.onSurface
     )
 
     Spacer(
@@ -244,7 +240,7 @@ private fun RegisterStepTwo(
     Text(
         text = "Casi listo. Ingresa tu contraseña y ciudad",
         style = ServifyTextStyle.Small,
-        color = ServifyOnSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     Spacer(
@@ -318,7 +314,7 @@ private fun RegisterStepTwo(
 
                     withStyle(
                         SpanStyle(
-                            color = ServifyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
                         )
                     ) {
@@ -329,7 +325,7 @@ private fun RegisterStepTwo(
 
                     withStyle(
                         SpanStyle(
-                            color = ServifyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
                         )
                     ) {
@@ -337,7 +333,7 @@ private fun RegisterStepTwo(
                     }
                 },
                 style = ServifyTextStyle.SmallRelaxed,
-                color = ServifyOnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -345,7 +341,7 @@ private fun RegisterStepTwo(
             Text(
                 text = message,
                 style = ServifyTextStyle.Small,
-                color = ServifyError
+                color = MaterialTheme.colorScheme.error
             )
         }
 

@@ -7,4 +7,8 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="servify_primary">#1A55E3</color>
+    <color name="servify_purple">#7B2FBE</color>
+    <color name="servify_navy">#25354C</color>
+    <color name="servify_cyan">#22A8E0</color>
 </resources>

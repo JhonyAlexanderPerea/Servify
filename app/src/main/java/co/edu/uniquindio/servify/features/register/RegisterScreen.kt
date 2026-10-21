@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
 import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
 import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
+import co.edu.uniquindio.servify.ui.theme.ServifyError
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
@@ -58,6 +60,10 @@ fun RegisterScreen(
 ) {
 
     val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(state.registered) {
+        if (state.registered) onRegisterSuccess()
+    }
 
     Column(
         modifier = Modifier
@@ -130,8 +136,7 @@ fun RegisterScreen(
 
                 RegisterStepTwo(
                     state = state,
-                    viewModel = viewModel,
-                    onRegisterSuccess = onRegisterSuccess
+                    viewModel = viewModel
                 )
             }
         }
@@ -197,7 +202,9 @@ private fun RegisterStepOne(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email
             ),
-            singleLine = true
+            singleLine = true,
+            isError = state.emailError != null,
+            supportingText = state.emailError
         )
 
         ServifyFilledButton(
@@ -213,8 +220,7 @@ private fun RegisterStepOne(
 @Composable
 private fun RegisterStepTwo(
     state: RegisterUiState,
-    viewModel: RegisterViewModel,
-    onRegisterSuccess: () -> Unit
+    viewModel: RegisterViewModel
 ) {
 
     val passwordsMismatch =
@@ -335,14 +341,19 @@ private fun RegisterStepTwo(
             )
         }
 
+        state.registerError?.let { message ->
+            Text(
+                text = message,
+                style = ServifyTextStyle.Small,
+                color = ServifyError
+            )
+        }
+
         ServifyFilledButton(
-            text = "Crear cuenta",
+            text = if (state.isLoading) "Creando cuenta…" else "Crear cuenta",
             icon = Icons.Outlined.Check,
-            onClick = {
-                viewModel.register()
-                onRegisterSuccess()
-            },
-            enabled = state.secondStepValid,
+            onClick = viewModel::register,
+            enabled = state.secondStepValid && !state.isLoading,
             modifier = Modifier.fillMaxWidth()
         )
     }

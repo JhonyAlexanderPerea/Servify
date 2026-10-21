@@ -5,9 +5,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import co.edu.uniquindio.servify.di.AppContainer
+import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.features.dashboard.MainScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
 import co.edu.uniquindio.servify.features.login.LoginScreen
+import co.edu.uniquindio.servify.features.moderator.panel.ModeratorPanelScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
@@ -76,11 +79,15 @@ fun AppNavigation(
         composable(Screen.Login.route) {
 
             LoginScreen(
-                onLoginSuccess = {
+                onLoginSuccess = { role ->
 
-                    navController.navigate(
-                        Screen.Home.route
-                    ) {
+                    // El rol decide el flujo: moderador -> panel de moderación, usuario -> Home.
+                    val destination = when (role) {
+                        UserRole.MODERATOR -> Screen.ModeratorPanel.route
+                        UserRole.USER -> Screen.Home.route
+                    }
+
+                    navController.navigate(destination) {
 
                         popUpTo(
                             Screen.Login.route
@@ -173,8 +180,27 @@ fun AppNavigation(
                     )
                 },
                 onLogoutClick = {
+                    AppContainer.authRepository.logout()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // PANEL DE MODERACIÓN (placeholder hasta la tarea 27)
+        // -----------------------------------------
+
+        composable(Screen.ModeratorPanel.route) {
+
+            ModeratorPanelScreen(
+                onLogoutClick = {
+                    AppContainer.authRepository.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.ModeratorPanel.route) {
                             inclusive = true
                         }
                     }

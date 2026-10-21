@@ -27,4 +27,7 @@ sealed class Screen(val route: String) {
     }
 
     data object CreatePublication : Screen("create_publication")
+
+    // Flujo del moderador (tareas 26-28 lo completan)
+    data object ModeratorPanel : Screen("moderator_panel")
 }

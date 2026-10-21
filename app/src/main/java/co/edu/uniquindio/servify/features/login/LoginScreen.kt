@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,11 +43,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
 import co.edu.uniquindio.servify.ui.components.icons.ServifyIcons
 import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
+import co.edu.uniquindio.servify.ui.theme.ServifyError
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
@@ -57,13 +60,18 @@ import androidx.compose.foundation.Image
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (UserRole) -> Unit,
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
 
     val state by viewModel.uiState.collectAsState()
+
+    // Al autenticarse, se navega según el rol (usuario -> Home, moderador -> panel de moderación).
+    LaunchedEffect(state.loggedInRole) {
+        state.loggedInRole?.let(onLoginSuccess)
+    }
 
     Column(
         modifier = Modifier
@@ -178,13 +186,18 @@ fun LoginScreen(
                 )
             }
 
+            state.loginError?.let { message ->
+                Text(
+                    text = message,
+                    style = ServifyTextStyle.Small,
+                    color = ServifyError
+                )
+            }
+
             ServifyFilledButton(
-                text = "Iniciar sesión",
-                onClick = {
-                    viewModel.login()
-                    onLoginSuccess()
-                },
-                enabled = state.isValid,
+                text = if (state.isLoading) "Ingresando…" else "Iniciar sesión",
+                onClick = viewModel::login,
+                enabled = state.isValid && !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
@@ -231,7 +244,7 @@ fun LoginScreen(
             }
 
             GoogleButton(
-                onClick = onLoginSuccess
+                onClick = viewModel::onGoogleClick
             )
 
             Row(

@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.ui.theme
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -9,8 +12,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 /**
  * Esquema CLARO.
@@ -127,6 +133,8 @@ fun ServifyTheme(
 
     val extraColors = if (darkTheme) DarkServifyExtraColors else LightServifyExtraColors
 
+    ApplySystemBarAppearance(darkTheme = darkTheme)
+
     CompositionLocalProvider(LocalServifyExtraColors provides extraColors) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -134,4 +142,36 @@ fun ServifyTheme(
             content = content
         )
     }
+}
+
+/**
+ * La apariencia de los iconos de las barras del sistema la decide el TEMA de la app,
+ * no el tema de la ventana: asi el modo claro muestra iconos oscuros y el modo oscuro
+ * iconos claros, sin depender de cuando se ejecute [MainActivity.enableEdgeToEdge].
+ *
+ * Sin esto, el splash de plataforma (API 31+) restauraba al salir el valor del tema XML
+ * y dejaba los iconos blancos sobre el fondo claro (iconos invisibles) al arrancar en frio.
+ */
+@Composable
+private fun ApplySystemBarAppearance(darkTheme: Boolean) {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+
+    SideEffect {
+        val window = view.context.findActivity()?.window ?: return@SideEffect
+        WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = !darkTheme
+            isAppearanceLightNavigationBars = !darkTheme
+        }
+    }
+}
+
+/** Desenvuelve el [ContextWrapper] hasta llegar a la [Activity] que hospeda la composable. */
+private fun Context.findActivity(): Activity? {
+    var context: Context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return context as? Activity
 }

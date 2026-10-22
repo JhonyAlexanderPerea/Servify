@@ -45,11 +45,6 @@ import co.edu.uniquindio.servify.features.home.component.HomeTopAppBar
 import co.edu.uniquindio.servify.features.home.component.NextAppointmentBanner
 import co.edu.uniquindio.servify.features.home.component.ServiceFeedCard
 import co.edu.uniquindio.servify.features.home.model.HomeMockData
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import androidx.compose.material.icons.Icons
@@ -73,9 +68,9 @@ fun HomeScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface)
             .statusBarsPadding()
             .navigationBarsPadding(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             HomeTopAppBar(
                 userName = HomeMockData.currentUserName,
@@ -136,7 +131,7 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .clip(CircleShape)
                                     .background(
-                                        if (isSelected) ServifyPrimary else ServifySurfaceVariant
+                                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
                                     )
                                     .clickable { selectedFilterChip = filterLabel }
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -146,7 +141,7 @@ fun HomeScreen(
                                     style = ServifyTextStyle.Caption.copy(
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                     ),
-                                    color = if (isSelected) Color.White else ServifyOnSurfaceVariant
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -156,14 +151,14 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(ServifySurfaceVariant)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(if (!isMapView) MaterialTheme.colorScheme.surface else Color.Transparent)
+                                .background(if (!isMapView) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
                                 .clickable { isMapView = false }
                                 .padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
@@ -171,14 +166,14 @@ fun HomeScreen(
                                 Icon(
                                     imageVector = Icons.Default.List,
                                     contentDescription = "Lista",
-                                    tint = if (!isMapView) ServifyOnSurface else ServifyOnSurfaceVariant,
+                                    tint = if (!isMapView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "Lista",
                                     style = ServifyTextStyle.Caption.copy(fontSize = 11.sp),
-                                    color = if (!isMapView) ServifyOnSurface else ServifyOnSurfaceVariant
+                                    color = if (!isMapView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -186,7 +181,7 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(if (isMapView) MaterialTheme.colorScheme.surface else Color.Transparent)
+                                .background(if (isMapView) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
                                 .clickable { isMapView = true }
                                 .padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
@@ -194,14 +189,14 @@ fun HomeScreen(
                                 Icon(
                                     imageVector = Icons.Default.Map,
                                     contentDescription = "Mapa",
-                                    tint = if (isMapView) ServifyOnSurface else ServifyOnSurfaceVariant,
+                                    tint = if (isMapView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "Mapa",
                                     style = ServifyTextStyle.Caption.copy(fontSize = 11.sp),
-                                    color = if (isMapView) ServifyOnSurface else ServifyOnSurfaceVariant
+                                    color = if (isMapView) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -229,7 +224,7 @@ fun HomeScreen(
                     Text(
                         text = "Servicios cerca de ti",
                         style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
-                        color = ServifyOnSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Row(
@@ -242,14 +237,14 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.Tune,
                             contentDescription = "Filtros",
-                            tint = ServifyPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Filtros",
                             style = ServifyTextStyle.SmallMedium,
-                            color = ServifyPrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

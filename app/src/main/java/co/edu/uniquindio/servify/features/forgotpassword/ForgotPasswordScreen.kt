@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -44,13 +45,6 @@ import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
-import co.edu.uniquindio.servify.ui.theme.ServifySuccessContainer
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
-import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
@@ -96,7 +90,7 @@ private fun RecoveryFormScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
@@ -141,14 +135,14 @@ private fun RecoveryFormScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(ServifyPrimaryContainer),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
 
                     Icon(
                         imageVector = Icons.Filled.LockReset,
                         contentDescription = null,
-                        tint = ServifyPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -156,13 +150,13 @@ private fun RecoveryFormScreen(
                 Text(
                     text = "Recuperar contraseña",
                     style = ServifyTextStyle.Title,
-                    color = ServifyOnSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = "Ingresa el correo de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.",
                     style = ServifyTextStyle.SmallRelaxed,
-                    color = ServifyOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -225,7 +219,7 @@ private fun RecoverySentScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(horizontal = 24.dp),
@@ -240,14 +234,14 @@ private fun RecoverySentScreen(
             modifier = Modifier
                 .size(96.dp)
                 .clip(CircleShape)
-                .background(ServifySuccessContainer),
+                .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center
         ) {
 
             Icon(
                 imageVector = Icons.Filled.MarkEmailRead,
                 contentDescription = null,
-                tint = ServifyTertiary,
+                tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(48.dp)
             )
         }
@@ -260,7 +254,7 @@ private fun RecoverySentScreen(
             Text(
                 text = "Correo enviado",
                 style = ServifyTextStyle.Title,
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(
@@ -274,7 +268,7 @@ private fun RecoverySentScreen(
 
                     withStyle(
                         SpanStyle(
-                            color = ServifyOnSurface,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Medium
                         )
                     ) {
@@ -284,7 +278,7 @@ private fun RecoverySentScreen(
                     append(". Revisa tu bandeja de entrada.")
                 },
                 style = ServifyTextStyle.BodyRelaxed,
-                color = ServifyOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )

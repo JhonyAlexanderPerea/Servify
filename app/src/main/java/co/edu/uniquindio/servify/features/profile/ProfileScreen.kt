@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -47,14 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.model.HomeMockData
-import co.edu.uniquindio.servify.ui.theme.ServifyGold
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
+import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
@@ -67,11 +61,12 @@ fun ProfileScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface),
+            .background(MaterialTheme.colorScheme.background),
         topBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -86,14 +81,14 @@ fun ProfileScreen(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(ServifySurfaceVariant)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .clickable { /* Editar perfil */ },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Editar",
-                        tint = ServifyOnSurface,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -114,7 +109,7 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, ServifyOutlineVariant)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -122,13 +117,13 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(60.dp)
                                     .clip(CircleShape)
-                                    .background(ServifyPrimary),
+                                    .background(MaterialTheme.colorScheme.primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = HomeMockData.currentUserInitials,
                                     style = ServifyTextStyle.Title.copy(
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onPrimary,
                                         fontSize = 22.sp
                                     )
                                 )
@@ -141,7 +136,7 @@ fun ProfileScreen(
                                     Text(
                                         text = "${HomeMockData.currentUserName} Ramírez",
                                         style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
-                                        color = ServifyOnSurface
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     LevelBadge(level = "Experto")
@@ -151,14 +146,14 @@ fun ProfileScreen(
                                     Icon(
                                         imageVector = Icons.Default.Place,
                                         contentDescription = null,
-                                        tint = ServifyOnSurfaceVariant,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(2.dp))
                                     Text(
                                         text = HomeMockData.currentUserCity,
                                         style = ServifyTextStyle.Small,
-                                        color = ServifyOnSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -171,7 +166,7 @@ fun ProfileScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(ServifySurfaceVariant)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .padding(12.dp),
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
@@ -180,13 +175,13 @@ fun ProfileScreen(
                                     text = "1.240",
                                     style = ServifyTextStyle.SmallMedium.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = ServifyPrimary
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 )
                                 Text(
                                     text = "Puntos Servify",
                                     style = ServifyTextStyle.Caption,
-                                    color = ServifyOnSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -194,19 +189,19 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .width(1.dp)
                                     .height(28.dp)
-                                    .background(ServifyOutlineVariant)
+                                    .background(MaterialTheme.colorScheme.outlineVariant)
                             )
 
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "23",
                                     style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = ServifyOnSurface
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "Trabajos",
                                     style = ServifyTextStyle.Caption,
-                                    color = ServifyOnSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -214,7 +209,7 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .width(1.dp)
                                     .height(28.dp)
-                                    .background(ServifyOutlineVariant)
+                                    .background(MaterialTheme.colorScheme.outlineVariant)
                             )
 
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -222,20 +217,20 @@ fun ProfileScreen(
                                     Icon(
                                         imageVector = Icons.Default.Star,
                                         contentDescription = null,
-                                        tint = ServifyGold,
+                                        tint = ServifyExtra.gold,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(2.dp))
                                     Text(
                                         text = "4.8",
                                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = ServifyOnSurface
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                                 Text(
                                     text = "Rating",
                                     style = ServifyTextStyle.Caption,
-                                    color = ServifyOnSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -248,8 +243,8 @@ fun ProfileScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8FFF8)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ServifyTertiary.copy(alpha = 0.3f))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f))
                 ) {
                     Row(
                         modifier = Modifier
@@ -263,13 +258,13 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
-                                    .background(ServifyTertiary),
+                                    .background(MaterialTheme.colorScheme.secondary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Shield,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
@@ -280,12 +275,12 @@ fun ProfileScreen(
                                 Text(
                                     text = "Índice de Confianza",
                                     style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = ServifyTertiary
+                                    color = MaterialTheme.colorScheme.secondary
                                 )
                                 Text(
                                     text = "91% • Perfil Verificado y Seguro",
                                     style = ServifyTextStyle.Caption,
-                                    color = ServifyOnSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -293,7 +288,7 @@ fun ProfileScreen(
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = ServifyTertiary
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
                 }
@@ -305,7 +300,7 @@ fun ProfileScreen(
                     Text(
                         text = "Insignias y Logros Alcanzados",
                         style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
-                        color = ServifyOnSurface,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
@@ -316,14 +311,14 @@ fun ProfileScreen(
                         AchievementBadgeChip(
                             title = "Usuario Confiable",
                             icon = Icons.Default.Shield,
-                            color = ServifyTertiary,
+                            color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.weight(1f)
                         )
 
                         AchievementBadgeChip(
                             title = "10 Verificados",
                             icon = Icons.Default.WorkspacePremium,
-                            color = Color(0xFFB45309),
+                            color = ServifyExtra.warning,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -336,7 +331,7 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ServifyOutlineVariant)
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         ProfileMenuItem(
@@ -354,7 +349,7 @@ fun ProfileScreen(
                         ProfileMenuItem(
                             icon = Icons.Default.Logout,
                             title = "Cerrar Sesión",
-                            textColor = Color(0xFFBA1A1A),
+                            textColor = MaterialTheme.colorScheme.error,
                             onClick = onLogoutClick
                         )
                     }
@@ -397,7 +392,7 @@ private fun AchievementBadgeChip(
 private fun ProfileMenuItem(
     icon: ImageVector,
     title: String,
-    textColor: Color = ServifyOnSurface,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit
 ) {
     Row(
@@ -426,7 +421,7 @@ private fun ProfileMenuItem(
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = ServifyOnSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )
     }

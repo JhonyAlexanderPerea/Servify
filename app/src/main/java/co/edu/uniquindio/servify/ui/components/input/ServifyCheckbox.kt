@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,8 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import co.edu.uniquindio.servify.ui.theme.ServifyOutline
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 
 /**
  * Checkbox del mockup: 20dp, esquinas de 4dp, borde de 2dp.
@@ -35,11 +34,11 @@ fun ServifyCheckbox(
             .size(20.dp)
             .clip(shape)
             .background(
-                if (checked) ServifyPrimary else Color.Transparent
+                if (checked) MaterialTheme.colorScheme.primary else Color.Transparent
             )
             .border(
                 width = 2.dp,
-                color = if (checked) ServifyPrimary else ServifyOutline,
+                color = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 shape = shape
             ),
         contentAlignment = Alignment.Center
@@ -50,7 +49,7 @@ fun ServifyCheckbox(
             Icon(
                 imageVector = Icons.Outlined.Check,
                 contentDescription = null,
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(14.dp)
             )
         }

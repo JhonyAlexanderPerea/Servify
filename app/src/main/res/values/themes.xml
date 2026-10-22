@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Servify" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        El tema de la ventana define la apariencia de los iconos de las barras del sistema.
+        Sin esto, el splash de plataforma (API 31+) RESTAURA al salir el valor del tema y
+        deja los iconos blancos sobre el fondo claro de la app: por eso en modo claro los
+        iconos de la barra de estado desaparecian al entrar por primera vez y volvian
+        al recrear la Activity (cambio de modo).
+
+        values-night/themes.xml repite el estilo con la variante oscura.
+    -->
+    <style name="Theme.Servify" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
 </resources>

@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,7 +24,6 @@ import co.edu.uniquindio.servify.features.profile.ProfileScreen
 import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
 import co.edu.uniquindio.servify.navigation.BottomNavDestination
 import co.edu.uniquindio.servify.navigation.Screen
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
 @Composable
@@ -42,7 +42,7 @@ fun MainScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface),
+            .background(MaterialTheme.colorScheme.background),
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(

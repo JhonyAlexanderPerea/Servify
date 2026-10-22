@@ -27,8 +27,10 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,22 +44,18 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
+import co.edu.uniquindio.servify.ui.components.display.ServifyLogo
 import co.edu.uniquindio.servify.ui.components.icons.ServifyIcons
 import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
-import androidx.compose.foundation.Image
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (UserRole) -> Unit,
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     viewModel: LoginViewModel = viewModel()
@@ -65,10 +63,15 @@ fun LoginScreen(
 
     val state by viewModel.uiState.collectAsState()
 
+    // Al autenticarse, se navega según el rol (usuario -> Home, moderador -> panel de moderación).
+    LaunchedEffect(state.loggedInRole) {
+        state.loggedInRole?.let(onLoginSuccess)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
@@ -91,22 +94,20 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            Image(
-                painter = androidx.compose.ui.res.painterResource(id = co.edu.uniquindio.servify.R.drawable.logo),
-                contentDescription = "Servify Logo",
-                modifier = Modifier.size(64.dp)
+            ServifyLogo(
+                size = 64.dp
             )
 
             Text(
                 text = "Bienvenido de nuevo",
                 style = ServifyTextStyle.Title,
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = "Ingresa a tu cuenta de Servify",
                 style = ServifyTextStyle.Small,
-                color = ServifyOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -174,17 +175,22 @@ fun LoginScreen(
                 Text(
                     text = "Recordarme",
                     style = ServifyTextStyle.Small,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            state.loginError?.let { message ->
+                Text(
+                    text = message,
+                    style = ServifyTextStyle.Small,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
 
             ServifyFilledButton(
-                text = "Iniciar sesión",
-                onClick = {
-                    viewModel.login()
-                    onLoginSuccess()
-                },
-                enabled = state.isValid,
+                text = if (state.isLoading) "Ingresando…" else "Iniciar sesión",
+                onClick = viewModel::login,
+                enabled = state.isValid && !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
@@ -213,25 +219,25 @@ fun LoginScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(1.dp)
-                        .background(ServifyOutlineVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
 
                 Text(
                     text = "o continúa con",
                     style = ServifyTextStyle.Caption,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(1.dp)
-                        .background(ServifyOutlineVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
             }
 
             GoogleButton(
-                onClick = onLoginSuccess
+                onClick = viewModel::onGoogleClick
             )
 
             Row(
@@ -248,7 +254,7 @@ fun LoginScreen(
                 Text(
                     text = "¿No tienes cuenta?",
                     style = ServifyTextStyle.Small,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 ServifyTextButton(
@@ -273,7 +279,7 @@ private fun GoogleButton(
             .clip(CircleShape)
             .border(
                 width = 1.dp,
-                color = ServifyOutlineVariant,
+                color = MaterialTheme.colorScheme.outlineVariant,
                 shape = CircleShape
             )
             .clickable(
@@ -297,7 +303,7 @@ private fun GoogleButton(
         Text(
             text = "Continuar con Google",
             style = ServifyTextStyle.SmallMedium,
-            color = ServifyOnSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

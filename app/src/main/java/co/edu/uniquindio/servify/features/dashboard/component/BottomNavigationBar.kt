@@ -24,9 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.uniquindio.servify.navigation.BottomNavDestination
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
@@ -55,13 +52,13 @@ fun BottomNavigationBar(
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(CircleShape)
-                                .background(ServifyPrimary),
+                                .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = if (isSelected) destination.selectedIcon else destination.icon,
                                 contentDescription = destination.label,
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -73,7 +70,7 @@ fun BottomNavigationBar(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             ),
-                            color = ServifyPrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
@@ -90,8 +87,8 @@ fun BottomNavigationBar(
                             BadgedBox(
                                 badge = {
                                     Badge(
-                                        containerColor = Color(0xFFBA1A1A),
-                                        contentColor = Color.White
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError
                                     ) {
                                         Text(text = "${destination.badgeCount}")
                                     }
@@ -121,11 +118,11 @@ fun BottomNavigationBar(
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ServifyPrimary,
-                        selectedTextColor = ServifyPrimary,
-                        indicatorColor = ServifyPrimaryContainer,
-                        unselectedIconColor = ServifyOnSurfaceVariant,
-                        unselectedTextColor = ServifyOnSurfaceVariant
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
             }

@@ -59,13 +59,7 @@ import co.edu.uniquindio.servify.features.publication.model.CreatePublicationUiS
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
+import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 // -----------------------------------------------------------------------------
@@ -89,14 +83,14 @@ fun CreatePublicationTopBar(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(ServifySurfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .clickable(onClick = onBackClick),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Cancelar",
-                tint = ServifyOnSurface,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -104,19 +98,19 @@ fun CreatePublicationTopBar(
         Text(
             text = "Nueva Publicación",
             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-            color = ServifyOnSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Box(
             modifier = Modifier
                 .clip(CircleShape)
-                .background(ServifyPrimaryContainer)
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
             Text(
                 text = "Paso $currentStep de 3",
                 style = ServifyTextStyle.Caption.copy(
-                    color = ServifyPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             )
@@ -161,9 +155,9 @@ fun StepIndicatorRow(
                         .clip(CircleShape)
                         .background(
                             when {
-                                isCompleted -> ServifyTertiary
-                                isActive -> ServifyPrimary
-                                else -> ServifySurfaceVariant
+                                isCompleted -> MaterialTheme.colorScheme.secondary
+                                isActive -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.surfaceVariant
                             }
                         ),
                     contentAlignment = Alignment.Center
@@ -172,7 +166,7 @@ fun StepIndicatorRow(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSecondary,
                             modifier = Modifier.size(16.dp)
                         )
                     } else {
@@ -180,7 +174,11 @@ fun StepIndicatorRow(
                             text = "$stepNumber",
                             style = ServifyTextStyle.Caption.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = if (isActive) Color.White else ServifyOnSurfaceVariant
+                                color = if (isActive) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         )
                     }
@@ -194,9 +192,9 @@ fun StepIndicatorRow(
                         fontWeight = if (isActive || isCompleted) FontWeight.Bold else FontWeight.Normal
                     ),
                     color = when {
-                        isActive -> ServifyPrimary
-                        isCompleted -> ServifyTertiary
-                        else -> ServifyOnSurfaceVariant
+                        isActive -> MaterialTheme.colorScheme.primary
+                        isCompleted -> MaterialTheme.colorScheme.secondary
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
             }
@@ -208,7 +206,7 @@ fun StepIndicatorRow(
                         .height(2.dp)
                         .padding(horizontal = 4.dp)
                         .background(
-                            if (currentStep > stepNumber) ServifyTertiary else ServifyOutlineVariant
+                            if (currentStep > stepNumber) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant
                         )
                 )
             }
@@ -235,7 +233,7 @@ fun CustomDropdownField(
         Text(
             text = label,
             style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-            color = ServifyOnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp, start = 4.dp)
         )
 
@@ -243,8 +241,8 @@ fun CustomDropdownField(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(ServifySurfaceVariant)
-                .border(1.dp, ServifyOutlineVariant, RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
                 .clickable { expanded = !expanded }
                 .padding(horizontal = 14.dp, vertical = 14.dp)
         ) {
@@ -257,21 +255,21 @@ fun CustomDropdownField(
                     Icon(
                         imageVector = Icons.Default.Category,
                         contentDescription = null,
-                        tint = ServifyOnSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = if (selectedValue.isNotBlank()) selectedValue else placeholder,
                         style = ServifyTextStyle.Small,
-                        color = if (selectedValue.isNotBlank()) ServifyOnSurface else ServifyOnSurfaceVariant
+                        color = if (selectedValue.isNotBlank()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = "Desplegar",
-                    tint = ServifyOnSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -289,7 +287,7 @@ fun CustomDropdownField(
                             Text(
                                 text = option,
                                 style = ServifyTextStyle.Small,
-                                color = ServifyOnSurface
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         onClick = {
@@ -323,14 +321,14 @@ fun PhotoPickerGrid(
             Text(
                 text = "Fotos del servicio (${photoUrls.size}/5)",
                 style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp)
             )
 
             Text(
                 text = "Formatos recomendados: JPG, PNG",
                 style = ServifyTextStyle.Caption,
-                color = ServifyOnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -346,8 +344,8 @@ fun PhotoPickerGrid(
                     modifier = Modifier
                         .size(90.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(ServifyPrimaryContainer)
-                        .border(1.dp, ServifyPrimary, RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                         .clickable(onClick = onAddPhotoClick),
                     contentAlignment = Alignment.Center
                 ) {
@@ -355,7 +353,7 @@ fun PhotoPickerGrid(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Agregar foto",
-                            tint = ServifyPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(28.dp)
                         )
                         Spacer(modifier = Modifier.height(2.dp))
@@ -363,7 +361,7 @@ fun PhotoPickerGrid(
                             text = "Agregar",
                             style = ServifyTextStyle.Caption.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = ServifyPrimary
+                                color = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -378,7 +376,7 @@ fun PhotoPickerGrid(
                         .clip(RoundedCornerShape(16.dp))
                         .background(
                             Brush.linearGradient(
-                                colors = listOf(Color(0xFFD6E2FF), Color(0xFF1A55E3))
+                                colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
                             )
                         )
                 ) {
@@ -389,7 +387,7 @@ fun PhotoPickerGrid(
                         Icon(
                             imageVector = Icons.Default.HomeRepairService,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = ServifyExtra.onHero,
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -438,9 +436,9 @@ fun AiSuggestionCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF3E8FF)
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
         ),
-        border = BorderStroke(1.dp, Color(0xFF7B2FBE).copy(alpha = 0.4f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -453,13 +451,13 @@ fun AiSuggestionCard(
                         modifier = Modifier
                             .size(34.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF7B2FBE)),
+                            .background(MaterialTheme.colorScheme.tertiary),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = "IA Servify",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onTertiary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -471,13 +469,13 @@ fun AiSuggestionCard(
                             text = "Asistente IA de Publicación",
                             style = ServifyTextStyle.SmallMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF7B2FBE)
+                                color = MaterialTheme.colorScheme.tertiary
                             )
                         )
                         Text(
                             text = "Optimiza título, descripción y precio",
                             style = ServifyTextStyle.Caption,
-                            color = ServifyOnSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -486,14 +484,14 @@ fun AiSuggestionCard(
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Color(0xFF7B2FBE))
+                            .background(MaterialTheme.colorScheme.tertiary)
                             .clickable(onClick = onGenerateAiClick)
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = "Optimizar con IA",
                             style = ServifyTextStyle.Caption.copy(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onTertiary,
                                 fontWeight = FontWeight.Bold
                             )
                         )
@@ -511,14 +509,14 @@ fun AiSuggestionCard(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = Color(0xFF7B2FBE),
+                        color = MaterialTheme.colorScheme.tertiary,
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "Analizando tu oferta con IA Servify...",
                         style = ServifyTextStyle.Small,
-                        color = Color(0xFF7B2FBE)
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }
@@ -529,7 +527,7 @@ fun AiSuggestionCard(
                         text = "💡 Sugerencia generada:",
                         style = ServifyTextStyle.Caption.copy(
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF7B2FBE)
+                            color = MaterialTheme.colorScheme.tertiary
                         )
                     )
 
@@ -537,20 +535,20 @@ fun AiSuggestionCard(
 
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        border = BorderStroke(0.5.dp, Color(0xFF7B2FBE).copy(alpha = 0.2f))
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(
                                 text = suggestedTitle,
                                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                color = ServifyOnSurface
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = suggestedDescription,
                                 style = ServifyTextStyle.Caption,
-                                color = ServifyOnSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 3,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -562,12 +560,12 @@ fun AiSuggestionCard(
                                 Text(
                                     text = "Categoría: $suggestedCategory",
                                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
-                                    color = Color(0xFF7B2FBE)
+                                    color = MaterialTheme.colorScheme.tertiary
                                 )
                                 Text(
                                     text = "Precio: $suggestedPrice",
                                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                                    color = ServifyTertiary
+                                    color = MaterialTheme.colorScheme.secondary
                                 )
                             }
                         }
@@ -582,7 +580,7 @@ fun AiSuggestionCard(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(Color(0xFF7B2FBE))
+                                .background(MaterialTheme.colorScheme.tertiary)
                                 .clickable(onClick = onApplyAiClick)
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
@@ -590,14 +588,14 @@ fun AiSuggestionCard(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onTertiary,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Aplicar Sugerencia de IA",
                                     style = ServifyTextStyle.Caption.copy(
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onTertiary,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -626,7 +624,7 @@ fun PriceRangeFields(
         Text(
             text = "Rango de precio estimado ($ COP)",
             style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-            color = ServifyOnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
         )
 
@@ -679,7 +677,7 @@ fun PublicationPreviewCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, ServifyOutlineVariant)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -690,13 +688,13 @@ fun PublicationPreviewCard(
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(ServifyPrimaryContainer)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = "VISTA PREVIA DEL ANUNCIO",
                         style = ServifyTextStyle.Caption.copy(
-                            color = ServifyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -705,7 +703,7 @@ fun PublicationPreviewCard(
                 Text(
                     text = "${state.selectedCategory} • ${state.selectedSubcategory}",
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -714,7 +712,7 @@ fun PublicationPreviewCard(
             Text(
                 text = if (state.title.isNotBlank()) state.title else "Título de tu publicación",
                 style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -723,14 +721,14 @@ fun PublicationPreviewCard(
                 Icon(
                     imageVector = Icons.Default.Place,
                     contentDescription = null,
-                    tint = ServifyPrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = if (state.cityZone.isNotBlank()) state.cityZone else "Armenia, Quindío",
                     style = ServifyTextStyle.Small,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -739,7 +737,7 @@ fun PublicationPreviewCard(
             Text(
                 text = if (state.description.isNotBlank()) state.description else "Descripción de la oferta de servicios...",
                 style = ServifyTextStyle.SmallRelaxed,
-                color = ServifyOnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -748,7 +746,7 @@ fun PublicationPreviewCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(ServifySurfaceVariant)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -756,13 +754,13 @@ fun PublicationPreviewCard(
                 Text(
                     text = "Tarifa Estimada:",
                     style = ServifyTextStyle.SmallMedium,
-                    color = ServifyOnSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = if (state.minPrice.isNotBlank()) "$${state.minPrice} – $${state.maxPrice} COP" else "$80.000 – $150.000 COP",
                     style = ServifyTextStyle.SmallMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = ServifyPrimary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
             }

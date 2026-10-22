@@ -11,7 +11,13 @@ data class RegisterUiState(
     val confirmPassword: String = "",
     val city: String = "",
 
-    val termsAccepted: Boolean = false
+    val termsAccepted: Boolean = false,
+
+    val isLoading: Boolean = false,
+    val emailError: String? = null,
+    val registerError: String? = null,
+    /** true cuando la cuenta fue creada y la sesión quedó abierta. */
+    val registered: Boolean = false
 ) {
 
     val firstStepValid: Boolean

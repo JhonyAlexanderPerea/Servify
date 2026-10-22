@@ -47,11 +47,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
+import co.edu.uniquindio.servify.ui.components.display.ServifyLogo
 import co.edu.uniquindio.servify.ui.components.icons.ServifyIcons
 import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
-import androidx.compose.foundation.Image
 
 @Composable
 fun LoginScreen(
@@ -94,10 +94,8 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            Image(
-                painter = androidx.compose.ui.res.painterResource(id = co.edu.uniquindio.servify.R.drawable.logo),
-                contentDescription = "Servify Logo",
-                modifier = Modifier.size(64.dp)
+            ServifyLogo(
+                size = 64.dp
             )
 
             Text(

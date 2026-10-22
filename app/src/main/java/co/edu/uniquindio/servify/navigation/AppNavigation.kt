@@ -1,6 +1,7 @@
 package co.edu.uniquindio.servify.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,11 +16,15 @@ import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
 import co.edu.uniquindio.servify.features.splash.SplashScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
+
+    val scope = rememberCoroutineScope()
+    val logoutUseCase = AppContainer.logoutUseCase
 
     NavHost(
         navController = navController,
@@ -180,7 +185,7 @@ fun AppNavigation(
                     )
                 },
                 onLogoutClick = {
-                    AppContainer.authRepository.logout()
+                    scope.launch { logoutUseCase() }
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) {
                             inclusive = true
@@ -198,7 +203,7 @@ fun AppNavigation(
 
             ModeratorPanelScreen(
                 onLogoutClick = {
-                    AppContainer.authRepository.logout()
+                    scope.launch { logoutUseCase() }
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.ModeratorPanel.route) {
                             inclusive = true

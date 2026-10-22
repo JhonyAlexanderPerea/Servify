@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.di.AppContainer
 import co.edu.uniquindio.servify.domain.model.AuthResult
-import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
 import co.edu.uniquindio.servify.features.auth.toMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val authRepository: AuthRepository = AppContainer.authRepository
+    private val loginUserUseCase: LoginUserUseCase = AppContainer.loginUserUseCase
 ) : ViewModel() {
 
     private val _uiState =
@@ -86,7 +86,7 @@ class LoginViewModel(
         _uiState.update { it.copy(isLoading = true, loginError = null) }
 
         viewModelScope.launch {
-            when (val result = authRepository.login(state.email, state.password)) {
+            when (val result = loginUserUseCase(state.email, state.password)) {
                 is AuthResult.Success -> _uiState.update {
                     it.copy(isLoading = false, loggedInRole = result.user.role)
                 }

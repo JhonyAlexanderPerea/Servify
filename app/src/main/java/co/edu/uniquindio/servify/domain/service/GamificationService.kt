@@ -11,6 +11,8 @@ import co.edu.uniquindio.servify.domain.rules.BadgeProgress
 import co.edu.uniquindio.servify.domain.rules.LevelProgress
 import co.edu.uniquindio.servify.domain.rules.PointEvent
 import co.edu.uniquindio.servify.domain.rules.ReputationRules
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /** Todo lo que necesitan Perfil (17), Estadísticas (18) y Logros (19) en una sola llamada. */
 data class UserProgress(
@@ -81,4 +83,20 @@ class GamificationService(
             badges = BadgeEvaluator.progress(user, publications(), comments())
         )
     }
+
+    /**
+     * Flujo reactivo del progreso: vuelve a emitir cuando cambia cualquier usuario
+     * (puntos o insignias), de modo que las pantallas de Logros y Estadísticas se
+     * actualizan solas.
+     */
+    fun observeProgress(userId: String): Flow<UserProgress?> =
+        userRepository.users.map { users ->
+            users.firstOrNull { it.id == userId }?.let { user ->
+                UserProgress(
+                    user = user,
+                    level = ReputationRules.progress(user.points),
+                    badges = BadgeEvaluator.progress(user, publications(), comments())
+                )
+            }
+        }
 }

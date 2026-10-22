@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.di.AppContainer
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
-import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import co.edu.uniquindio.servify.domain.usecase.user.RegisterUserUseCase
 import co.edu.uniquindio.servify.features.auth.toMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegisterViewModel(
-    private val authRepository: AuthRepository = AppContainer.authRepository
+    private val registerUserUseCase: RegisterUserUseCase = AppContainer.registerUserUseCase
 ) : ViewModel() {
 
     private val _uiState =
@@ -93,7 +93,7 @@ class RegisterViewModel(
         _uiState.update { it.copy(isLoading = true, registerError = null) }
 
         viewModelScope.launch {
-            val result = authRepository.register(
+            val result = registerUserUseCase(
                 name = state.name,
                 lastName = state.lastName,
                 email = state.email,

@@ -6,6 +6,16 @@ import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import co.edu.uniquindio.servify.domain.service.GamificationService
+import co.edu.uniquindio.servify.domain.usecase.auth.LoginModeratorUseCase
+import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
+import co.edu.uniquindio.servify.domain.usecase.auth.LogoutUseCase
+import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
+import co.edu.uniquindio.servify.domain.usecase.reputation.AwardPointsUseCase
+import co.edu.uniquindio.servify.domain.usecase.reputation.EvaluateAchievementsUseCase
+import co.edu.uniquindio.servify.domain.usecase.reputation.GetLevelProgressUseCase
+import co.edu.uniquindio.servify.domain.usecase.reputation.GetUserStatsUseCase
+import co.edu.uniquindio.servify.domain.usecase.reputation.ObserveAchievementsUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.RegisterUserUseCase
 
 /**
  * Contenedor de dependencias de la fase 2 (singletons en memoria, sin Hilt).
@@ -32,4 +42,23 @@ object AppContainer {
             onBadgeUnlocked = { _, _ -> }
         )
     }
+
+    // -------------------------------------------------------------------------
+    // CASOS DE USO
+    //
+    // Los ViewModels NUNCA hablan con un repositorio: hablan con un caso de uso.
+    // Aqui se construyen porque todavia no hay Hilt (en la fase 3 cada uno lleva
+    // su @Inject constructor y este bloque desaparece).
+    // -------------------------------------------------------------------------
+
+    val loginUserUseCase by lazy { LoginUserUseCase(authRepository) }
+    val loginModeratorUseCase by lazy { LoginModeratorUseCase(authRepository) }
+    val logoutUseCase by lazy { LogoutUseCase(authRepository) }
+    val observeSessionUseCase by lazy { ObserveSessionUseCase(authRepository) }
+    val registerUserUseCase by lazy { RegisterUserUseCase(authRepository) }
+    val awardPointsUseCase by lazy { AwardPointsUseCase(gamificationService) }
+    val evaluateAchievementsUseCase by lazy { EvaluateAchievementsUseCase(gamificationService) }
+    val getLevelProgressUseCase by lazy { GetLevelProgressUseCase(gamificationService) }
+    val observeAchievementsUseCase by lazy { ObserveAchievementsUseCase(gamificationService) }
+    val getUserStatsUseCase by lazy { GetUserStatsUseCase(gamificationService) }
 }

@@ -16,7 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import co.edu.uniquindio.servify.di.AppContainer
+import androidx.lifecycle.viewmodel.compose.viewModel
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
@@ -28,9 +28,10 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 @Composable
 fun ModeratorPanelScreen(
     onLogoutClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: ModeratorPanelViewModel = viewModel()
 ) {
-    val moderator by AppContainer.authRepository.currentUser.collectAsState(initial = null)
+    val state by viewModel.uiState.collectAsState()
 
     Column(
         modifier = modifier
@@ -49,7 +50,7 @@ fun ModeratorPanelScreen(
         )
 
         Text(
-            text = moderator?.email ?: "",
+            text = state.moderatorEmail,
             style = ServifyTextStyle.Small,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

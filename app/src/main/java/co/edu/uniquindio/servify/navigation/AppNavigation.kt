@@ -20,14 +20,14 @@ fun AppNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route
+        startDestination = Screen.Onboarding.route
     ) {
 
         // -----------------------------------------
         // SPLASH
         // -----------------------------------------
 
-        composable(Screen.Splash.route) {
+        /*composable(Screen.Splash.route) {
 
             SplashScreen(
                 onFinished = {
@@ -44,7 +44,7 @@ fun AppNavigation(
                     }
                 }
             )
-        }
+        }*/
 
         // -----------------------------------------
         // ONBOARDING

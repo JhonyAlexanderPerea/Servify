@@ -68,6 +68,14 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // -----------------------------------------
+    // Dependency Injection (Hilt & Inject)
+    // -----------------------------------------
+
+    implementation("javax.inject:javax.inject:1")
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // -----------------------------------------
     // Navigation
     // -----------------------------------------
 

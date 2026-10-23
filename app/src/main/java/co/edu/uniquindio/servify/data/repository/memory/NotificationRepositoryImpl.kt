@@ -16,6 +16,10 @@ class NotificationRepositoryImpl @Inject constructor() : NotificationRepository 
 
     override fun observeNotifications(): Flow<List<Notification>> = _notifications.asStateFlow()
 
+    override suspend fun addNotification(notification: Notification) {
+        _notifications.update { listOf(notification) + it }
+    }
+
     override suspend fun markAsRead(id: String) {
         _notifications.update { list ->
             list.map { if (it.id == id) it.copy(isRead = true) else it }

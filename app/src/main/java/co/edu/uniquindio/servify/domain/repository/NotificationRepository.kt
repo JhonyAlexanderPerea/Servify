@@ -8,5 +8,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface NotificationRepository {
     fun observeNotifications(): Flow<List<Notification>>
+    suspend fun addNotification(notification: Notification)
     suspend fun markAsRead(id: String)
 }

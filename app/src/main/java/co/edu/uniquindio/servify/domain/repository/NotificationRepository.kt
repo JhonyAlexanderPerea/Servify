@@ -10,4 +10,5 @@ interface NotificationRepository {
     fun observeNotifications(): Flow<List<Notification>>
     suspend fun addNotification(notification: Notification)
     suspend fun markAsRead(id: String)
+    suspend fun markAllAsRead()
 }

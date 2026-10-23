@@ -25,4 +25,10 @@ class NotificationRepositoryImpl @Inject constructor() : NotificationRepository 
             list.map { if (it.id == id) it.copy(isRead = true) else it }
         }
     }
+
+    override suspend fun markAllAsRead() {
+        _notifications.update { list ->
+            list.map { it.copy(isRead = true) }
+        }
+    }
 }

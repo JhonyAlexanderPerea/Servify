@@ -5,7 +5,6 @@ import co.edu.uniquindio.servify.domain.model.Notification
 import co.edu.uniquindio.servify.domain.model.NotificationType
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
-import co.edu.uniquindio.servify.domain.model.RejectionReason
 import co.edu.uniquindio.servify.domain.model.ReputationLevel
 import co.edu.uniquindio.servify.domain.model.RequestStatus
 import co.edu.uniquindio.servify.domain.model.ServiceRequest
@@ -88,6 +87,8 @@ object SampleData {
             ratingAverage = 4.9,
             reviewsCount = 127,
             locationName = "Armenia y alrededores, Quindío",
+            isFavorite = true,
+            interestedCount = 34,
             createdAt = System.currentTimeMillis() - 86400000L * 10
         ),
         Publication(
@@ -104,6 +105,8 @@ object SampleData {
             ratingAverage = 4.8,
             reviewsCount = 89,
             locationName = "Pereira y Dosquebradas, Risaralda",
+            isFavorite = false,
+            interestedCount = 21,
             createdAt = System.currentTimeMillis() - 86400000L * 15
         ),
         Publication(
@@ -120,6 +123,8 @@ object SampleData {
             ratingAverage = 5.0,
             reviewsCount = 203,
             locationName = "Manizales, Caldas",
+            isFavorite = true,
+            interestedCount = 57,
             createdAt = System.currentTimeMillis() - 86400000L * 20
         ),
         Publication(
@@ -136,6 +141,8 @@ object SampleData {
             ratingAverage = 4.8,
             reviewsCount = 18,
             locationName = "Armenia, Quindío",
+            isFavorite = false,
+            interestedCount = 18,
             createdAt = System.currentTimeMillis() - 86400000L * 5
         )
     )

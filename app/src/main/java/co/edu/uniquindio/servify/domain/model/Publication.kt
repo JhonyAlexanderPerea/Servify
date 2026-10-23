@@ -17,5 +17,7 @@ data class Publication(
     val ratingAverage: Double = 0.0,
     val reviewsCount: Int = 0,
     val locationName: String,
+    val isFavorite: Boolean = false,
+    val interestedCount: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
 )

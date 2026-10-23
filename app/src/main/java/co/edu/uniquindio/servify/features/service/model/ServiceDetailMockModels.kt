@@ -1,6 +1,8 @@
 package co.edu.uniquindio.servify.features.service.model
 
 import androidx.compose.ui.graphics.Color
+import co.edu.uniquindio.servify.domain.model.Comment
+import co.edu.uniquindio.servify.domain.model.Publication
 
 data class TrustFactor(
     val title: String,
@@ -44,6 +46,63 @@ data class ServiceDetailData(
     val trustFactors: List<TrustFactor>,
     val comments: List<CommentItemData>
 )
+
+fun Comment.toCommentItemData(): CommentItemData {
+    val initials = author.name.split(" ")
+        .take(2)
+        .mapNotNull { it.firstOrNull()?.uppercaseChar() }
+        .joinToString("")
+
+    return CommentItemData(
+        id = id,
+        authorName = author.name,
+        authorInitials = if (initials.isNotBlank()) initials else "US",
+        authorAvatarColor = Color(0xFF1A55E3),
+        rating = rating.toDouble(),
+        date = "Hace poco",
+        commentText = text
+    )
+}
+
+fun Publication.toServiceDetailData(): ServiceDetailData {
+    val initials = provider.name.split(" ")
+        .take(2)
+        .mapNotNull { it.firstOrNull()?.uppercaseChar() }
+        .joinToString("")
+
+    val level = when (provider.reputationLevel.name) {
+        "PLATINUM", "DIAMOND" -> "Maestro"
+        "GOLD" -> "Experto"
+        else -> "Profesional"
+    }
+
+    return ServiceDetailData(
+        id = id,
+        title = title,
+        category = categoryId,
+        subcategory = subcategoryId ?: categoryId.replaceFirstChar { it.uppercase() },
+        description = description,
+        priceRange = "$${price.toInt()} COP / $priceUnit",
+        hourlyPrice = "$${price.toInt()} COP / $priceUnit",
+        zone = locationName,
+        city = locationName,
+        images = if (images.isNotEmpty()) images else listOf("https://images.unsplash.com/photo-1504307651254-35680f356dfd"),
+        providerName = provider.name,
+        providerInitials = if (initials.isNotBlank()) initials else "PR",
+        providerColor = Color(0xFF1A55E3),
+        providerLevel = level,
+        providerMemberSince = "Enero 2022",
+        completedJobs = provider.completedJobsCount,
+        isVerified = provider.isVerified,
+        trustIndex = provider.trustIndexScore,
+        rating = ratingAverage,
+        reviewCount = reviewsCount,
+        interestedCount = interestedCount,
+        isFavorite = isFavorite,
+        trustFactors = ServiceDetailMockData.sampleDetail.trustFactors,
+        comments = emptyList()
+    )
+}
 
 object ServiceDetailMockData {
 

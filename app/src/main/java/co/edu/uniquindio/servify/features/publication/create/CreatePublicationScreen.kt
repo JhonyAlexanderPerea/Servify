@@ -28,15 +28,12 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.edu.uniquindio.servify.features.publication.component.AiSuggestionCard
 import co.edu.uniquindio.servify.features.publication.component.CreatePublicationBottomBar
 import co.edu.uniquindio.servify.features.publication.component.CreatePublicationTopBar
@@ -65,21 +64,18 @@ import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun CreatePublicationScreen(
     onBackClick: () -> Unit,
     onPublishSuccess: () -> Unit,
     modifier: Modifier = Modifier,
-    initialState: CreatePublicationUiState = CreatePublicationUiState()
+    viewModel: PublicationFlowViewModel = hiltViewModel()
 ) {
-    var uiState by remember { mutableStateOf(initialState) }
-    val coroutineScope = rememberCoroutineScope()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     val categories = CreatePublicationMockData.categoriesList.map { it.name }
-    val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == uiState.selectedCategory }
+    val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == state.categoryId }
     val subcategories = selectedCategoryObj?.subcategories ?: emptyList()
 
     Scaffold(
@@ -91,28 +87,24 @@ fun CreatePublicationScreen(
         topBar = {
             CreatePublicationTopBar(
                 onBackClick = onBackClick,
-                currentStep = uiState.currentStep
+                currentStep = state.currentStep
             )
         },
         bottomBar = {
-            if (!uiState.isPublishedSuccess) {
+            if (!state.isSuccess) {
                 CreatePublicationBottomBar(
-                    currentStep = uiState.currentStep,
-                    canGoNext = when (uiState.currentStep) {
-                        1 -> uiState.isStep1Valid
-                        2 -> uiState.isStep2Valid
+                    currentStep = state.currentStep,
+                    canGoNext = when (state.currentStep) {
+                        1 -> state.title.length >= 5 && state.categoryId.isNotBlank()
+                        2 -> state.description.length >= 20 && state.price.isNotBlank()
                         else -> true
                     },
-                    onPreviousClick = {
-                        if (uiState.currentStep > 1) {
-                            uiState = uiState.copy(currentStep = uiState.currentStep - 1)
-                        }
-                    },
+                    onPreviousClick = viewModel::onPreviousStep,
                     onNextClick = {
-                        if (uiState.currentStep < 3) {
-                            uiState = uiState.copy(currentStep = uiState.currentStep + 1)
+                        if (state.currentStep < 3) {
+                            viewModel.onNextStep()
                         } else {
-                            uiState = uiState.copy(isPublishedSuccess = true)
+                            viewModel.onSavePublication()
                         }
                     }
                 )
@@ -120,7 +112,16 @@ fun CreatePublicationScreen(
         }
     ) { paddingValues ->
 
-        if (uiState.isPublishedSuccess) {
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = ServifyPrimary)
+            }
+        } else if (state.isSuccess) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -147,7 +148,7 @@ fun CreatePublicationScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "¡Publicación Enviada a Revisión!",
+                    text = if (state.publicationId != null) "¡Publicación Actualizada Exitosamente!" else "¡Publicación Creada y Publicada!",
                     style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
                     color = ServifyOnSurface
                 )
@@ -155,7 +156,7 @@ fun CreatePublicationScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Tu servicio fue registrado exitosamente. Nuestro equipo de moderadores o la IA revisarán los detalles y estará visible en el Marketplace en pocos minutos.",
+                    text = "Tu servicio fue registrado reactivamente en la capa de datos en memoria. Ya está disponible en el feed del Marketplace y en tu perfil de proveedor.",
                     style = ServifyTextStyle.SmallRelaxed,
                     color = ServifyOnSurfaceVariant
                 )
@@ -175,16 +176,16 @@ fun CreatePublicationScreen(
                     .padding(paddingValues)
             ) {
                 StepIndicatorRow(
-                    currentStep = uiState.currentStep,
+                    currentStep = state.currentStep,
                     onStepClick = { targetStep ->
-                        if (targetStep < uiState.currentStep) {
-                            uiState = uiState.copy(currentStep = targetStep)
+                        if (targetStep < state.currentStep) {
+                            viewModel.onPreviousStep()
                         }
                     }
                 )
 
                 AnimatedContent(
-                    targetState = uiState.currentStep,
+                    targetState = state.currentStep,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                     label = "CreatePublicationStepTransition"
                 ) { step ->
@@ -210,52 +211,41 @@ fun CreatePublicationScreen(
                                 )
 
                                 ServifyTextField(
-                                    value = uiState.title,
-                                    onValueChange = { uiState = uiState.copy(title = it) },
+                                    value = state.title,
+                                    onValueChange = viewModel::onTitleChanged,
                                     label = "Título del servicio",
                                     singleLine = true,
-                                    supportingText = "Ej: Plomero residencial con atención de emergencias"
+                                    isError = state.titleError != null,
+                                    supportingText = state.titleError ?: "Ej: Plomero residencial con atención de emergencias"
                                 )
 
                                 CustomDropdownField(
                                     label = "Categoría Principal",
-                                    selectedValue = uiState.selectedCategory,
+                                    selectedValue = state.categoryId,
                                     options = categories,
-                                    onOptionSelected = { categoryName ->
-                                        uiState = uiState.copy(
-                                            selectedCategory = categoryName,
-                                            selectedSubcategory = ""
-                                        )
-                                    },
+                                    onOptionSelected = viewModel::onCategoryChanged,
                                     placeholder = "Selecciona una categoría"
                                 )
 
                                 if (subcategories.isNotEmpty()) {
                                     CustomDropdownField(
                                         label = "Subcategoría Especializada",
-                                        selectedValue = uiState.selectedSubcategory,
+                                        selectedValue = state.subcategoryId,
                                         options = subcategories,
-                                        onOptionSelected = { subName ->
-                                            uiState = uiState.copy(selectedSubcategory = subName)
-                                        },
+                                        onOptionSelected = viewModel::onSubcategoryChanged,
                                         placeholder = "Selecciona subcategoría"
                                     )
                                 }
 
                                 PhotoPickerGrid(
-                                    photoUrls = uiState.photoUrls,
+                                    photoUrls = state.images,
                                     onAddPhotoClick = {
-                                        if (uiState.photoUrls.size < 5) {
-                                            val nextMockPhoto = CreatePublicationMockData.samplePhotos[uiState.photoUrls.size % CreatePublicationMockData.samplePhotos.size]
-                                            uiState = uiState.copy(
-                                                photoUrls = uiState.photoUrls + nextMockPhoto
-                                            )
+                                        if (state.images.size < 5) {
+                                            val nextMockPhoto = CreatePublicationMockData.samplePhotos[state.images.size % CreatePublicationMockData.samplePhotos.size]
+                                            viewModel.onAddImage(nextMockPhoto)
                                         }
                                     },
-                                    onRemovePhotoClick = { index ->
-                                        val updatedList = uiState.photoUrls.toMutableList().apply { removeAt(index) }
-                                        uiState = uiState.copy(photoUrls = updatedList)
-                                    }
+                                    onRemovePhotoClick = viewModel::onRemoveImage
                                 )
                             }
 
@@ -267,54 +257,49 @@ fun CreatePublicationScreen(
                                 )
 
                                 AiSuggestionCard(
-                                    isAnalyzing = uiState.isAiAnalyzing,
-                                    showSuggestion = uiState.showAiSuggestion,
-                                    suggestedTitle = uiState.aiSuggestedTitle,
-                                    suggestedDescription = uiState.aiSuggestedDescription,
-                                    suggestedCategory = uiState.aiSuggestedCategory,
-                                    suggestedPrice = uiState.aiSuggestedPrice,
+                                    isAnalyzing = state.isAiAnalyzing,
+                                    showSuggestion = state.showAiSuggestion,
+                                    suggestedTitle = state.aiSuggestedTitle,
+                                    suggestedDescription = state.aiSuggestedDescription,
+                                    suggestedCategory = state.aiSuggestedCategory,
+                                    suggestedPrice = state.aiSuggestedPrice,
                                     onGenerateAiClick = {
-                                        coroutineScope.launch {
-                                            uiState = uiState.copy(isAiAnalyzing = true)
-                                            delay(1500)
-                                            uiState = uiState.copy(
-                                                isAiAnalyzing = false,
-                                                showAiSuggestion = true,
-                                                aiSuggestedTitle = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-                                                aiSuggestedDescription = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
-                                                aiSuggestedCategory = "Hogar • Plomería",
-                                                aiSuggestedPrice = "$80.000 – $150.000 COP"
-                                            )
-                                        }
+                                        viewModel.onApplyAiSuggestion(
+                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
+                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
+                                            category = "Hogar",
+                                            price = "80000"
+                                        )
                                     },
                                     onApplyAiClick = {
-                                        uiState = uiState.copy(
-                                            title = uiState.aiSuggestedTitle,
-                                            description = uiState.aiSuggestedDescription,
-                                            minPrice = "80000",
-                                            maxPrice = "150000"
+                                        viewModel.onApplyAiSuggestion(
+                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
+                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
+                                            category = "Hogar",
+                                            price = "80000"
                                         )
                                     }
                                 )
 
                                 ServifyTextField(
-                                    value = uiState.description,
-                                    onValueChange = { uiState = uiState.copy(description = it) },
+                                    value = state.description,
+                                    onValueChange = viewModel::onDescriptionChanged,
                                     label = "Descripción detallada del servicio",
                                     singleLine = false,
-                                    supportingText = "Describe tu experiencia, herramientas, horario y garantías."
+                                    isError = state.descriptionError != null,
+                                    supportingText = state.descriptionError ?: "Describe tu experiencia, herramientas, horario y garantías."
                                 )
 
                                 PriceRangeFields(
-                                    minPrice = uiState.minPrice,
-                                    onMinPriceChange = { uiState = uiState.copy(minPrice = it) },
-                                    maxPrice = uiState.maxPrice,
-                                    onMaxPriceChange = { uiState = uiState.copy(maxPrice = it) }
+                                    minPrice = state.price,
+                                    onMinPriceChange = viewModel::onPriceChanged,
+                                    maxPrice = state.price,
+                                    onMaxPriceChange = viewModel::onPriceChanged
                                 )
 
                                 LocationPickerField(
-                                    cityZone = uiState.cityZone,
-                                    onCityZoneChange = { uiState = uiState.copy(cityZone = it) }
+                                    cityZone = state.locationName,
+                                    onCityZoneChange = viewModel::onLocationChanged
                                 )
                             }
 
@@ -331,7 +316,17 @@ fun CreatePublicationScreen(
                                     color = ServifyOnSurfaceVariant
                                 )
 
-                                PublicationPreviewCard(state = uiState)
+                                val previewState = CreatePublicationUiState(
+                                    title = state.title,
+                                    selectedCategory = state.categoryId,
+                                    selectedSubcategory = state.subcategoryId,
+                                    description = state.description,
+                                    minPrice = state.price,
+                                    maxPrice = state.price,
+                                    cityZone = state.locationName
+                                )
+
+                                PublicationPreviewCard(state = previewState)
 
                                 Card(
                                     shape = RoundedCornerShape(16.dp),
@@ -379,26 +374,13 @@ fun CreatePublicationPreviewStep1Light() {
     }
 }
 
-@Preview(name = "Step 2 With AI Light", showBackground = true)
-@Composable
-fun CreatePublicationPreviewStep2Light() {
-    ServifyTheme(darkTheme = false) {
-        CreatePublicationScreen(
-            onBackClick = {},
-            onPublishSuccess = {},
-            initialState = CreatePublicationMockData.filledState
-        )
-    }
-}
-
 @Preview(name = "Step 3 Preview Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun CreatePublicationPreviewStep3Dark() {
     ServifyTheme(darkTheme = true) {
         CreatePublicationScreen(
             onBackClick = {},
-            onPublishSuccess = {},
-            initialState = CreatePublicationMockData.filledState.copy(currentStep = 3)
+            onPublishSuccess = {}
         )
     }
 }

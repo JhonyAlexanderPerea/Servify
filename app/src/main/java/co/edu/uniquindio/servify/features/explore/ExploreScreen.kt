@@ -1,6 +1,10 @@
 package co.edu.uniquindio.servify.features.explore
 
 import android.content.res.Configuration
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,32 +18,33 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.HomeRepairService
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,42 +55,48 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.features.home.component.CategoryChipsRow
+import co.edu.uniquindio.servify.features.home.component.HomeSearchBar
+import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.component.TrustIndexBadge
-import co.edu.uniquindio.servify.features.home.model.HomeMockData
-import co.edu.uniquindio.servify.features.home.model.ServiceItem
-import co.edu.uniquindio.servify.ui.theme.ServifyGold
+import co.edu.uniquindio.servify.features.home.model.toServiceItem
+import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
 import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
+import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
 fun ExploreScreen(
     onServiceClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: ExploreViewModel = hiltViewModel()
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Todos") }
-    val categories = listOf("Todos", "Hogar", "Educación", "Mascotas", "Tecnología")
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface),
+            .background(ServifySurface)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         topBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "Explorar Servicios en el Mapa",
-                    style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
+                    style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
@@ -97,186 +108,388 @@ fun ExploreScreen(
         }
     ) { paddingValues ->
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Categorías horizontales
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(categories) { cat ->
-                    val isSelected = selectedCategory == cat
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(if (isSelected) ServifyPrimary else ServifySurfaceVariant)
-                            .clickable { selectedCategory = cat }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = cat,
-                            style = ServifyTextStyle.Caption.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            ),
-                            color = if (isSelected) Color.White else ServifyOnSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            // CONTENEDOR DEL MAPA INTERACTIVO MOCK
+        if (state.isLoading) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1))
-                        )
-                    )
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
-                // Falso fondo estilizado de mapa urbano
+                CircularProgressIndicator(color = ServifyPrimary)
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                // 1. BARRA DE BÚSQUEDA Y CATEGORÍAS
+                HomeSearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = viewModel::onSearchQueryChanged,
+                    onFilterClick = { /* Abrir modal filtros */ },
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                CategoryChipsRow(
+                    categories = state.categories,
+                    selectedCategoryId = state.selectedCategoryId,
+                    onCategorySelect = viewModel::onCategorySelected,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+
+                // 2. CONTENEDOR PRINCIPAL DEL MAPA INTERACTIVO MOCK
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1))
+                            )
+                        )
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Fondo estilizado de mapa urbano
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { viewModel.onDismissSelectedService() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Map,
+                                contentDescription = "Mapa",
+                                tint = ServifyPrimary.copy(alpha = 0.35f),
+                                modifier = Modifier.size(72.dp)
+                            )
+                            Text(
+                                text = "Mapa de Servicios Cercanos",
+                                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                                color = ServifyOnSurfaceVariant
+                            )
+                            Text(
+                                text = "${state.nearbyServices.size} servicios disponibles en la zona",
+                                style = ServifyTextStyle.Caption,
+                                color = ServifyOnSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Marcadores dinámicos e interactivos en el mapa
+                    state.nearbyServices.forEachIndexed { index, publication ->
+                        val isSelected = state.selectedService?.id == publication.id
+
+                        val alignment = when (index % 4) {
+                            0 -> Alignment.TopStart
+                            1 -> Alignment.Center
+                            2 -> Alignment.BottomEnd
+                            else -> Alignment.BottomStart
+                        }
+
+                        val topOffset = when (index % 4) {
+                            0 -> 40.dp
+                            1 -> 0.dp
+                            2 -> 0.dp
+                            else -> 0.dp
+                        }
+
+                        val startOffset = when (index % 4) {
+                            0 -> 30.dp
+                            else -> 0.dp
+                        }
+
+                        val endOffset = when (index % 4) {
+                            2 -> 40.dp
+                            else -> 0.dp
+                        }
+
+                        val bottomOffset = when (index % 4) {
+                            2 -> 80.dp
+                            3 -> 60.dp
+                            else -> 0.dp
+                        }
+
+                        ServiceMapMarker(
+                            publication = publication,
+                            isSelected = isSelected,
+                            onClick = { viewModel.onMarkerSelected(publication) },
+                            modifier = Modifier
+                                .align(alignment)
+                                .padding(
+                                    top = topOffset,
+                                    start = startOffset,
+                                    end = endOffset,
+                                    bottom = bottomOffset
+                                )
+                        )
+                    }
+
+                    // Botón Mi Ubicación
+                    Box(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(1.dp, ServifyOutlineVariant, CircleShape)
+                            .align(Alignment.TopEnd),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Map,
-                            contentDescription = "Mapa",
-                            tint = ServifyPrimary.copy(alpha = 0.4f),
-                            modifier = Modifier.size(80.dp)
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = "Mi ubicación",
+                            tint = ServifyPrimary,
+                            modifier = Modifier.size(20.dp)
                         )
-                        Text(
-                            text = "Mapa Interactivo de Servicios",
-                            style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                            color = ServifyOnSurfaceVariant
-                        )
-                        Text(
-                            text = "Armenia y Eje Cafetero",
-                            style = ServifyTextStyle.Caption,
-                            color = ServifyOnSurfaceVariant
-                        )
+                    }
+
+                    // 3. TARJETA FLOTANTE DEL SERVICIO SELECCIONADO
+                    if (state.selectedService != null) {
+                        state.selectedService?.let { selected ->
+                            NearbyServiceFloatingCard(
+                                publication = selected,
+                                onClick = { onServiceClick(selected.id) },
+                                onCloseClick = { viewModel.onDismissSelectedService() },
+                                onFavoriteToggle = { viewModel.onToggleInterest(selected.id) },
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(12.dp)
+                            )
+                        }
                     }
                 }
 
-                // Pines flotantes sobre el mapa
-                MapPinOverlay(
-                    title = "Plomería (94%)",
-                    color = ServifyPrimary,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(top = 40.dp, start = 40.dp)
-                )
+                Spacer(modifier = Modifier.height(10.dp))
 
-                MapPinOverlay(
-                    title = "Electricista (91%)",
-                    color = Color(0xFF7B2FBE),
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                )
-
-                MapPinOverlay(
-                    title = "Clases (98%)",
-                    color = Color(0xFFEA4C89),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 60.dp, end = 50.dp)
-                )
-
-                // Botón Mi Ubicación
-                Box(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, ServifyOutlineVariant, CircleShape)
-                        .align(Alignment.TopEnd),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MyLocation,
-                        contentDescription = "Mi ubicación",
-                        tint = ServifyPrimary,
-                        modifier = Modifier.size(20.dp)
+                // 4. CARRUSEL INFERIOR CUANDO NO HAY SERVICIO SELECCIONADO
+                if (state.selectedService == null) {
+                    Text(
+                        text = "Proveedores destacados cerca (${state.nearbyServices.size})",
+                        style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                        color = ServifyOnSurface,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
                     )
-                }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // CARRUSEL INFERIOR DE PROVEEDORES CERCANOS
-            Text(
-                text = "Proveedores destacados a menos de 5 km",
-                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurface,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
-
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(HomeMockData.sampleServices) { service ->
-                    ExploreServiceCard(
-                        service = service,
-                        onClick = { onServiceClick(service.id) }
-                    )
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.nearbyServices, key = { it.id }) { service ->
+                            ExploreServiceMiniCard(
+                                publication = service,
+                                onClick = { viewModel.onMarkerSelected(service) }
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+// -----------------------------------------------------------------------------
+// MARCADOR INTERACTIVO EN EL MAPA (SERVICE MAP MARKER)
+// -----------------------------------------------------------------------------
+
 @Composable
-private fun MapPinOverlay(
-    title: String,
-    color: Color,
+private fun ServiceMapMarker(
+    publication: Publication,
+    isSelected: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val markerBg = if (isSelected) ServifyPrimary else MaterialTheme.colorScheme.surface
+    val textColor = if (isSelected) Color.White else ServifyOnSurface
+    val strokeColor = if (isSelected) Color.White else ServifyPrimary
+
     Row(
         modifier = modifier
             .clip(CircleShape)
-            .background(Color.White)
-            .border(1.5.dp, color, CircleShape)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+            .background(markerBg)
+            .border(1.5.dp, strokeColor, CircleShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.Place,
             contentDescription = null,
-            tint = color,
+            tint = if (isSelected) Color.White else ServifyPrimary,
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = title,
+            text = "${publication.subcategoryId ?: publication.title.take(12)} (${publication.provider.trustIndexScore}%)",
             style = ServifyTextStyle.Caption.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp
             ),
-            color = ServifyOnSurface
+            color = textColor
         )
     }
 }
 
+// -----------------------------------------------------------------------------
+// TARJETA FLOTANTE DEL SERVICIO SELECCIONADO (FLOATING CARD)
+// -----------------------------------------------------------------------------
+
 @Composable
-private fun ExploreServiceCard(
-    service: ServiceItem,
+private fun NearbyServiceFloatingCard(
+    publication: Publication,
+    onClick: () -> Unit,
+    onCloseClick: () -> Unit,
+    onFavoriteToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        border = BorderStroke(1.dp, ServifyPrimary.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(ServifyPrimary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = publication.provider.name.take(2).uppercase(),
+                            style = ServifyTextStyle.Caption.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = publication.provider.name,
+                                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                                color = ServifyOnSurface
+                            )
+                            if (publication.provider.isVerified) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Verificado",
+                                    tint = ServifyTertiary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
+                        LevelBadge(level = publication.provider.reputationLevel.name)
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(ServifySurfaceVariant)
+                            .clickable(onClick = onFavoriteToggle),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (publication.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorito",
+                            tint = if (publication.isFavorite) Color(0xFFEA4C89) else ServifyOnSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(ServifySurfaceVariant)
+                            .clickable(onClick = onCloseClick),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cerrar",
+                            tint = ServifyOnSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = publication.title,
+                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                color = ServifyOnSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "$${publication.price.toInt()} COP / ${publication.priceUnit}",
+                    style = ServifyTextStyle.SmallMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = ServifyPrimary
+                    )
+                )
+
+                TrustIndexBadge(trustIndexPercent = publication.provider.trustIndexScore)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            ServifyFilledButton(
+                text = "Ver Detalle del Servicio",
+                icon = Icons.Default.ArrowForward,
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// MINI CARD DEL CARRUSEL INFERIOR
+// -----------------------------------------------------------------------------
+
+@Composable
+private fun ExploreServiceMiniCard(
+    publication: Publication,
     onClick: () -> Unit
 ) {
+    val service = publication.toServiceItem()
+
     Card(
         modifier = Modifier
             .width(260.dp)

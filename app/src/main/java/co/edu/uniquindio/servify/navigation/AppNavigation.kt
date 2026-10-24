@@ -9,9 +9,13 @@ import co.edu.uniquindio.servify.features.dashboard.MainScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
 import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
+import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
+import co.edu.uniquindio.servify.features.publication.published.PublicationPublishedScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
+import co.edu.uniquindio.servify.features.request.confirmed.RequestConfirmedScreen
+import co.edu.uniquindio.servify.features.request.create.RequestServiceScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
-import co.edu.uniquindio.servify.features.splash.SplashScreen
+import co.edu.uniquindio.servify.features.trust.TrustSystemScreen
 
 @Composable
 fun AppNavigation(
@@ -22,29 +26,6 @@ fun AppNavigation(
         navController = navController,
         startDestination = Screen.Onboarding.route
     ) {
-
-        // -----------------------------------------
-        // SPLASH
-        // -----------------------------------------
-
-        /*composable(Screen.Splash.route) {
-
-            SplashScreen(
-                onFinished = {
-
-                    navController.navigate(
-                        Screen.Onboarding.route
-                    ) {
-
-                        popUpTo(
-                            Screen.Splash.route
-                        ) {
-                            inclusive = true
-                        }
-                    }
-                }
-            )
-        }*/
 
         // -----------------------------------------
         // ONBOARDING
@@ -183,18 +164,120 @@ fun AppNavigation(
         }
 
         // -----------------------------------------
-        // DETALLE DE PUBLICACIÓN (PANTALLA SECUNDARIA)
+        // DETALLE DE PUBLICACIÓN
         // -----------------------------------------
 
-        composable(Screen.ServiceDetail.route) {
+        composable(Screen.ServiceDetail.route) { backStackEntry ->
+            val serviceId = backStackEntry.arguments?.getString("serviceId") ?: "pub_1"
 
             ServiceDetailScreen(
-                serviceId = "1",
+                serviceId = serviceId,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onBookClick = {
-                    // Acción para agendar cita
+                    navController.navigate(Screen.RequestService.createRoute(serviceId))
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // CREAR/EDITAR PUBLICACIÓN
+        // -----------------------------------------
+
+        composable(Screen.CreatePublication.route) {
+
+            CreatePublicationScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPublishSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // PANTALLA ÍNDICE DE CONFIANZA Y REPUTACIÓN
+        // -----------------------------------------
+
+        composable(Screen.TrustSystem.route) {
+
+            TrustSystemScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // PANTALLA PUBLICACIÓN PUBLICADA (ÉXITO)
+        // -----------------------------------------
+
+        composable(Screen.PublicationPublished.route) { backStackEntry ->
+            val pubId = backStackEntry.arguments?.getString("publicationId") ?: "pub_1"
+
+            PublicationPublishedScreen(
+                publicationId = pubId,
+                onGoToMyPublications = {
+                    navController.popBackStack()
+                },
+                onGoToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // PANTALLA SOLICITAR SERVICIO (FORMULARIO CITA)
+        // -----------------------------------------
+
+        composable(Screen.RequestService.route) { backStackEntry ->
+
+            RequestServiceScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onRequestConfirmed = { requestId ->
+                    navController.navigate(Screen.RequestConfirmed.createRoute(requestId)) {
+                        popUpTo(Screen.ServiceDetail.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
+        // -----------------------------------------
+        // PANTALLA SOLICITUD CONFIRMADA (ÉXITO)
+        // -----------------------------------------
+
+        composable(Screen.RequestConfirmed.route) { backStackEntry ->
+            val reqId = backStackEntry.arguments?.getString("requestId") ?: "req_1"
+
+            RequestConfirmedScreen(
+                requestId = reqId,
+                onGoToAgenda = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onGoToFeed = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }

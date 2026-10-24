@@ -27,4 +27,20 @@ sealed class Screen(val route: String) {
     }
 
     data object CreatePublication : Screen("create_publication")
+
+    data object TrustSystem : Screen("trust_system/{providerId}") {
+        fun createRoute(providerId: String) = "trust_system/$providerId"
+    }
+
+    data object PublicationPublished : Screen("publication_published/{publicationId}") {
+        fun createRoute(publicationId: String) = "publication_published/$publicationId"
+    }
+
+    data object RequestService : Screen("request_service/{serviceId}") {
+        fun createRoute(serviceId: String) = "request_service/$serviceId"
+    }
+
+    data object RequestConfirmed : Screen("request_confirmed/{requestId}") {
+        fun createRoute(requestId: String) = "request_confirmed/$requestId"
+    }
 }

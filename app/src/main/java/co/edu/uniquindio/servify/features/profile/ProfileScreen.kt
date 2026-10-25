@@ -62,7 +62,9 @@ data class ProfileActions(
     val onAchievementsClick: () -> Unit = {},
     val onStatisticsClick: () -> Unit = {},
     val onSettingsClick: () -> Unit = {},
-    val onLogoutClick: () -> Unit = {}
+    val onLogoutClick: () -> Unit = {},
+    val onNavigateToEditProfile: () -> Unit = {},
+    val onNavigateToStatistics: () -> Unit = {},
 )
 
 @Composable
@@ -70,6 +72,7 @@ fun ProfileScreen(
     actions: ProfileActions,
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = hiltViewModel()
+
 ) {
     val state by viewModel.uiState.collectAsState()
     ProfileContent(state = state, actions = actions, modifier = modifier)
@@ -105,7 +108,7 @@ fun ProfileContent(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable(onClick = actions.onSettingsClick),
+                        .clickable(onClick = actions.onNavigateToEditProfile),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

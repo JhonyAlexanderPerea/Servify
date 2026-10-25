@@ -24,6 +24,7 @@ import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
 import co.edu.uniquindio.servify.features.session.SessionViewModel
 import co.edu.uniquindio.servify.features.splash.SplashScreen
 import co.edu.uniquindio.servify.features.trust.TrustSystemScreen
+import co.edu.uniquindio.servify.features.profile.edit.EditProfileScreen
 
 @Composable
 fun AppNavigation(
@@ -127,6 +128,9 @@ fun AppNavigation(
             MainScreen(
                 onNavigateToServiceDetail = { serviceId ->
                     navController.navigate(Screen.ServiceDetail.createRoute(serviceId))
+                },
+                onNavigateToEditProfile = {
+                    navController.navigate(Screen.EditProfile.route)
                 },
                 onLogoutClick = {
                     sessionViewModel.logout()
@@ -233,6 +237,17 @@ fun AppNavigation(
                 onGoToFeed = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                onBackClick = { navController.popBackStack() },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.EditProfile.route) { inclusive = true }
                     }
                 }
             )

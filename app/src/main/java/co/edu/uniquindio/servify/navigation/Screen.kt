@@ -49,4 +49,6 @@ sealed class Screen(val route: String) {
     }
 
     data object ModeratorPanel : Screen("moderator_panel")
+
+    data object EditProfile : Screen("edit_profile")
 }

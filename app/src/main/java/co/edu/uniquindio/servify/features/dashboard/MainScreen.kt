@@ -31,6 +31,7 @@ import co.edu.uniquindio.servify.ui.components.state.ComingSoonScreen
 @Composable
 fun MainScreen(
     onNavigateToServiceDetail: (String) -> Unit,
+    onNavigateToEditProfile: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     dashboardNavController: NavHostController = rememberNavController()
@@ -136,8 +137,10 @@ fun MainScreen(
                         onMyRequestsClick = { dashboardNavController.navigate(Screen.MyRequests.route) },
                         onAchievementsClick = { dashboardNavController.navigate(Screen.Achievements.route) },
                         onStatisticsClick = { dashboardNavController.navigate(Screen.Statistics.route) },
-                        onSettingsClick = { dashboardNavController.navigate(Screen.Settings.route) },
-                        onLogoutClick = onLogoutClick
+                        onSettingsClick = onNavigateToEditProfile,
+                        onLogoutClick = onLogoutClick,
+                        onNavigateToEditProfile = onNavigateToEditProfile,
+                        onNavigateToStatistics = { dashboardNavController.navigate(Screen.Statistics.route) }
                     )
                 )
             }

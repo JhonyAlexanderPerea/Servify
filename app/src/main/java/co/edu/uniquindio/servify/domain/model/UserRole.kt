@@ -10,6 +10,9 @@ enum class UserRole {
     /** Proveedor o profesional independiente que publica servicios. */
     PROVIDER,
 
+    /** Usuario genérico (usado en flujo de autenticación Fase 2). */
+    USER,
+
     /** Administrador o moderador con permisos para revisar publicaciones. */
     MODERATOR
 }

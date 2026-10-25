@@ -24,8 +24,10 @@ import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,31 +40,31 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
 import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
 import co.edu.uniquindio.servify.ui.components.input.ServifyCheckbox
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
 fun RegisterScreen(
     onBack: () -> Unit,
     onRegisterSuccess: () -> Unit,
-    viewModel: RegisterViewModel = viewModel()
+    viewModel: RegisterViewModel = hiltViewModel()
 ) {
 
     val state by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(state.registered) {
+        if (state.registered) onRegisterSuccess()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
@@ -98,7 +100,7 @@ fun RegisterScreen(
                 Text(
                     text = "Paso ${state.step} de 2",
                     style = ServifyTextStyle.Caption,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 ServifyProgressBar(
@@ -130,8 +132,7 @@ fun RegisterScreen(
 
                 RegisterStepTwo(
                     state = state,
-                    viewModel = viewModel,
-                    onRegisterSuccess = onRegisterSuccess
+                    viewModel = viewModel
                 )
             }
         }
@@ -151,7 +152,7 @@ private fun RegisterStepOne(
     Text(
         text = "Crear cuenta",
         style = ServifyTextStyle.Title,
-        color = ServifyOnSurface
+        color = MaterialTheme.colorScheme.onSurface
     )
 
     Spacer(
@@ -161,7 +162,7 @@ private fun RegisterStepOne(
     Text(
         text = "Únete a Servify y encuentra servicios confiables",
         style = ServifyTextStyle.Small,
-        color = ServifyOnSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     Spacer(
@@ -197,7 +198,9 @@ private fun RegisterStepOne(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email
             ),
-            singleLine = true
+            singleLine = true,
+            isError = state.emailError != null,
+            supportingText = state.emailError
         )
 
         ServifyFilledButton(
@@ -213,8 +216,7 @@ private fun RegisterStepOne(
 @Composable
 private fun RegisterStepTwo(
     state: RegisterUiState,
-    viewModel: RegisterViewModel,
-    onRegisterSuccess: () -> Unit
+    viewModel: RegisterViewModel
 ) {
 
     val passwordsMismatch =
@@ -228,7 +230,7 @@ private fun RegisterStepTwo(
     Text(
         text = "Seguridad y ubicación",
         style = ServifyTextStyle.Title,
-        color = ServifyOnSurface
+        color = MaterialTheme.colorScheme.onSurface
     )
 
     Spacer(
@@ -238,7 +240,7 @@ private fun RegisterStepTwo(
     Text(
         text = "Casi listo. Ingresa tu contraseña y ciudad",
         style = ServifyTextStyle.Small,
-        color = ServifyOnSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     Spacer(
@@ -312,7 +314,7 @@ private fun RegisterStepTwo(
 
                     withStyle(
                         SpanStyle(
-                            color = ServifyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
                         )
                     ) {
@@ -323,7 +325,7 @@ private fun RegisterStepTwo(
 
                     withStyle(
                         SpanStyle(
-                            color = ServifyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
                         )
                     ) {
@@ -331,18 +333,23 @@ private fun RegisterStepTwo(
                     }
                 },
                 style = ServifyTextStyle.SmallRelaxed,
-                color = ServifyOnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        state.registerError?.let { message ->
+            Text(
+                text = message,
+                style = ServifyTextStyle.Small,
+                color = MaterialTheme.colorScheme.error
             )
         }
 
         ServifyFilledButton(
-            text = "Crear cuenta",
+            text = if (state.isLoading) "Creando cuenta…" else "Crear cuenta",
             icon = Icons.Outlined.Check,
-            onClick = {
-                viewModel.register()
-                onRegisterSuccess()
-            },
-            enabled = state.secondStepValid,
+            onClick = viewModel::register,
+            enabled = state.secondStepValid && !state.isLoading,
             modifier = Modifier.fillMaxWidth()
         )
     }

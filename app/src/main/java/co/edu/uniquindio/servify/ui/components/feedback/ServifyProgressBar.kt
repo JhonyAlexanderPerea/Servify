@@ -13,8 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
+import androidx.compose.material3.MaterialTheme
 
 /**
  * LinearProgress del mockup: 8dp de alto, extremos redondeados,
@@ -37,7 +36,7 @@ fun ServifyProgressBar(
             .fillMaxWidth()
             .height(8.dp)
             .clip(CircleShape)
-            .background(ServifySurfaceVariant)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
 
         Box(
@@ -45,7 +44,7 @@ fun ServifyProgressBar(
                 .fillMaxHeight()
                 .fillMaxWidth(animatedProgress)
                 .clip(CircleShape)
-                .background(ServifyPrimary)
+                .background(MaterialTheme.colorScheme.primary)
         )
     }
 }

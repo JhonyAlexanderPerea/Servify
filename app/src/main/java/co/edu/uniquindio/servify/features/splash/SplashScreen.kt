@@ -10,7 +10,6 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +18,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,12 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import co.edu.uniquindio.servify.R
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
+import co.edu.uniquindio.servify.ui.components.display.ServifyLogo
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import kotlinx.coroutines.delay
 
@@ -60,7 +57,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
 
         AnimatedVisibility(
@@ -71,7 +68,10 @@ fun SplashScreen(
                     easing = EaseIn
                 )
             ),
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier
+                .align(Alignment.Center)
+                // Respeta el alto de la barra de estado: el contenido no debe quedar debajo
+                .statusBarsPadding()
         ) {
 
             Column(
@@ -79,11 +79,9 @@ fun SplashScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
-                // Logo oficial en azul Servify, sin recuadro ni badge
-                Image(
-                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.logo),
-                    contentDescription = "Servify Logo",
-                    modifier = Modifier.size(200.dp)
+                // Logo oficial en azul Servify, con la variante del modo actual
+                ServifyLogo(
+                    size = 200.dp
                 )
 
                 Column(
@@ -94,13 +92,13 @@ fun SplashScreen(
                     Text(
                         text = "Servify",
                         style = ServifyTextStyle.Display,
-                        color = ServifyOnSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
                         text = "Servicios locales de confianza",
                         style = ServifyTextStyle.BodyLight,
-                        color = ServifyOnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -124,7 +122,7 @@ fun SplashScreen(
         Text(
             text = "v1.0.0",
             style = ServifyTextStyle.Caption,
-            color = ServifyOnSurfaceVariant.copy(alpha = 0.50f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.50f),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp)
@@ -159,6 +157,6 @@ private fun PulsingDot(
             .size(8.dp)
             .graphicsLayer { alpha = pulse }
             .clip(CircleShape)
-            .background(ServifyPrimary.copy(alpha = 0.80f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.80f))
     )
 }

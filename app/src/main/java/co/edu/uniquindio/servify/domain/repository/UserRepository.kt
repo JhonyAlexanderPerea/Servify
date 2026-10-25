@@ -3,11 +3,26 @@ package co.edu.uniquindio.servify.domain.repository
 import co.edu.uniquindio.servify.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Contrato de repositorio para la gestión del perfil de usuario y reputación.
- */
 interface UserRepository {
-    fun observeCurrentUser(): Flow<User>
-    suspend fun updateUserProfile(user: User)
-    suspend fun updatePoints(pointsToAdd: Int)
+    val users: Flow<List<User>>
+
+    fun observeUsers(): Flow<List<User>> = users
+
+    fun observeCurrentUser(): Flow<User>? = null
+
+    fun getUserById(id: String): User? = getById(id)
+
+    fun getById(id: String): User?
+
+    fun findByEmail(email: String): User?
+
+    fun add(user: User)
+
+    fun update(id: String, transform: (User) -> User): User?
+
+    suspend fun updateUserProfile(user: User) {
+        update(user.id) { user }
+    }
+
+    suspend fun updatePoints(pointsToAdd: Int) {}
 }

@@ -57,15 +57,9 @@ import co.edu.uniquindio.servify.features.service.model.ServiceDetailData
 import co.edu.uniquindio.servify.features.service.model.TrustFactor
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyGold
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
+import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import co.edu.uniquindio.servify.ui.theme.contentColorOn
 
 // -----------------------------------------------------------------------------
 // TOP APP BAR DEL DETALLE DE SERVICIO
@@ -90,14 +84,14 @@ fun ServiceDetailTopBar(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(ServifySurfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .clickable(onClick = onBackClick),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Volver",
-                tint = ServifyOnSurface,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -105,7 +99,7 @@ fun ServiceDetailTopBar(
         Text(
             text = "Detalle del Servicio",
             style = ServifyTextStyle.SmallMedium,
-            color = ServifyOnSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -113,14 +107,14 @@ fun ServiceDetailTopBar(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(ServifySurfaceVariant)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable(onClick = onFavoriteToggle),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Favorito",
-                    tint = if (isFavorite) Color(0xFFEA4C89) else ServifyOnSurface,
+                    tint = if (isFavorite) ServifyExtra.favorite else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -129,14 +123,14 @@ fun ServiceDetailTopBar(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(ServifySurfaceVariant)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable(onClick = onShareClick),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Share,
                     contentDescription = "Compartir",
-                    tint = ServifyOnSurface,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -160,14 +154,14 @@ fun ImageGalleryBanner(
             .fillMaxWidth()
             .height(220.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(ServifyPrimaryContainer)
+            .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(
                     brush = Brush.linearGradient(
-                        colors = listOf(Color(0xFFB4C5FF), Color(0xFF1A55E3))
+                        colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
                     )
                 ),
             contentAlignment = Alignment.Center
@@ -176,13 +170,13 @@ fun ImageGalleryBanner(
                 Icon(
                     imageVector = Icons.Default.HomeRepairService,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = ServifyExtra.onHero,
                     modifier = Modifier.size(64.dp)
                 )
                 Text(
                     text = detail.subcategory,
                     style = ServifyTextStyle.BodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
+                    color = ServifyExtra.onHero
                 )
             }
         }
@@ -191,14 +185,14 @@ fun ImageGalleryBanner(
             modifier = Modifier
                 .padding(12.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.9f))
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
                 .align(Alignment.TopStart)
         ) {
             Text(
                 text = "${detail.category} • ${detail.subcategory}",
                 style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -214,7 +208,9 @@ fun ImageGalleryBanner(
                     modifier = Modifier
                         .size(if (isActive) 18.dp else 8.dp, 8.dp)
                         .clip(CircleShape)
-                        .background(if (isActive) Color.White else Color.White.copy(alpha = 0.5f))
+                        .background(
+                            if (isActive) ServifyExtra.onHero else ServifyExtra.onHero.copy(alpha = 0.5f)
+                        )
                         .clickable { activeImageIndex = index }
                 )
             }
@@ -236,7 +232,7 @@ fun ProviderCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, ServifyOutlineVariant)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -255,7 +251,7 @@ fun ProviderCard(
                         Text(
                             text = detail.providerInitials,
                             style = ServifyTextStyle.TitleTight.copy(
-                                color = Color.White,
+                                color = contentColorOn(detail.providerColor),
                                 fontSize = 20.sp
                             )
                         )
@@ -271,14 +267,14 @@ fun ProviderCard(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 ),
-                                color = ServifyOnSurface
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             if (detail.isVerified) {
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "Verificado",
-                                    tint = ServifyTertiary,
+                                    tint = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -292,7 +288,7 @@ fun ProviderCard(
                             Text(
                                 text = "Desde ${detail.providerMemberSince}",
                                 style = ServifyTextStyle.Caption,
-                                color = ServifyOnSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -305,7 +301,7 @@ fun ProviderCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(ServifySurfaceVariant)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
@@ -313,12 +309,12 @@ fun ProviderCard(
                     Text(
                         text = "${detail.completedJobs}",
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                        color = ServifyOnSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Trabajos",
                         style = ServifyTextStyle.Caption,
-                        color = ServifyOnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -326,7 +322,7 @@ fun ProviderCard(
                     modifier = Modifier
                         .width(1.dp)
                         .height(28.dp)
-                        .background(ServifyOutlineVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -334,7 +330,7 @@ fun ProviderCard(
                     Text(
                         text = "Calificación",
                         style = ServifyTextStyle.Caption,
-                        color = ServifyOnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -342,7 +338,7 @@ fun ProviderCard(
                     modifier = Modifier
                         .width(1.dp)
                         .height(28.dp)
-                        .background(ServifyOutlineVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -350,13 +346,13 @@ fun ProviderCard(
                         text = "${detail.trustIndex}%",
                         style = ServifyTextStyle.SmallMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = ServifyTertiary
+                            color = MaterialTheme.colorScheme.secondary
                         )
                     )
                     Text(
                         text = "Confianza",
                         style = ServifyTextStyle.Caption,
-                        color = ServifyOnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -377,8 +373,8 @@ fun TrustSystemCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8FFF8)),
-        border = BorderStroke(1.dp, ServifyTertiary.copy(alpha = 0.3f))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -391,13 +387,13 @@ fun TrustSystemCard(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(ServifyTertiary),
+                            .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Shield,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSecondary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -408,12 +404,12 @@ fun TrustSystemCard(
                         Text(
                             text = "Índice de Confianza Servify",
                             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                            color = ServifyTertiary
+                            color = MaterialTheme.colorScheme.secondary
                         )
                         Text(
                             text = "Garantía y perfil verificado por el sistema",
                             style = ServifyTextStyle.Caption,
-                            color = ServifyOnSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -421,13 +417,13 @@ fun TrustSystemCard(
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(ServifyTertiary)
+                        .background(MaterialTheme.colorScheme.secondary)
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = "$trustIndex%",
                         style = ServifyTextStyle.SmallMedium.copy(
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSecondary,
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -445,7 +441,7 @@ fun TrustSystemCard(
                         Icon(
                             imageVector = Icons.Default.VerifiedUser,
                             contentDescription = null,
-                            tint = ServifyTertiary,
+                            tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier
                                 .padding(top = 2.dp)
                                 .size(16.dp)
@@ -456,13 +452,13 @@ fun TrustSystemCard(
                                 text = factor.title,
                                 style = ServifyTextStyle.Caption.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = ServifyOnSurface
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             Text(
                                 text = factor.description,
                                 style = ServifyTextStyle.Caption,
-                                color = ServifyOnSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -489,13 +485,13 @@ fun ExpandableDescriptionCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, ServifyOutlineVariant)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Descripción del servicio",
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -503,7 +499,7 @@ fun ExpandableDescriptionCard(
             Text(
                 text = description,
                 style = ServifyTextStyle.SmallRelaxed,
-                color = ServifyOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = if (expanded) Int.MAX_VALUE else 4,
                 overflow = TextOverflow.Ellipsis
             )
@@ -518,13 +514,13 @@ fun ExpandableDescriptionCard(
                 Text(
                     text = if (expanded) "Mostrar menos" else "Leer descripción completa",
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                    color = ServifyPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = ServifyPrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -535,14 +531,14 @@ fun ExpandableDescriptionCard(
                 Icon(
                     imageVector = Icons.Default.Place,
                     contentDescription = null,
-                    tint = ServifyPrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Zona de cobertura: $zone ($city)",
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
-                    color = ServifyOnSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -561,7 +557,7 @@ fun CommentItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = ServifySurfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -592,12 +588,12 @@ fun CommentItem(
                         Text(
                             text = comment.authorName,
                             style = ServifyTextStyle.SmallMedium,
-                            color = ServifyOnSurface
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = comment.date,
                             style = ServifyTextStyle.Caption,
-                            color = ServifyOnSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -606,14 +602,14 @@ fun CommentItem(
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,
-                        tint = ServifyGold,
+                        tint = ServifyExtra.gold,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = "${comment.rating}",
                         style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                        color = ServifyOnSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -623,7 +619,7 @@ fun CommentItem(
             Text(
                 text = comment.commentText,
                 style = ServifyTextStyle.Small,
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -641,13 +637,13 @@ fun CommentInput(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, ServifyOutlineVariant)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
                 text = "Deja tu opinión o consulta",
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -656,14 +652,14 @@ fun CommentInput(
                 Text(
                     text = "Calificación: ",
                     style = ServifyTextStyle.Caption,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 repeat(5) { index ->
                     val starNumber = index + 1
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = "$starNumber estrellas",
-                        tint = if (starNumber <= selectedRating) ServifyGold else ServifyOutlineVariant,
+                        tint = if (starNumber <= selectedRating) ServifyExtra.gold else MaterialTheme.colorScheme.outlineVariant,
                         modifier = Modifier
                             .size(20.dp)
                             .clickable { selectedRating = starNumber }
@@ -689,7 +685,7 @@ fun CommentInput(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(if (text.isNotBlank()) ServifyPrimary else ServifyOutlineVariant)
+                        .background(if (text.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
                         .clickable(enabled = text.isNotBlank()) {
                             onSendComment(text, selectedRating)
                             text = ""
@@ -699,7 +695,7 @@ fun CommentInput(
                     Icon(
                         imageVector = Icons.Default.Send,
                         contentDescription = "Enviar",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -736,13 +732,13 @@ fun ServiceDetailBottomBar(
                 Text(
                     text = "Tarifa estimada",
                     style = ServifyTextStyle.Caption,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = hourlyPrice,
                     style = ServifyTextStyle.TitleTight.copy(
                         fontSize = 18.sp,
-                        color = ServifyPrimary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
             }

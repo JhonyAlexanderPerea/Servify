@@ -4,10 +4,17 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
+<<<<<<< HEAD
         <DropdownSelection timestamp="2026-10-08T19:30:18.923639400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="Wireless" identifier="serviceName=adb-6HNF49SWWGBAEASO-k0M3Gc" />
+=======
+        <DropdownSelection timestamp="2026-10-23T01:42:59.243651798Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="Wireless" identifier="serviceName=adb-140232554J005336-l5s9tN (2)" />
+>>>>>>> origin/OnBoarding-(jhony)
             </handle>
           </Target>
         </DropdownSelection>

@@ -1,14 +1,13 @@
 package co.edu.uniquindio.servify.features.dashboard
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -19,12 +18,14 @@ import co.edu.uniquindio.servify.features.dashboard.component.BottomNavigationBa
 import co.edu.uniquindio.servify.features.explore.ExploreScreen
 import co.edu.uniquindio.servify.features.home.HomeScreen
 import co.edu.uniquindio.servify.features.notifications.NotificationsScreen
+import co.edu.uniquindio.servify.features.profile.ProfileActions
 import co.edu.uniquindio.servify.features.profile.ProfileScreen
 import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
+import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsActions
+import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsScreen
 import co.edu.uniquindio.servify.navigation.BottomNavDestination
 import co.edu.uniquindio.servify.navigation.Screen
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
-import co.edu.uniquindio.servify.ui.theme.ServifyTheme
+import co.edu.uniquindio.servify.ui.components.state.ComingSoonScreen
 
 @Composable
 fun MainScreen(
@@ -42,7 +43,7 @@ fun MainScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface),
+            .background(MaterialTheme.colorScheme.background),
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(
@@ -129,36 +130,59 @@ fun MainScreen(
             // 5. PERFIL & REPUTACIÓN
             composable(Screen.Profile.route) {
                 ProfileScreen(
-                    onNavigateToCreatePublication = {
-                        dashboardNavController.navigate(Screen.CreatePublication.route)
-                    },
-                    onLogoutClick = onLogoutClick
+                    actions = ProfileActions(
+                        onMyPublicationsClick = { dashboardNavController.navigate(Screen.MyPublications.route) },
+                        onMyRequestsClick = { dashboardNavController.navigate(Screen.MyRequests.route) },
+                        onAchievementsClick = { dashboardNavController.navigate(Screen.Achievements.route) },
+                        onStatisticsClick = { dashboardNavController.navigate(Screen.Statistics.route) },
+                        onSettingsClick = { dashboardNavController.navigate(Screen.Settings.route) },
+                        onLogoutClick = onLogoutClick
+                    )
+                )
+            }
+
+            // 6. MIS PUBLICACIONES (pantalla 15)
+            composable(Screen.MyPublications.route) {
+                MyPublicationsScreen(
+                    actions = MyPublicationsActions(
+                        onBackClick = { dashboardNavController.popBackStack() },
+                        onViewClick = onNavigateToServiceDetail,
+                        // TODO(Jean, tarea 15): abrir el formulario en modo edición con el id de la publicación
+                        onEditClick = { dashboardNavController.navigate(Screen.CreatePublication.route) },
+                        onCreateClick = { dashboardNavController.navigate(Screen.CreatePublication.route) }
+                    )
+                )
+            }
+
+            // 7. SECCIONES DEL PERFIL PENDIENTES (tareas 19-20, 24-26 del kanban)
+            composable(Screen.MyRequests.route) {
+                ComingSoonScreen(
+                    title = "Mis solicitudes",
+                    description = "Aquí verás las solicitudes de servicio que enviaste y su estado.",
+                    onBack = { dashboardNavController.popBackStack() }
+                )
+            }
+            composable(Screen.Achievements.route) {
+                ComingSoonScreen(
+                    title = "Mis logros",
+                    description = "Aquí verás tus insignias desbloqueadas y tu progreso hacia las siguientes.",
+                    onBack = { dashboardNavController.popBackStack() }
+                )
+            }
+            composable(Screen.Statistics.route) {
+                ComingSoonScreen(
+                    title = "Estadísticas",
+                    description = "Aquí verás tus publicaciones, solicitudes y puntos en un solo panel.",
+                    onBack = { dashboardNavController.popBackStack() }
+                )
+            }
+            composable(Screen.Settings.route) {
+                ComingSoonScreen(
+                    title = "Configuración",
+                    description = "Aquí podrás editar tus datos personales y eliminar tu cuenta.",
+                    onBack = { dashboardNavController.popBackStack() }
                 )
             }
         }
-    }
-}
-
-// -----------------------------------------------------------------------------
-// PREVIEWS DE MAIN SCREEN
-// -----------------------------------------------------------------------------
-
-@Preview(name = "Main Screen Light", showBackground = true)
-@Composable
-fun MainScreenPreviewLight() {
-    ServifyTheme(darkTheme = false) {
-        MainScreen(
-            onNavigateToServiceDetail = {}
-        )
-    }
-}
-
-@Preview(name = "Main Screen Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun MainScreenPreviewDark() {
-    ServifyTheme(darkTheme = true) {
-        MainScreen(
-            onNavigateToServiceDetail = {}
-        )
     }
 }

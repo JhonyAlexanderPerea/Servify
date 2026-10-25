@@ -31,6 +31,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,12 +57,6 @@ import co.edu.uniquindio.servify.features.publication.model.CreatePublicationMoc
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationUiState
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
-import co.edu.uniquindio.servify.ui.theme.ServifySurface
-import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
@@ -81,7 +76,7 @@ fun CreatePublicationScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .background(ServifySurface)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding(),
         topBar = {
@@ -134,13 +129,13 @@ fun CreatePublicationScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFDCFCE7)),
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Éxito",
-                        tint = ServifyTertiary,
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(48.dp)
                     )
                 }
@@ -150,7 +145,7 @@ fun CreatePublicationScreen(
                 Text(
                     text = if (state.publicationId != null) "¡Publicación Actualizada Exitosamente!" else "¡Publicación Creada y Publicada!",
                     style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
-                    color = ServifyOnSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -158,7 +153,7 @@ fun CreatePublicationScreen(
                 Text(
                     text = "Tu servicio fue registrado reactivamente en la capa de datos en memoria. Ya está disponible en el feed del Marketplace y en tu perfil de proveedor.",
                     style = ServifyTextStyle.SmallRelaxed,
-                    color = ServifyOnSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -201,13 +196,13 @@ fun CreatePublicationScreen(
                                 Text(
                                     text = "Paso 1: Información Básica del Servicio",
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
-                                    color = ServifyOnSurface
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Text(
                                     text = "Escribe un título claro y selecciona la categoría que mejor describa tu servicio.",
                                     style = ServifyTextStyle.Small,
-                                    color = ServifyOnSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
                                 ServifyTextField(
@@ -253,7 +248,7 @@ fun CreatePublicationScreen(
                                 Text(
                                     text = "Paso 2: Detalles, Precios y Sugerencias de IA",
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
-                                    color = ServifyOnSurface
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 AiSuggestionCard(
@@ -307,13 +302,13 @@ fun CreatePublicationScreen(
                                 Text(
                                     text = "Paso 3: Vista Previa y Verificación Final",
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
-                                    color = ServifyOnSurface
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Text(
                                     text = "Revisa cómo verán los clientes tu anuncio en el Marketplace antes de publicarlo.",
                                     style = ServifyTextStyle.Small,
-                                    color = ServifyOnSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
                                 val previewState = CreatePublicationUiState(
@@ -330,7 +325,7 @@ fun CreatePublicationScreen(
 
                                 Card(
                                     shape = RoundedCornerShape(16.dp),
-                                    colors = CardDefaults.cardColors(containerColor = ServifySurfaceVariant)
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(14.dp),
@@ -339,14 +334,14 @@ fun CreatePublicationScreen(
                                         Icon(
                                             imageVector = Icons.Default.Info,
                                             contentDescription = null,
-                                            tint = ServifyPrimary,
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
                                             text = "Tu anuncio cumplirá con las normas de convivencia de Servify y ganará puntos de reputación en tu perfil.",
                                             style = ServifyTextStyle.Caption,
-                                            color = ServifyOnSurface
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
                                 }

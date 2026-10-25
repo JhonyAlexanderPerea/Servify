@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -80,21 +82,29 @@ dependencies {
     // Navigation
     // -----------------------------------------
 
-    implementation("androidx.navigation:navigation-compose:2.9.6")
+    implementation(libs.androidx.navigation.compose)
 
     // -----------------------------------------
     // ViewModel + Compose
     // -----------------------------------------
 
-    implementation(
-        "androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0"
-    )
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.savedstate)
+
+    // -----------------------------------------
+    // Inyección de dependencias (Hilt + KSP)
+    // -----------------------------------------
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
     // -----------------------------------------
     // Testing
     // -----------------------------------------
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(
         platform(libs.androidx.compose.bom)

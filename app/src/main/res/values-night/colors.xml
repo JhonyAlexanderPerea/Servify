@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Fondos de la ventana y del splash en modo oscuro: sin esto la barra de
+         estado y el arranque mostraban un destello blanco. -->
+    <color name="window_background">#111318</color>
+    <color name="splash_background">#111318</color>
+</resources>

@@ -1,12 +1,23 @@
 package co.edu.uniquindio.servify.features.login
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
+import co.edu.uniquindio.servify.domain.rules.CredentialRules
+import co.edu.uniquindio.servify.features.auth.toMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val loginUserUseCase: LoginUserUseCase
+) : ViewModel() {
 
     private val _uiState =
         MutableStateFlow(LoginUiState())
@@ -20,9 +31,7 @@ class LoginViewModel : ViewModel() {
             value.isBlank() ->
                 "El correo es obligatorio"
 
-            !android.util.Patterns.EMAIL_ADDRESS
-                .matcher(value)
-                .matches() ->
+            !CredentialRules.isValidEmail(value) ->
                 "Correo electrónico inválido"
 
             else -> null
@@ -31,7 +40,8 @@ class LoginViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 email = value,
-                emailError = error
+                emailError = error,
+                loginError = null
             )
         }
     }
@@ -41,9 +51,10 @@ class LoginViewModel : ViewModel() {
         _uiState.update {
             it.copy(
                 password = value,
+                loginError = null,
                 passwordError =
-                    if (value.length < 8)
-                        "Mínimo 8 caracteres"
+                    if (!CredentialRules.isStrongEnough(value))
+                        "Mínimo ${CredentialRules.MIN_PASSWORD_LENGTH} caracteres"
                     else
                         null
             )
@@ -69,6 +80,29 @@ class LoginViewModel : ViewModel() {
     }
 
     fun login() {
-        // Más adelante se conectará al Repository/API.
+
+        val state = _uiState.value
+        if (!state.isValid || state.isLoading) return
+
+        _uiState.update { it.copy(isLoading = true, loginError = null) }
+
+        viewModelScope.launch {
+            when (val result = loginUserUseCase(state.email, state.password)) {
+                is AuthResult.Success -> _uiState.update {
+                    it.copy(isLoading = false, loggedInRole = result.user.role)
+                }
+
+                is AuthResult.Failure -> _uiState.update {
+                    it.copy(isLoading = false, loginError = result.error.toMessage())
+                }
+            }
+        }
+    }
+
+    /** El acceso con Google llega con Firebase Auth (fase 3). Por ahora se informa en pantalla. */
+    fun onGoogleClick() {
+        _uiState.update {
+            it.copy(loginError = "El acceso con Google estará disponible próximamente")
+        }
     }
 }

@@ -1,5 +1,7 @@
 package co.edu.uniquindio.servify.features.register
 
+import co.edu.uniquindio.servify.domain.rules.CredentialRules
+
 data class RegisterUiState(
     val step: Int = 1,
 
@@ -11,21 +13,24 @@ data class RegisterUiState(
     val confirmPassword: String = "",
     val city: String = "",
 
-    val termsAccepted: Boolean = false
+    val termsAccepted: Boolean = false,
+
+    val isLoading: Boolean = false,
+    val emailError: String? = null,
+    val registerError: String? = null,
+    /** true cuando la cuenta fue creada y la sesión quedó abierta. */
+    val registered: Boolean = false
 ) {
 
     val firstStepValid: Boolean
         get() =
             name.isNotBlank() &&
                     lastName.isNotBlank() &&
-                    email.isNotBlank() &&
-                    android.util.Patterns.EMAIL_ADDRESS
-                        .matcher(email)
-                        .matches()
+                    CredentialRules.isValidEmail(email)
 
     val secondStepValid: Boolean
         get() =
-            password.length >= 8 &&
+            CredentialRules.isStrongEnough(password) &&
                     password == confirmPassword &&
                     city.isNotBlank() &&
                     termsAccepted

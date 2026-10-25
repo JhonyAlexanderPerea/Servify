@@ -209,11 +209,38 @@ class PublicationFlowViewModel @Inject constructor(
     fun onNextStep() {
         val state = _uiState.value
         if (state.currentStep == 1) {
-            if (validateForm()) {
+            val titleErr = if (state.title.trim().length < 5) "El título debe tener al menos 5 caracteres" else null
+            val catErr = if (state.categoryId.isBlank()) "Selecciona una categoría" else null
+            val isValid = titleErr == null && catErr == null
+
+            _uiState.update {
+                it.copy(
+                    titleError = titleErr,
+                    categoryError = catErr,
+                    isFormValid = isValid
+                )
+            }
+
+            if (isValid) {
                 _uiState.update { it.copy(currentStep = 2) }
             }
         } else if (state.currentStep == 2) {
-            if (validateForm()) {
+            val descErr = if (state.description.trim().length < 20) "La descripción debe tener al menos 20 caracteres" else null
+            val priceVal = state.price.toDoubleOrNull()
+            val priceErr = if (priceVal == null || priceVal <= 0) "Ingresa un precio válido" else null
+            val locErr = if (state.locationName.isBlank()) "La ubicación es obligatoria" else null
+            val isValid = descErr == null && priceErr == null && locErr == null
+
+            _uiState.update {
+                it.copy(
+                    descriptionError = descErr,
+                    priceError = priceErr,
+                    locationError = locErr,
+                    isFormValid = isValid
+                )
+            }
+
+            if (isValid) {
                 _uiState.update { it.copy(currentStep = 3) }
             }
         }

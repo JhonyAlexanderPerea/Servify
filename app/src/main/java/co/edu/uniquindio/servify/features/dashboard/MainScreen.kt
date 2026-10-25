@@ -20,6 +20,7 @@ import co.edu.uniquindio.servify.features.home.HomeScreen
 import co.edu.uniquindio.servify.features.notifications.NotificationsScreen
 import co.edu.uniquindio.servify.features.profile.ProfileActions
 import co.edu.uniquindio.servify.features.profile.ProfileScreen
+import co.edu.uniquindio.servify.features.statistics.PersonalStatisticsScreen
 import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
 import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsActions
 import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsScreen
@@ -170,10 +171,10 @@ fun MainScreen(
                 )
             }
             composable(Screen.Statistics.route) {
-                ComingSoonScreen(
-                    title = "Estadísticas",
-                    description = "Aquí verás tus publicaciones, solicitudes y puntos en un solo panel.",
-                    onBack = { dashboardNavController.popBackStack() }
+                PersonalStatisticsScreen(
+                    onBackClick = {
+                        dashboardNavController.popBackStack()
+                    }
                 )
             }
             composable(Screen.Settings.route) {

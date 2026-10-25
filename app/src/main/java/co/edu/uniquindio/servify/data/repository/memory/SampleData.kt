@@ -30,7 +30,7 @@ object SampleData {
     val providerJuan = User(
         id = "u_juan",
         name = "Juan Carlos Mejía",
-        email = "juan.mejia@gmail.com",
+        email = "juan.mejia@servify.demo",
         phone = "310 456 7890",
         avatarUrl = "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61",
         role = UserRole.PROVIDER,
@@ -44,7 +44,7 @@ object SampleData {
     val providerLuis = User(
         id = "u_luis",
         name = "Luis Fernando Torres",
-        email = "luis.torres@gmail.com",
+        email = "luis.torres@servify.demo",
         phone = "312 987 6543",
         avatarUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
         role = UserRole.PROVIDER,
@@ -58,7 +58,7 @@ object SampleData {
     val providerMaria = User(
         id = "u_maria",
         name = "María Alejandra Ríos",
-        email = "maria.rios@gmail.com",
+        email = "maria.rios@servify.demo",
         phone = "315 234 5678",
         avatarUrl = "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
         role = UserRole.PROVIDER,
@@ -67,6 +67,34 @@ object SampleData {
         reputationLevel = ReputationLevel.PLATINUM,
         currentPoints = 4120,
         completedJobsCount = 203
+    )
+
+    val providerValentina = User(
+        id = "u_valentina",
+        name = "Valentina Ospina",
+        email = "valentina.ospina@servify.demo",
+        phone = "316 789 0123",
+        avatarUrl = null,
+        role = UserRole.CLIENT,
+        isVerified = false,
+        trustIndexScore = 75,
+        reputationLevel = ReputationLevel.BRONZE,
+        currentPoints = 380,
+        completedJobsCount = 5
+    )
+
+    val moderatorUser = User(
+        id = "mod_1",
+        name = "Moderación Servify",
+        email = "moderador@servify.co",
+        phone = "300 000 0000",
+        avatarUrl = null,
+        role = UserRole.MODERATOR,
+        isVerified = true,
+        trustIndexScore = 100,
+        reputationLevel = ReputationLevel.DIAMOND,
+        currentPoints = 5000,
+        completedJobsCount = 0
     )
 
     val publicationsList = listOf(

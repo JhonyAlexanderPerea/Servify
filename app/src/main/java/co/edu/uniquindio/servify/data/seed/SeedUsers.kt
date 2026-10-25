@@ -72,8 +72,11 @@ object SeedUsers {
     val credentials: Map<String, String> = mapOf(
         "jhony.ramirez@gmail.com" to "12345678",
         "juan.mejia@servify.demo" to "Servify2026",
+        "juan.mejia@gmail.com" to "Servify2026",
         "luis.torres@servify.demo" to "Servify2026",
+        "luis.torres@gmail.com" to "Servify2026",
         "maria.rios@servify.demo" to "Servify2026",
+        "maria.rios@gmail.com" to "Servify2026",
         "valentina.ospina@servify.demo" to "Servify2026",
         MODERATOR_EMAIL to "Moderador2026"
     )

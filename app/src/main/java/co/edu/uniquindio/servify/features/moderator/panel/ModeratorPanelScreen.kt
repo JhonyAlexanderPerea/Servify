@@ -16,7 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
@@ -29,7 +29,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 fun ModeratorPanelScreen(
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ModeratorPanelViewModel = viewModel()
+    viewModel: ModeratorPanelViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
 

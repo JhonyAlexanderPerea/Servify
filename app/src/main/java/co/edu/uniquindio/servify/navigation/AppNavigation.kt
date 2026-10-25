@@ -1,12 +1,13 @@
 package co.edu.uniquindio.servify.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
-import co.edu.uniquindio.servify.di.AppContainer
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.features.dashboard.MainScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
@@ -15,16 +16,16 @@ import co.edu.uniquindio.servify.features.moderator.panel.ModeratorPanelScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
+import co.edu.uniquindio.servify.features.session.SessionViewModel
 import co.edu.uniquindio.servify.features.splash.SplashScreen
-import kotlinx.coroutines.launch
+import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordViewModel
 
 @Composable
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
 
-    val scope = rememberCoroutineScope()
-    val logoutUseCase = AppContainer.logoutUseCase
+    val sessionViewModel: SessionViewModel = hiltViewModel()
 
     NavHost(
         navController = navController,
@@ -112,7 +113,7 @@ fun AppNavigation(
                 onForgotPasswordClick = {
 
                     navController.navigate(
-                        Screen.ForgotPassword.route
+                        Screen.ForgotPassword.createRoute(UserRole.USER)
                     )
                 }
             )
@@ -149,7 +150,15 @@ fun AppNavigation(
         // FORGOT PASSWORD
         // -----------------------------------------
 
-        composable(Screen.ForgotPassword.route) {
+        composable(
+            route = Screen.ForgotPassword.route,
+            arguments = listOf(
+                navArgument(ForgotPasswordViewModel.ARG_ROLE) {
+                    type = NavType.StringType
+                    defaultValue = UserRole.USER.name
+                }
+            )
+        ) {
 
             ForgotPasswordScreen(
                 onBack = {
@@ -185,7 +194,7 @@ fun AppNavigation(
                     )
                 },
                 onLogoutClick = {
-                    scope.launch { logoutUseCase() }
+                    sessionViewModel.logout()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) {
                             inclusive = true
@@ -203,7 +212,7 @@ fun AppNavigation(
 
             ModeratorPanelScreen(
                 onLogoutClick = {
-                    scope.launch { logoutUseCase() }
+                    sessionViewModel.logout()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.ModeratorPanel.route) {
                             inclusive = true

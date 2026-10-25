@@ -3,10 +3,10 @@ package co.edu.uniquindio.servify.features.login
 import co.edu.uniquindio.servify.domain.model.UserRole
 
 data class LoginUiState(
-    val email: String = "jhony.ramirez@gmail.com",
-    val password: String = "12345678",
+    val email: String = "",
+    val password: String = "",
     val showPassword: Boolean = false,
-    val rememberMe: Boolean = true,
+    val rememberMe: Boolean = false,
     val isLoading: Boolean = false,
     val emailError: String? = null,
     val passwordError: String? = null,

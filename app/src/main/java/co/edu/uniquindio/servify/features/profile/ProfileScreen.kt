@@ -21,14 +21,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.ListAlt
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.RequestQuote
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,6 +37,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,16 +48,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import co.edu.uniquindio.servify.domain.model.Badge
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
-import co.edu.uniquindio.servify.features.home.model.HomeMockData
-import co.edu.uniquindio.servify.ui.theme.ServifyExtra
+import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
+/** Acciones de navegación del Perfil: una por sección del mockup (pantalla 17). */
+data class ProfileActions(
+    val onMyPublicationsClick: () -> Unit = {},
+    val onMyRequestsClick: () -> Unit = {},
+    val onAchievementsClick: () -> Unit = {},
+    val onStatisticsClick: () -> Unit = {},
+    val onSettingsClick: () -> Unit = {},
+    val onLogoutClick: () -> Unit = {}
+)
+
 @Composable
 fun ProfileScreen(
-    onNavigateToCreatePublication: () -> Unit = {},
-    onLogoutClick: () -> Unit = {},
+    actions: ProfileActions,
+    modifier: Modifier = Modifier,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
+    ProfileContent(state = state, actions = actions, modifier = modifier)
+}
+
+@Composable
+fun ProfileContent(
+    state: ProfileUiState,
+    actions: ProfileActions,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -82,12 +105,12 @@ fun ProfileScreen(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { /* Editar perfil */ },
+                        .clickable(onClick = actions.onSettingsClick),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar",
+                        contentDescription = "Editar perfil",
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
@@ -103,255 +126,175 @@ fun ProfileScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. TARJETA CABECERA DE PERFIL CON AVATAR Y PUNTOS
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            item { ProfileHeaderCard(state) }
+            item { BadgesSection(state) }
+            item { ProfileMenu(actions) }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// CABECERA: avatar, nombre, nivel, puntos y progreso hacia el siguiente nivel
+// -----------------------------------------------------------------------------
+
+@Composable
+private fun ProfileHeaderCard(state: ProfileUiState) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = HomeMockData.currentUserInitials,
-                                    style = ServifyTextStyle.Title.copy(
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        fontSize = 22.sp
-                                    )
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(14.dp))
-
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "${HomeMockData.currentUserName} Ramírez",
-                                        style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    LevelBadge(level = "Experto")
-                                }
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Place,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text(
-                                        text = HomeMockData.currentUserCity,
-                                        style = ServifyTextStyle.Small,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Estadísticas de Puntos y Trabajos
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceAround
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "1.240",
-                                    style = ServifyTextStyle.SmallMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                )
-                                Text(
-                                    text = "Puntos Servify",
-                                    style = ServifyTextStyle.Caption,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .width(1.dp)
-                                    .height(28.dp)
-                                    .background(MaterialTheme.colorScheme.outlineVariant)
-                            )
-
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "23",
-                                    style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Trabajos",
-                                    style = ServifyTextStyle.Caption,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .width(1.dp)
-                                    .height(28.dp)
-                                    .background(MaterialTheme.colorScheme.outlineVariant)
-                            )
-
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Star,
-                                        contentDescription = null,
-                                        tint = ServifyExtra.gold,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text(
-                                        text = "4.8",
-                                        style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                                Text(
-                                    text = "Rating",
-                                    style = ServifyTextStyle.Caption,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = state.initials,
+                        style = ServifyTextStyle.Title.copy(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 22.sp
+                        )
+                    )
                 }
-            }
 
-            // 2. ÍNDICE DE CONFIANZA CARD
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f))
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.secondary),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Shield,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
+                Spacer(modifier = Modifier.width(14.dp))
 
-                            Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = state.fullName,
+                            style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        if (state.levelLabel.isNotEmpty()) LevelBadge(level = state.levelLabel)
+                    }
 
-                            Column {
-                                Text(
-                                    text = "Índice de Confianza",
-                                    style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                                Text(
-                                    text = "91% • Perfil Verificado y Seguro",
-                                    style = ServifyTextStyle.Caption,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.ChevronRight,
+                            imageVector = Icons.Default.Place,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = state.city,
+                            style = ServifyTextStyle.Small,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
 
-            // 3. SECCIÓN DE LOGROS E INSIGNIAS
-            item {
-                Column {
-                    Text(
-                        text = "Insignias y Logros Alcanzados",
-                        style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Progreso hacia el siguiente nivel
+            ServifyProgressBar(progress = state.levelFraction)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = state.nextLevelLabel
+                    ?.let { "${state.pointsToNext} puntos para ser $it" }
+                    ?: "¡Alcanzaste el nivel máximo!",
+                style = ServifyTextStyle.Caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                StatItem(
+                    value = formatPoints(state.points),
+                    label = "Puntos Servify",
+                    highlight = true
+                )
+                StatDivider()
+                StatItem(value = state.publishedCount.toString(), label = "Publicados")
+                StatDivider()
+                StatItem(value = state.finalizedCount.toString(), label = "Finalizados")
+            }
+        }
+    }
+}
+
+/** 1240 -> "1.240" (separador de miles de Colombia, independiente del idioma del teléfono). */
+internal fun formatPoints(points: Int): String =
+    points.toString().reversed().chunked(3).joinToString(".").reversed()
+
+@Composable
+private fun StatItem(value: String, label: String, highlight: Boolean = false) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+            color = if (highlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = label,
+            style = ServifyTextStyle.Caption,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun StatDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(28.dp)
+            .background(MaterialTheme.colorScheme.outlineVariant)
+    )
+}
+
+// -----------------------------------------------------------------------------
+// INSIGNIAS DESBLOQUEADAS
+// -----------------------------------------------------------------------------
+
+@Composable
+private fun BadgesSection(state: ProfileUiState) {
+    Column {
+        Text(
+            text = "Insignias (${state.unlockedBadges.size}/${state.totalBadges})",
+            style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        if (state.unlockedBadges.isEmpty()) {
+            Text(
+                text = "Aún no tienes insignias. Publica tu primer servicio para conseguir la primera.",
+                style = ServifyTextStyle.Small,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            // Dos por fila; se agrupa en filas para no depender de FlowRow (API experimental).
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.unlockedBadges.chunked(2).forEach { rowBadges ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        AchievementBadgeChip(
-                            title = "Usuario Confiable",
-                            icon = Icons.Default.Shield,
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        AchievementBadgeChip(
-                            title = "10 Verificados",
-                            icon = Icons.Default.WorkspacePremium,
-                            color = ServifyExtra.warning,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-
-            // 4. MENÚ DE OPCIONES DE LA CUENTA
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                ) {
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                        ProfileMenuItem(
-                            icon = Icons.Default.ListAlt,
-                            title = "Mis Publicaciones de Servicios",
-                            onClick = onNavigateToCreatePublication
-                        )
-
-                        ProfileMenuItem(
-                            icon = Icons.Default.EventNote,
-                            title = "Mi Agenda y Citas Programadas",
-                            onClick = { }
-                        )
-
-                        ProfileMenuItem(
-                            icon = Icons.Default.Logout,
-                            title = "Cerrar Sesión",
-                            textColor = MaterialTheme.colorScheme.error,
-                            onClick = onLogoutClick
-                        )
+                        rowBadges.forEach { badge ->
+                            AchievementBadgeChip(
+                                badge = badge,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (rowBadges.size == 1) Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -360,12 +303,8 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun AchievementBadgeChip(
-    title: String,
-    icon: ImageVector,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
+private fun AchievementBadgeChip(badge: Badge, modifier: Modifier = Modifier) {
+    val color = MaterialTheme.colorScheme.secondary
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -374,17 +313,45 @@ private fun AchievementBadgeChip(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = icon,
+            imageVector = Icons.Default.WorkspacePremium,
             contentDescription = null,
             tint = color,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-            text = title,
+            text = badge.title,
             style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
             color = color
         )
+    }
+}
+
+// -----------------------------------------------------------------------------
+// MENÚ: todas las secciones del mockup
+// -----------------------------------------------------------------------------
+
+@Composable
+private fun ProfileMenu(actions: ProfileActions) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            ProfileMenuItem(Icons.Default.ListAlt, "Mis publicaciones", onClick = actions.onMyPublicationsClick)
+            ProfileMenuItem(Icons.Default.RequestQuote, "Mis solicitudes", onClick = actions.onMyRequestsClick)
+            ProfileMenuItem(Icons.Default.WorkspacePremium, "Mis logros", onClick = actions.onAchievementsClick)
+            ProfileMenuItem(Icons.Default.BarChart, "Estadísticas", onClick = actions.onStatisticsClick)
+            ProfileMenuItem(Icons.Default.Settings, "Configuración", onClick = actions.onSettingsClick)
+            ProfileMenuItem(
+                icon = Icons.AutoMirrored.Filled.Logout,
+                title = "Cerrar sesión",
+                textColor = MaterialTheme.colorScheme.error,
+                onClick = actions.onLogoutClick
+            )
+        }
     }
 }
 
@@ -427,11 +394,30 @@ private fun ProfileMenuItem(
     }
 }
 
+// -----------------------------------------------------------------------------
+// PREVIEWS (con estado de ejemplo: no necesitan Hilt)
+// -----------------------------------------------------------------------------
+
+private val previewState = ProfileUiState(
+    isLoading = false,
+    fullName = "Jhony Ramírez",
+    initials = "JR",
+    city = "Armenia, Quindío",
+    levelLabel = "Experto",
+    points = 1_240,
+    nextLevelLabel = "Maestro",
+    pointsToNext = 260,
+    levelFraction = 0.71f,
+    publishedCount = 3,
+    finalizedCount = 1,
+    unlockedBadges = listOf(Badge.PRIMERA_PUBLICACION, Badge.CIEN_PUNTOS, Badge.USUARIO_CONFIABLE)
+)
+
 @Preview(name = "Profile Screen Light", showBackground = true)
 @Composable
 fun ProfileScreenPreviewLight() {
     ServifyTheme(darkTheme = false) {
-        ProfileScreen()
+        ProfileContent(state = previewState, actions = ProfileActions())
     }
 }
 
@@ -439,6 +425,6 @@ fun ProfileScreenPreviewLight() {
 @Composable
 fun ProfileScreenPreviewDark() {
     ServifyTheme(darkTheme = true) {
-        ProfileScreen()
+        ProfileContent(state = previewState, actions = ProfileActions())
     }
 }

@@ -2,18 +2,21 @@ package co.edu.uniquindio.servify.features.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.edu.uniquindio.servify.di.AppContainer
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
+import co.edu.uniquindio.servify.domain.rules.CredentialRules
 import co.edu.uniquindio.servify.features.auth.toMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel(
-    private val loginUserUseCase: LoginUserUseCase = AppContainer.loginUserUseCase
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val loginUserUseCase: LoginUserUseCase
 ) : ViewModel() {
 
     private val _uiState =
@@ -28,9 +31,7 @@ class LoginViewModel(
             value.isBlank() ->
                 "El correo es obligatorio"
 
-            !android.util.Patterns.EMAIL_ADDRESS
-                .matcher(value)
-                .matches() ->
+            !CredentialRules.isValidEmail(value) ->
                 "Correo electrónico inválido"
 
             else -> null
@@ -52,8 +53,8 @@ class LoginViewModel(
                 password = value,
                 loginError = null,
                 passwordError =
-                    if (value.length < 8)
-                        "Mínimo 8 caracteres"
+                    if (!CredentialRules.isStrongEnough(value))
+                        "Mínimo ${CredentialRules.MIN_PASSWORD_LENGTH} caracteres"
                     else
                         null
             )

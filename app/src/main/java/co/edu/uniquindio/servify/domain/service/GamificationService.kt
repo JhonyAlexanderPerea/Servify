@@ -44,7 +44,7 @@ data class AwardResult(
  * para que el evaluador de insignias ya "vea" el cambio.
  *
  * [onBadgeUnlocked] es el gancho al generador de notificaciones: cuando exista, se conecta aquí
- * (ver AppContainer) para crear la notificación "Nuevo logro desbloqueado".
+ * (ver di/DomainModule) para crear la notificación "Nuevo logro desbloqueado".
  */
 class GamificationService(
     private val userRepository: UserRepository,

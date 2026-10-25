@@ -1,14 +1,11 @@
 package co.edu.uniquindio.servify.di
 
 import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
-import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
-import co.edu.uniquindio.servify.data.repository.InMemoryUserRepository
 import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.PublicationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.UserRepositoryImpl
-import co.edu.uniquindio.servify.data.seed.SeedPublications
 import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
@@ -60,9 +57,11 @@ abstract class RepositoryModule {
         impl: NotificationRepositoryImpl
     ): NotificationRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindAuthRepository(
-        impl: InMemoryAuthRepository
-    ): AuthRepository
+    companion object {
+        @Provides
+        @Singleton
+        fun provideAuthRepository(
+            userRepository: UserRepository
+        ): AuthRepository = InMemoryAuthRepository(userRepository, SeedUsers.credentials)
+    }
 }

@@ -345,6 +345,7 @@ private fun NotificationCardItem(
     }
 }
 
+@Composable
 private fun getNotificationIconAndColor(type: NotificationType): Pair<ImageVector, Color> {
     return when (type) {
         NotificationType.REQUEST_RECEIVED -> Icons.Default.EventAvailable to ServifyPrimary

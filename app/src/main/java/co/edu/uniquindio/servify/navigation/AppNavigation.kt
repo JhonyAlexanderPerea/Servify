@@ -40,18 +40,8 @@ fun AppNavigation(
         // -----------------------------------------
         composable(Screen.Splash.route) {
             SplashScreen(
-                onNavigateToOnboarding = {
+                onFinished = {
                     navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
@@ -79,7 +69,7 @@ fun AppNavigation(
                 onLoginSuccess = { role ->
                     val destination = when (role) {
                         UserRole.MODERATOR -> Screen.ModeratorPanel.route
-                        UserRole.USER -> Screen.Home.route
+                        UserRole.USER, UserRole.CLIENT, UserRole.PROVIDER -> Screen.Home.route
                     }
                     navController.navigate(destination) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -192,8 +182,7 @@ fun AppNavigation(
         // -----------------------------------------
         // SISTEMA DE CONFIANZA
         // -----------------------------------------
-        composable(Screen.TrustSystem.route) { backStackEntry ->
-            val providerId = backStackEntry.arguments?.getString("providerId") ?: ""
+        composable(Screen.TrustSystem.route) {
             TrustSystemScreen(
                 onBackClick = { navController.popBackStack() }
             )
@@ -218,7 +207,7 @@ fun AppNavigation(
         // -----------------------------------------
         // SOLICITAR SERVICIO
         // -----------------------------------------
-        composable(Screen.RequestService.route) { backStackEntry ->
+        composable(Screen.RequestService.route) {
             RequestServiceScreen(
                 onBackClick = { navController.popBackStack() },
                 onRequestConfirmed = { requestId ->

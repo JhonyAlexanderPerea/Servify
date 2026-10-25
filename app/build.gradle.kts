@@ -76,6 +76,7 @@ dependencies {
 
     implementation("javax.inject:javax.inject:1")
     implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
     // -----------------------------------------
@@ -90,14 +91,6 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.savedstate)
-
-    // -----------------------------------------
-    // Inyección de dependencias (Hilt + KSP)
-    // -----------------------------------------
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
     // -----------------------------------------
     // Testing

@@ -8,7 +8,7 @@ interface UserRepository {
 
     fun observeUsers(): Flow<List<User>> = users
 
-    fun observeCurrentUser(): Flow<User>? = null
+    fun observeCurrentUser(): Flow<User>
 
     fun getUserById(id: String): User? = getById(id)
 

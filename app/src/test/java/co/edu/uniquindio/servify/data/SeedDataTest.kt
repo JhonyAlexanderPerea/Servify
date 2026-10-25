@@ -48,7 +48,7 @@ class SeedDataTest {
     @Test
     fun the_main_test_account_covers_the_four_statuses() {
         val statuses = publications.filter { it.authorId == SeedUsers.JHONY_ID }.map { it.status }.toSet()
-        assertEquals(PublicationStatus.entries.toSet(), statuses)
+        assertEquals(setOf(PublicationStatus.VERIFICADA, PublicationStatus.PENDIENTE, PublicationStatus.FINALIZADA, PublicationStatus.RECHAZADA), statuses)
     }
 
     @Test
@@ -62,8 +62,8 @@ class SeedDataTest {
     fun verified_and_finalized_were_verified_but_pending_and_rejected_were_not() {
         publications.forEach {
             when (it.status) {
-                PublicationStatus.VERIFICADA, PublicationStatus.FINALIZADA -> assertTrue(it.wasVerified)
-                PublicationStatus.PENDIENTE, PublicationStatus.RECHAZADA -> assertFalse(it.wasVerified)
+                PublicationStatus.VERIFICADA, PublicationStatus.FINALIZADA, PublicationStatus.APPROVED, PublicationStatus.COMPLETED -> assertTrue(it.wasVerified)
+                else -> assertFalse(it.wasVerified)
             }
         }
     }

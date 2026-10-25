@@ -23,19 +23,19 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 /** Texto del estado. El color nunca va solo: siempre acompaña a una etiqueta (accesibilidad). */
 fun PublicationStatus.label(): String = when (this) {
-    PublicationStatus.PENDIENTE -> "Pendiente de verificación"
-    PublicationStatus.VERIFICADA -> "Verificada"
-    PublicationStatus.RECHAZADA -> "Rechazada"
-    PublicationStatus.FINALIZADA -> "Finalizada"
+    PublicationStatus.PENDIENTE, PublicationStatus.PENDING, PublicationStatus.PENDING_REVIEW, PublicationStatus.DRAFT -> "Pendiente de verificación"
+    PublicationStatus.VERIFICADA, PublicationStatus.APPROVED -> "Verificada"
+    PublicationStatus.RECHAZADA, PublicationStatus.REJECTED -> "Rechazada"
+    PublicationStatus.FINALIZADA, PublicationStatus.COMPLETED, PublicationStatus.PAUSED -> "Finalizada"
 }
 
 /** 🟡 pendiente · 🟢 verificada · 🔴 rechazada · 🔵 finalizada (misma codificación del mockup). */
 @Composable
 fun PublicationStatus.color(): Color = when (this) {
-    PublicationStatus.PENDIENTE -> ServifyExtra.warning
-    PublicationStatus.VERIFICADA -> MaterialTheme.colorScheme.secondary
-    PublicationStatus.RECHAZADA -> MaterialTheme.colorScheme.error
-    PublicationStatus.FINALIZADA -> MaterialTheme.colorScheme.primary
+    PublicationStatus.PENDIENTE, PublicationStatus.PENDING, PublicationStatus.PENDING_REVIEW, PublicationStatus.DRAFT -> ServifyExtra.warning
+    PublicationStatus.VERIFICADA, PublicationStatus.APPROVED -> MaterialTheme.colorScheme.secondary
+    PublicationStatus.RECHAZADA, PublicationStatus.REJECTED -> MaterialTheme.colorScheme.error
+    PublicationStatus.FINALIZADA, PublicationStatus.COMPLETED, PublicationStatus.PAUSED -> MaterialTheme.colorScheme.primary
 }
 
 @Composable

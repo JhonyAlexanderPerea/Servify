@@ -43,7 +43,7 @@ class VoteRulesTest {
             val r = VoteRules.toggle(p, "u1") as VoteOutcome.Toggled
             p = p.copy(interestedUserIds = r.interestedUserIds)
         }
-        assertEquals(1, p.interestedCount) // 5 toques (impar) = 1 voto
+        assertEquals(1, p.interestedSize) // 5 toques (impar) = 1 voto
     }
 
     @Test

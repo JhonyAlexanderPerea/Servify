@@ -11,7 +11,7 @@ data class User(
     val phone: String = "",
     val city: String = "",
     val avatarUrl: String? = null,
-    val role: UserRole = UserRole.CLIENT,
+    val role: UserRole = UserRole.USER,
     val isVerified: Boolean = false,
     val trustIndexScore: Int = 0,
     val reputationLevel: ReputationLevel = ReputationLevel.BRONZE,

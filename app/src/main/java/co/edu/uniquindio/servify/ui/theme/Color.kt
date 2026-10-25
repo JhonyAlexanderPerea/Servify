@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -151,3 +152,26 @@ object ServifyExtra {
     val levelExpertoContainer: Color @Composable get() = LocalServifyExtraColors.current.levelExpertoContainer
     val onLevelExpertoContainer: Color @Composable get() = LocalServifyExtraColors.current.onLevelExpertoContainer
 }
+
+// Top-level aliases for MaterialTheme colorScheme
+val ServifyPrimary: Color @Composable get() = MaterialTheme.colorScheme.primary
+val ServifyOnPrimary: Color @Composable get() = MaterialTheme.colorScheme.onPrimary
+val ServifyPrimaryContainer: Color @Composable get() = MaterialTheme.colorScheme.primaryContainer
+val ServifyOnPrimaryContainer: Color @Composable get() = MaterialTheme.colorScheme.onPrimaryContainer
+val ServifySecondary: Color @Composable get() = MaterialTheme.colorScheme.secondary
+val ServifyOnSecondary: Color @Composable get() = MaterialTheme.colorScheme.onSecondary
+val ServifySecondaryContainer: Color @Composable get() = MaterialTheme.colorScheme.secondaryContainer
+val ServifyOnSecondaryContainer: Color @Composable get() = MaterialTheme.colorScheme.onSecondaryContainer
+val ServifyTertiary: Color @Composable get() = MaterialTheme.colorScheme.tertiary
+val ServifyOnTertiary: Color @Composable get() = MaterialTheme.colorScheme.onTertiary
+val ServifyTertiaryContainer: Color @Composable get() = MaterialTheme.colorScheme.tertiaryContainer
+val ServifyOnTertiaryContainer: Color @Composable get() = MaterialTheme.colorScheme.onTertiaryContainer
+val ServifyBackground: Color @Composable get() = MaterialTheme.colorScheme.background
+val ServifyOnBackground: Color @Composable get() = MaterialTheme.colorScheme.onBackground
+val ServifySurface: Color @Composable get() = MaterialTheme.colorScheme.surface
+val ServifyOnSurface: Color @Composable get() = MaterialTheme.colorScheme.onSurface
+val ServifySurfaceVariant: Color @Composable get() = MaterialTheme.colorScheme.surfaceVariant
+val ServifyOnSurfaceVariant: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+val ServifyOutline: Color @Composable get() = MaterialTheme.colorScheme.outline
+val ServifyOutlineVariant: Color @Composable get() = MaterialTheme.colorScheme.outlineVariant
+

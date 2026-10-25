@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -13,9 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
-import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
-import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
@@ -29,7 +27,7 @@ fun ConfirmDialog(
     dismissText: String = "Cancelar",
     isDestructive: Boolean = false
 ) {
-    val confirmColor = if (isDestructive) Color(0xFFBA1A1A) else ServifyPrimary
+    val confirmColor = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -39,29 +37,29 @@ fun ConfirmDialog(
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = null,
-                    tint = Color(0xFFBA1A1A)
+                    tint = confirmColor
                 )
             }
         } else null,
         title = {
             Text(
                 text = title,
-                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                color = ServifyOnSurface
+                style = ServifyTextStyle.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         text = {
             Text(
                 text = message,
-                style = ServifyTextStyle.SmallRelaxed,
-                color = ServifyOnSurfaceVariant
+                style = ServifyTextStyle.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
                     text = confirmText,
-                    style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                    style = ServifyTextStyle.labelLarge,
                     color = confirmColor
                 )
             }
@@ -70,38 +68,39 @@ fun ConfirmDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     text = dismissText,
-                    style = ServifyTextStyle.SmallMedium,
-                    color = ServifyOnSurfaceVariant
+                    style = ServifyTextStyle.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     )
 }
 
-@Preview(name = "Confirm Dialog Normal Light", showBackground = true)
+@Preview(name = "Confirm Dialog - Light", showBackground = true)
+@Preview(name = "Confirm Dialog - Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun ConfirmDialogNormalPreviewLight() {
-    ServifyTheme(darkTheme = false) {
+private fun ConfirmDialogPreview() {
+    ServifyTheme {
         ConfirmDialog(
-            title = "¿Confirmar reserva?",
-            message = "Se enviará la solicitud de cita al proveedor Juan Carlos Mejía.",
+            title = "Confirmar acción",
+            message = "¿Estás seguro de que deseas continuar con esta acción?",
             onConfirm = {},
             onDismiss = {}
         )
     }
 }
 
-@Preview(name = "Confirm Dialog Destructive Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Destructive Dialog - Light", showBackground = true)
 @Composable
-fun ConfirmDialogDestructivePreviewDark() {
-    ServifyTheme(darkTheme = true) {
+private fun ConfirmDialogDestructivePreview() {
+    ServifyTheme {
         ConfirmDialog(
-            title = "¿Cancelar cita programada?",
-            message = "Esta acción es irreversible y notificará al cliente de la cancelación.",
-            confirmText = "Sí, Cancelar Cita",
-            isDestructive = true,
+            title = "Eliminar publicación",
+            message = "Esta acción no se puede deshacer. ¿Deseas eliminarla?",
             onConfirm = {},
-            onDismiss = {}
+            onDismiss = {},
+            confirmText = "Eliminar",
+            isDestructive = true
         )
     }
 }

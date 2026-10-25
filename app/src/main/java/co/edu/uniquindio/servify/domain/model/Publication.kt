@@ -3,8 +3,6 @@ package co.edu.uniquindio.servify.domain.model
 /**
  * Modelo de dominio que representa una oferta o servicio publicado en Servify Marketplace.
  */
-enum class PublicationStatus { PENDIENTE, VERIFICADA, RECHAZADA, FINALIZADA, APPROVED, PENDING, REJECTED }
-
 data class Publication(
     val id: String,
     val title: String,
@@ -18,7 +16,7 @@ data class Publication(
     val priceUnit: String = "por hora",
     val images: List<String> = emptyList(),
     val imageUrls: List<String> = emptyList(),
-    val provider: User? = null,
+    val provider: User = User(id = "u_default", name = "Proveedor Servify", email = ""),
     val authorId: String = "",
     val status: PublicationStatus = PublicationStatus.APPROVED,
     val ratingAverage: Double = 0.0,

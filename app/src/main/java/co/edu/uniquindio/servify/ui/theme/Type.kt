@@ -111,4 +111,9 @@ object ServifyTextStyle {
         fontWeight = FontWeight.Normal,
         letterSpacing = 0.sp
     )
+
+    val titleLarge: TextStyle get() = Title
+    @get:JvmName("getBodyMediumLegacy")
+    val bodyMedium: TextStyle get() = BodyMedium
+    val labelLarge: TextStyle get() = SmallMedium
 }

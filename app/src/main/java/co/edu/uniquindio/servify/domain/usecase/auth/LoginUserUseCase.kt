@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.domain.usecase.auth
 
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import javax.inject.Inject
 
 /**
  * Autentica a la persona contra los usuarios registrados y devuelve el rol con el
@@ -11,7 +12,7 @@ import co.edu.uniquindio.servify.domain.repository.AuthRepository
  * (usuario -> Home, moderador -> panel). Para exigir un rol concreto esta clase
  * tiene una hermana: [LoginModeratorUseCase].
  */
-class LoginUserUseCase(private val authRepository: AuthRepository) {
+class LoginUserUseCase @Inject constructor(private val authRepository: AuthRepository) {
 
     suspend operator fun invoke(email: String, password: String): AuthResult =
         authRepository.login(email, password)

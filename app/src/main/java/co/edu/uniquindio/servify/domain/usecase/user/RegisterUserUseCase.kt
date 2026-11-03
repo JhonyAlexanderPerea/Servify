@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.domain.usecase.user
 
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import javax.inject.Inject
 
 /**
  * Registra un usuario nuevo y abre su sesión.
@@ -9,7 +10,7 @@ import co.edu.uniquindio.servify.domain.repository.AuthRepository
  * El registro siempre crea una cuenta con rol USER: nadie puede convertirse en
  * moderador por la pantalla de registro.
  */
-class RegisterUserUseCase(private val authRepository: AuthRepository) {
+class RegisterUserUseCase @Inject constructor(private val authRepository: AuthRepository) {
 
     suspend operator fun invoke(
         name: String,

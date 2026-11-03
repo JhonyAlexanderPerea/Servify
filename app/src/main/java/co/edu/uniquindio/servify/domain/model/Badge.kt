@@ -1,6 +1,8 @@
 package co.edu.uniquindio.servify.domain.model
 
-/** Insignias del sistema de logros (pantalla 19). [title] y [requirement] son los textos de la UI. */
+/**
+ * Modelo de dominio que representa una insignia o logro alcanzable en el sistema de gamificación.
+ */
 enum class Badge(val title: String, val requirement: String) {
     PRIMERA_PUBLICACION("Primera publicación", "Crea tu primera publicación"),
     PRIMERA_VERIFICADA("Primera verificada", "Consigue que un moderador verifique una de tus publicaciones"),

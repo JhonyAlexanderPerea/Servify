@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.domain.usecase.auth
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import javax.inject.Inject
 
 /**
  * Autentica exigiendo rol MODERATOR.
@@ -14,7 +15,7 @@ import co.edu.uniquindio.servify.domain.repository.AuthRepository
  * Es el caso de uso de la pantalla de login de moderador. Hoy el panel se alcanza
  * desde el login unificado, que usa [LoginUserUseCase].
  */
-class LoginModeratorUseCase(private val authRepository: AuthRepository) {
+class LoginModeratorUseCase @Inject constructor(private val authRepository: AuthRepository) {
 
     suspend operator fun invoke(email: String, password: String): AuthResult =
         authRepository.login(email, password, requiredRole = UserRole.MODERATOR)

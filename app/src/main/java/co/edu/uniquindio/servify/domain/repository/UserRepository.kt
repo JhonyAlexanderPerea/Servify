@@ -3,13 +3,14 @@ package co.edu.uniquindio.servify.domain.repository
 import co.edu.uniquindio.servify.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Fuente única de verdad de los usuarios (perfil, puntos, insignias).
- * Los puntos y las insignias cambian en usuarios que NO son el de la sesión
- * (p. ej. el autor que recibe un voto), por eso viven aquí y no en AuthRepository.
- */
 interface UserRepository {
     val users: Flow<List<User>>
+
+    fun observeUsers(): Flow<List<User>> = users
+
+    fun observeCurrentUser(): Flow<User>
+
+    fun getUserById(id: String): User? = getById(id)
 
     fun getById(id: String): User?
 
@@ -17,6 +18,11 @@ interface UserRepository {
 
     fun add(user: User)
 
-    /** Aplica [transform] de forma atómica. Devuelve el usuario actualizado o null si no existe. */
     fun update(id: String, transform: (User) -> User): User?
+
+    suspend fun updateUserProfile(user: User) {
+        update(user.id) { user }
+    }
+
+    suspend fun updatePoints(pointsToAdd: Int) {}
 }

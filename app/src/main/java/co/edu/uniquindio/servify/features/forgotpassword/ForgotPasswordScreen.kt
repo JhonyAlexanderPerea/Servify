@@ -40,7 +40,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
@@ -51,7 +52,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 fun ForgotPasswordScreen(
     onBack: () -> Unit,
     onBackToLogin: () -> Unit,
-    viewModel: ForgotPasswordViewModel = viewModel()
+    viewModel: ForgotPasswordViewModel = hiltViewModel()
 ) {
 
     val state by viewModel.uiState.collectAsState()
@@ -60,6 +61,8 @@ fun ForgotPasswordScreen(
 
         RecoverySentScreen(
             email = state.email,
+            resent = state.resent,
+            isLoading = state.isLoading,
             onBackToLogin = onBackToLogin,
             onResend = viewModel::resend
         )
@@ -67,8 +70,11 @@ fun ForgotPasswordScreen(
     } else {
 
         RecoveryFormScreen(
+            role = state.role,
             email = state.email,
             error = state.error,
+            canSend = state.canSend,
+            isLoading = state.isLoading,
             onEmailChange = viewModel::onEmailChange,
             onSend = viewModel::sendRecoveryEmail,
             onBack = onBack,
@@ -79,8 +85,11 @@ fun ForgotPasswordScreen(
 
 @Composable
 private fun RecoveryFormScreen(
+    role: UserRole,
     email: String,
     error: String?,
+    canSend: Boolean,
+    isLoading: Boolean,
     onEmailChange: (String) -> Unit,
     onSend: () -> Unit,
     onBack: () -> Unit,
@@ -154,7 +163,11 @@ private fun RecoveryFormScreen(
                 )
 
                 Text(
-                    text = "Ingresa el correo de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.",
+                    text = if (role == UserRole.MODERATOR) {
+                        "Ingresa el correo de tu cuenta de moderación y te enviaremos un enlace para restablecer tu contraseña."
+                    } else {
+                        "Ingresa el correo de tu cuenta y te enviaremos un enlace para restablecer tu contraseña."
+                    },
                     style = ServifyTextStyle.SmallRelaxed,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -186,10 +199,10 @@ private fun RecoveryFormScreen(
                 )
 
                 ServifyFilledButton(
-                    text = "Enviar enlace",
+                    text = if (isLoading) "Enviando…" else "Enviar enlace",
                     icon = Icons.AutoMirrored.Outlined.Send,
                     onClick = onSend,
-                    enabled = email.isNotBlank() && error == null,
+                    enabled = canSend,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -211,6 +224,8 @@ private fun RecoveryFormScreen(
 @Composable
 private fun RecoverySentScreen(
     email: String,
+    resent: Boolean,
+    isLoading: Boolean,
     onBackToLogin: () -> Unit,
     onResend: () -> Unit
 ) {
@@ -290,8 +305,16 @@ private fun RecoverySentScreen(
             onClick = onBackToLogin
         )
 
+        if (resent) {
+            Text(
+                text = "Enlace reenviado",
+                style = ServifyTextStyle.Small,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+
         ServifyTextButton(
-            text = "Reenviar enlace",
+            text = if (isLoading) "Enviando…" else "Reenviar enlace",
             onClick = onResend
         )
     }

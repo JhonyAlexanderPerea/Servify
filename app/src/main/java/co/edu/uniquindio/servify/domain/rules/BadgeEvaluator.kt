@@ -36,8 +36,8 @@ object BadgeEvaluator {
         val commentsMade = comments.count { it.authorId == user.id }
 
         // "Más destacada": la verificada con más votos entre TODAS (empate = ambos autores la ganan).
-        val topVotesGlobal = publications.filter { it.wasVerified }.maxOfOrNull { it.interestedCount } ?: 0
-        val myBestVotes = mine.filter { it.wasVerified }.maxOfOrNull { it.interestedCount } ?: 0
+        val topVotesGlobal = publications.filter { it.wasVerified }.maxOfOrNull { it.interestedSize } ?: 0
+        val myBestVotes = mine.filter { it.wasVerified }.maxOfOrNull { it.interestedSize } ?: 0
         val highlightTarget = maxOf(HIGHLIGHT_MIN_VOTES, topVotesGlobal)
         val isHighlighted = myBestVotes >= HIGHLIGHT_MIN_VOTES && myBestVotes >= topVotesGlobal
 

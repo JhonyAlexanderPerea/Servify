@@ -2,19 +2,21 @@ package co.edu.uniquindio.servify.features.register
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.edu.uniquindio.servify.di.AppContainer
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.usecase.user.RegisterUserUseCase
 import co.edu.uniquindio.servify.features.auth.toMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RegisterViewModel(
-    private val registerUserUseCase: RegisterUserUseCase = AppContainer.registerUserUseCase
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val registerUserUseCase: RegisterUserUseCase
 ) : ViewModel() {
 
     private val _uiState =

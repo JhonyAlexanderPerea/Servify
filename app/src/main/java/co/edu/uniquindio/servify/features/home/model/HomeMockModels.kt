@@ -1,6 +1,8 @@
 package co.edu.uniquindio.servify.features.home.model
 
 import androidx.compose.ui.graphics.Color
+import co.edu.uniquindio.servify.domain.model.Publication
+import java.util.Locale
 
 data class CategoryItem(
     val id: String,
@@ -40,6 +42,43 @@ data class ServiceItem(
     val isFavorite: Boolean = false,
     val nextAvailableSlot: String? = null
 )
+
+fun Publication.toServiceItem(): ServiceItem {
+    val initials = provider.name.split(" ")
+        .take(2)
+        .mapNotNull { it.firstOrNull()?.uppercaseChar() }
+        .joinToString("")
+
+    val level = when (provider.reputationLevel.name) {
+        "PLATINUM", "DIAMOND" -> "Maestro"
+        "GOLD" -> "Experto"
+        else -> "Profesional"
+    }
+
+    val priceFormatted = String.format(Locale.getDefault(), "$%.0f COP / %s", price, priceUnit)
+
+    return ServiceItem(
+        id = id,
+        title = title,
+        category = categoryId,
+        subcategory = subcategoryId ?: categoryId.replaceFirstChar { it.uppercase() },
+        description = description,
+        priceRange = priceFormatted,
+        zone = locationName,
+        city = locationName,
+        imageUrl = images.firstOrNull() ?: "",
+        providerName = provider.name,
+        providerInitials = if (initials.isNotBlank()) initials else "PR",
+        providerColor = Color(0xFF1A55E3),
+        providerLevel = level,
+        isVerified = provider.isVerified,
+        trustIndex = provider.trustIndexScore,
+        rating = ratingAverage,
+        reviewCount = reviewsCount,
+        interestedCount = interestedCount,
+        isFavorite = isFavorite
+    )
+}
 
 object HomeMockData {
 

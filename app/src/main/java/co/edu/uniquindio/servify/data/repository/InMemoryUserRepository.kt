@@ -15,6 +15,9 @@ class InMemoryUserRepository(seed: List<User> = emptyList()) : UserRepository {
 
     override val users: Flow<List<User>> = state.map { it.values.toList() }
 
+    override fun observeCurrentUser(): Flow<User> =
+        users.map { it.firstOrNull() ?: User(id = "u_jhony", name = "Jhony", email = "") }
+
     override fun getById(id: String): User? = state.value[id]
 
     override fun findByEmail(email: String): User? {

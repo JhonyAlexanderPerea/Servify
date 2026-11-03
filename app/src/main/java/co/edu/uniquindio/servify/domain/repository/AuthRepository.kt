@@ -1,6 +1,7 @@
 package co.edu.uniquindio.servify.domain.repository
 
 import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,13 @@ interface AuthRepository {
         password: String,
         city: String
     ): AuthResult
+
+    /**
+     * Solicita el enlace de recuperación. Si [requiredRole] no es null, solo las cuentas con ese rol
+     * reciben el enlace (el flujo de moderador no puede usarse para recuperar una cuenta de usuario,
+     * ni al revés). Ver [PasswordResetResult] sobre por qué el resultado no revela si la cuenta existe.
+     */
+    suspend fun sendPasswordReset(email: String, requiredRole: UserRole? = null): PasswordResetResult
 
     /** Cierra la sesión y limpia el estado. */
     fun logout()

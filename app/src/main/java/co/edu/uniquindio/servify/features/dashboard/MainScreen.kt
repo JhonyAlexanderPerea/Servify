@@ -20,13 +20,13 @@ import co.edu.uniquindio.servify.features.home.HomeScreen
 import co.edu.uniquindio.servify.features.notifications.NotificationsScreen
 import co.edu.uniquindio.servify.features.profile.ProfileActions
 import co.edu.uniquindio.servify.features.profile.ProfileScreen
+import co.edu.uniquindio.servify.features.request.mine.MyRequestsScreen
 import co.edu.uniquindio.servify.features.statistics.PersonalStatisticsScreen
 import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
 import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsActions
 import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsScreen
 import co.edu.uniquindio.servify.navigation.BottomNavDestination
 import co.edu.uniquindio.servify.navigation.Screen
-import co.edu.uniquindio.servify.ui.components.state.ComingSoonScreen
 import co.edu.uniquindio.servify.features.profile.achievements.AchievementsScreen
 
 @Composable
@@ -170,12 +170,14 @@ fun MainScreen(
                 )
             }
 
-            // 7. SECCIONES DEL PERFIL PENDIENTES (tareas 19-20, 24-26 del kanban)
+            // 7. SECCIONES DEL PERFIL
             composable(Screen.MyRequests.route) {
-                ComingSoonScreen(
-                    title = "Mis solicitudes",
-                    description = "Aquí verás las solicitudes de servicio que enviaste y su estado.",
-                    onBack = { dashboardNavController.popBackStack() }
+                MyRequestsScreen(
+                    onBackClick = { dashboardNavController.popBackStack() },
+                    onRequestClick = onNavigateToServiceDetail,
+                    onExploreClick = {
+                        dashboardNavController.popBackStack(Screen.Home.route, inclusive = false)
+                    }
                 )
             }
             composable(Screen.Achievements.route) {
@@ -188,13 +190,6 @@ fun MainScreen(
                     onBackClick = {
                         dashboardNavController.popBackStack()
                     }
-                )
-            }
-            composable(Screen.Settings.route) {
-                ComingSoonScreen(
-                    title = "Configuración",
-                    description = "Aquí podrás editar tus datos personales y eliminar tu cuenta.",
-                    onBack = { dashboardNavController.popBackStack() }
                 )
             }
         }

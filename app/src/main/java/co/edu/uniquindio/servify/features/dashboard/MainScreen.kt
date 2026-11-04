@@ -146,14 +146,25 @@ fun MainScreen(
                 )
             }
 
+            // 5.1 EDITAR / REENVIAR PUBLICACIÓN (reutiliza el formulario de crear)
+            composable(Screen.EditPublication.route) {
+                CreatePublicationScreen(
+                    onBackClick = { dashboardNavController.popBackStack() },
+                    onPublishSuccess = {
+                        dashboardNavController.popBackStack(Screen.MyPublications.route, inclusive = false)
+                    }
+                )
+            }
+
             // 6. MIS PUBLICACIONES (pantalla 15)
             composable(Screen.MyPublications.route) {
                 MyPublicationsScreen(
                     actions = MyPublicationsActions(
                         onBackClick = { dashboardNavController.popBackStack() },
                         onViewClick = onNavigateToServiceDetail,
-                        // TODO(Jean, tarea 15): abrir el formulario en modo edición con el id de la publicación
-                        onEditClick = { dashboardNavController.navigate(Screen.CreatePublication.route) },
+                        onEditClick = { publicationId ->
+                            dashboardNavController.navigate(Screen.EditPublication.createRoute(publicationId))
+                        },
                         onCreateClick = { dashboardNavController.navigate(Screen.CreatePublication.route) }
                     )
                 )

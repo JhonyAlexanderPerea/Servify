@@ -32,6 +32,11 @@ sealed class Screen(val route: String) {
 
     data object CreatePublication : Screen("create_publication")
 
+    /** Mismo formulario de crear, en modo edición (el argumento llega al ViewModel por SavedStateHandle). */
+    data object EditPublication : Screen("edit_publication/{publicationId}") {
+        fun createRoute(publicationId: String) = "edit_publication/$publicationId"
+    }
+
     data object TrustSystem : Screen("trust_system/{providerId}") {
         fun createRoute(providerId: String) = "trust_system/$providerId"
     }

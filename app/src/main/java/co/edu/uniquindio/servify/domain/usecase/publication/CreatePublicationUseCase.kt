@@ -19,13 +19,17 @@ class CreatePublicationUseCase @Inject constructor(
     suspend operator fun invoke(publication: Publication) = withContext(Dispatchers.IO) {
         publicationRepository.createPublication(publication)
 
-        // Simular notificación de moderación/aprobación
-        val isApproved = (publication.status == PublicationStatus.APPROVED)
-        generateNotificationUseCase.generateModerationUpdateNotification(
-            userId = publication.provider.id,
-            serviceTitle = publication.title,
-            isApproved = isApproved,
-            publicationId = publication.id
-        )
+        // Una publicación nueva nace PENDIENTE: el moderador notificará al decidir (aprobar/rechazar).
+        // Solo se notifica aquí si por algún flujo llega ya verificada.
+        val alreadyApproved = publication.status == PublicationStatus.APPROVED ||
+            publication.status == PublicationStatus.VERIFICADA
+        if (alreadyApproved) {
+            generateNotificationUseCase.generateModerationUpdateNotification(
+                userId = publication.provider.id,
+                serviceTitle = publication.title,
+                isApproved = true,
+                publicationId = publication.id
+            )
+        }
     }
 }

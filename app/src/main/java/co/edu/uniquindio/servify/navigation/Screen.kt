@@ -50,5 +50,9 @@ sealed class Screen(val route: String) {
 
     data object ModeratorPanel : Screen("moderator_panel")
 
+    data object ModeratorReview : Screen("moderator_review/{publicationId}") {
+        fun createRoute(publicationId: String) = "moderator_review/$publicationId"
+    }
+
     data object EditProfile : Screen("edit_profile")
 }

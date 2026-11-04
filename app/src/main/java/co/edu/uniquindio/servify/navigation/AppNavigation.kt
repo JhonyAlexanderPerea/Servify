@@ -14,6 +14,7 @@ import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordViewModel
 import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.moderator.panel.ModeratorPanelScreen
+import co.edu.uniquindio.servify.features.moderator.review.ModeratorReviewScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
 import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
 import co.edu.uniquindio.servify.features.publication.published.PublicationPublishedScreen
@@ -146,12 +147,24 @@ fun AppNavigation(
         // -----------------------------------------
         composable(Screen.ModeratorPanel.route) {
             ModeratorPanelScreen(
+                onReviewClick = { publicationId ->
+                    navController.navigate(Screen.ModeratorReview.createRoute(publicationId))
+                },
                 onLogoutClick = {
                     sessionViewModel.logout()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.ModeratorPanel.route) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        // -----------------------------------------
+        // REVISAR PUBLICACIÓN (MODERADOR)
+        // -----------------------------------------
+        composable(Screen.ModeratorReview.route) {
+            ModeratorReviewScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 

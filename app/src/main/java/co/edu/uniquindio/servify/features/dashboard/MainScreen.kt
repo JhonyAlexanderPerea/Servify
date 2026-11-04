@@ -27,6 +27,7 @@ import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsScreen
 import co.edu.uniquindio.servify.navigation.BottomNavDestination
 import co.edu.uniquindio.servify.navigation.Screen
 import co.edu.uniquindio.servify.ui.components.state.ComingSoonScreen
+import co.edu.uniquindio.servify.features.profile.achievements.AchievementsScreen
 
 @Composable
 fun MainScreen(
@@ -178,10 +179,8 @@ fun MainScreen(
                 )
             }
             composable(Screen.Achievements.route) {
-                ComingSoonScreen(
-                    title = "Mis logros",
-                    description = "Aquí verás tus insignias desbloqueadas y tu progreso hacia las siguientes.",
-                    onBack = { dashboardNavController.popBackStack() }
+                AchievementsScreen(
+                    onBackClick = { dashboardNavController.popBackStack() }
                 )
             }
             composable(Screen.Statistics.route) {

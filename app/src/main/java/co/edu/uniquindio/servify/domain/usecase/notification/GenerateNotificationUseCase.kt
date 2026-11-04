@@ -115,4 +115,26 @@ class GenerateNotificationUseCase @Inject constructor(
         )
         notificationRepository.addNotification(notification)
     }
+
+    /**
+     * Genera la notificación cuando un moderador rechaza una publicación, incluyendo el motivo.
+     */
+    suspend fun generateRejectionNotification(
+        userId: String,
+        serviceTitle: String,
+        reason: String,
+        publicationId: String
+    ) = withContext(Dispatchers.IO) {
+        val notification = Notification(
+            id = "notif_${UUID.randomUUID()}",
+            userId = userId,
+            title = "Publicación rechazada",
+            message = "Tu publicación '$serviceTitle' fue rechazada. Motivo: $reason",
+            type = NotificationType.MODERATION_UPDATE,
+            isRead = false,
+            createdAt = System.currentTimeMillis(),
+            targetId = publicationId
+        )
+        notificationRepository.addNotification(notification)
+    }
 }

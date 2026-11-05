@@ -59,24 +59,22 @@ class NotificationsViewModel @Inject constructor(
                 markNotificationReadUseCase(notification.id)
             }
 
+            // Destino de cada tipo (MainScreen traduce la ruta a la pantalla real):
+            //  - solicitudes y recordatorios -> Mis solicitudes
+            //  - verificación/rechazo de una publicación propia -> Mis publicaciones
+            //  - comentarios -> detalle del servicio comentado
+            //  - logros -> Mis logros
             val route = when (notification.type) {
                 NotificationType.REQUEST_RECEIVED,
                 NotificationType.REQUEST_ACCEPTED,
-                NotificationType.APPOINTMENT_REMINDER -> {
-                    notification.targetId?.let { Screen.ServiceDetail.createRoute(it) }
-                        ?: Screen.Main.route
-                }
+                NotificationType.APPOINTMENT_REMINDER -> Screen.MyRequests.route
 
-                NotificationType.MODERATION_UPDATE -> {
-                    notification.targetId?.let { Screen.ServiceDetail.createRoute(it) }
-                        ?: Screen.Main.route
-                }
+                NotificationType.MODERATION_UPDATE -> Screen.MyPublications.route
 
-                NotificationType.ACHIEVEMENT_UNLOCKED -> {
-                    Screen.Profile.route
-                }
+                NotificationType.REVIEW_PUBLISHED ->
+                    notification.targetId?.let { Screen.ServiceDetail.createRoute(it) } ?: Screen.Main.route
 
-                else -> Screen.Main.route
+                NotificationType.ACHIEVEMENT_UNLOCKED -> Screen.Achievements.route
             }
 
             onNavigateToRoute(route)

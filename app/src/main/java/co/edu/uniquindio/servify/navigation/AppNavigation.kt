@@ -1,5 +1,11 @@
 package co.edu.uniquindio.servify.navigation
 
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.edu.uniquindio.servify.ui.motion.servifyEnter
+import co.edu.uniquindio.servify.ui.motion.servifyExit
+import co.edu.uniquindio.servify.ui.motion.servifyPopEnter
+import co.edu.uniquindio.servify.ui.motion.servifyPopExit
 import androidx.compose.runtime.Composable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -16,7 +22,6 @@ import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.moderator.panel.ModeratorPanelScreen
 import co.edu.uniquindio.servify.features.moderator.review.ModeratorReviewScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
-import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
 import co.edu.uniquindio.servify.features.publication.published.PublicationPublishedScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.request.confirmed.RequestConfirmedScreen
@@ -33,9 +38,24 @@ fun AppNavigation(
 ) {
     val sessionViewModel: SessionViewModel = hiltViewModel()
 
+    // Vuelve al dashboard y le pide abrir una sección (Mis solicitudes, Mis publicaciones...).
+    fun goToDashboard(dashboardRoute: String?) {
+        runCatching {
+            navController.getBackStackEntry(Screen.Home.route)
+                .savedStateHandle["dashboard_route"] = dashboardRoute
+        }
+        if (!navController.popBackStack(Screen.Home.route, inclusive = false)) {
+            navController.navigate(Screen.Home.route)
+        }
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route
+        startDestination = Screen.Splash.route,
+        enterTransition = { servifyEnter() },
+        exitTransition = { servifyExit() },
+        popEnterTransition = { servifyPopEnter() },
+        popExitTransition = { servifyPopExit() }
     ) {
         // -----------------------------------------
         // SPLASH
@@ -125,8 +145,16 @@ fun AppNavigation(
         // -----------------------------------------
         // DASHBOARD PRINCIPAL CON BOTTOM NAVIGATION BAR
         // -----------------------------------------
-        composable(Screen.Home.route) {
+        composable(Screen.Home.route) { entry ->
+            val pendingRoute by entry.savedStateHandle
+                .getStateFlow<String?>("dashboard_route", null)
+                .collectAsStateWithLifecycle()
             MainScreen(
+                pendingRoute = pendingRoute,
+                onPendingRouteConsumed = { entry.savedStateHandle["dashboard_route"] = null },
+                onNavigateToPublicationPublished = { publicationId ->
+                    navController.navigate(Screen.PublicationPublished.createRoute(publicationId))
+                },
                 onNavigateToServiceDetail = { serviceId ->
                     navController.navigate(Screen.ServiceDetail.createRoute(serviceId))
                 },
@@ -178,20 +206,9 @@ fun AppNavigation(
                 onBackClick = { navController.popBackStack() },
                 onBookClick = {
                     navController.navigate(Screen.RequestService.createRoute(serviceId))
-                }
-            )
-        }
-
-        // -----------------------------------------
-        // CREAR PUBLICACIÓN
-        // -----------------------------------------
-        composable(Screen.CreatePublication.route) {
-            CreatePublicationScreen(
-                onBackClick = { navController.popBackStack() },
-                onPublishSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
+                },
+                onTrustClick = { providerId ->
+                    navController.navigate(Screen.TrustSystem.createRoute(providerId))
                 }
             )
         }
@@ -212,12 +229,8 @@ fun AppNavigation(
             val pubId = backStackEntry.arguments?.getString("publicationId") ?: "pub_1"
             PublicationPublishedScreen(
                 publicationId = pubId,
-                onGoToMyPublications = { navController.popBackStack() },
-                onGoToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                }
+                onGoToMyPublications = { goToDashboard(Screen.MyPublications.route) },
+                onGoToHome = { goToDashboard(null) }
             )
         }
 
@@ -242,16 +255,8 @@ fun AppNavigation(
             val reqId = backStackEntry.arguments?.getString("requestId") ?: "req_1"
             RequestConfirmedScreen(
                 requestId = reqId,
-                onGoToAgenda = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                },
-                onGoToFeed = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                }
+                onGoToAgenda = { goToDashboard(Screen.MyRequests.route) },
+                onGoToFeed = { goToDashboard(null) }
             )
         }
 

@@ -48,7 +48,7 @@ sealed class BottomNavDestination(
         label = "Alertas",
         icon = Icons.Outlined.Notifications,
         selectedIcon = Icons.Filled.Notifications,
-        badgeCount = 3
+        badgeCount = null
     )
 
     data object Profile : BottomNavDestination(

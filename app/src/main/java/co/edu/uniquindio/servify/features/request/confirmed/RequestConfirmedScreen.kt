@@ -75,7 +75,7 @@ fun RequestConfirmedScreen(
                 modifier = Modifier
                     .size(90.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFDCFCE7)),
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -178,7 +178,7 @@ fun RequestConfirmedScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             ServifyFilledButton(
-                text = "Ver en Mi Agenda",
+                text = "Ver mis solicitudes",
                 icon = Icons.Default.CalendarMonth,
                 onClick = onGoToAgenda,
                 modifier = Modifier.fillMaxWidth()
@@ -187,7 +187,7 @@ fun RequestConfirmedScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             ServifyOutlinedButton(
-                text = "Volver al Feed",
+                text = "Volver al inicio",
                 icon = Icons.Default.Home,
                 onClick = onGoToFeed,
                 modifier = Modifier.fillMaxWidth()

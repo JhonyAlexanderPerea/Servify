@@ -744,10 +744,8 @@ fun ServiceDetailBottomBar(
             }
 
             ServifyFilledButton(
-                text = "Agendar Cita",
-                icon = Icons.Default.CalendarMonth,
-                onClick = onBookClick,
-                modifier = Modifier.width(180.dp)
+                text = "Solicitar servicio",
+                onClick = onBookClick
             )
         }
     }

@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.features.service.model
 import androidx.compose.ui.graphics.Color
 import co.edu.uniquindio.servify.domain.model.Comment
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.ui.format.formatCop
 
 data class TrustFactor(
     val title: String,
@@ -83,8 +84,8 @@ fun Publication.toServiceDetailData(): ServiceDetailData {
         category = categoryId,
         subcategory = subcategoryId ?: categoryId.replaceFirstChar { it.uppercase() },
         description = description,
-        priceRange = "$${price.toInt()} COP / $priceUnit",
-        hourlyPrice = "$${price.toInt()} COP / $priceUnit",
+        priceRange = "${formatCop(price)} COP / $priceUnit",
+        hourlyPrice = "${formatCop(price)} COP / $priceUnit",
         zone = locationName,
         city = locationName,
         images = if (images.isNotEmpty()) images else listOf("https://images.unsplash.com/photo-1504307651254-35680f356dfd"),

@@ -11,7 +11,7 @@ import org.junit.Test
 class FeedRulesTest {
 
     private fun publication(id: String, status: PublicationStatus) =
-        Publication(id = id, status = status)
+        Publication(id = id, title = "t", description = "d", status = status)
 
     @Test
     fun `las verificadas son publicas`() {

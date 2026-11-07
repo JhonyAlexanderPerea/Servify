@@ -1,6 +1,6 @@
 package co.edu.uniquindio.servify.features.explore
 
-import androidx.compose.animation.AnimatedVisibility
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -10,6 +10,7 @@ import co.edu.uniquindio.servify.ui.format.formatCop
 import co.edu.uniquindio.servify.ui.motion.ServifyMotion
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -227,19 +228,20 @@ fun ExploreScreen(
                     // 3. TARJETA FLOTANTE DEL SERVICIO SELECCIONADO
                     if (state.selectedService != null) {
                         state.selectedService?.let { selected ->
-                            AnimatedVisibility(
-                                visible = true,
-                                enter = fadeIn(tween(ServifyMotion.MEDIUM)) +
-                                    slideInVertically(tween(ServifyMotion.LONG, easing = ServifyMotion.Decelerate)) { it / 4 },
-                                modifier = Modifier.align(Alignment.BottomCenter)
-                            ) {
-                                NearbyServiceFloatingCard(
-                                    publication = selected,
-                                    onClick = { onServiceClick(selected.id) },
-                                    onCloseClick = { viewModel.onDismissSelectedService() },
-                                    onFavoriteToggle = { viewModel.onToggleInterest(selected.id) },
-                                    modifier = Modifier.padding(12.dp)
-                                )
+                            Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = fadeIn(tween(ServifyMotion.MEDIUM)) +
+                                        slideInVertically(tween(ServifyMotion.LONG, easing = ServifyMotion.Decelerate)) { it / 4 }
+                                ) {
+                                    NearbyServiceFloatingCard(
+                                        publication = selected,
+                                        onClick = { onServiceClick(selected.id) },
+                                        onCloseClick = { viewModel.onDismissSelectedService() },
+                                        onFavoriteToggle = { viewModel.onToggleInterest(selected.id) },
+                                        modifier = Modifier.padding(12.dp)
+                                    )
+                                }
                             }
                         }
                     }

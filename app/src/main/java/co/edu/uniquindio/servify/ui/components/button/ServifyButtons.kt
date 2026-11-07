@@ -200,6 +200,8 @@ private fun ButtonContent(
 
     Text(
         text = text,
-        style = ServifyTextStyle.BodyMedium
+        style = ServifyTextStyle.BodyMedium,
+        maxLines = 1,
+        softWrap = false
     )
 }

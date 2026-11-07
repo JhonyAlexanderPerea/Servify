@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +22,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
  * Hoja de filtros. Antes el botón de filtros de la barra de búsqueda y el enlace "Filtros"
  * no hacían nada; ahora comparten esta hoja (mockup: Cerca de mí, Ciudad, Precio, Mejor valorados).
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun HomeFilterSheet(
     options: List<String>,

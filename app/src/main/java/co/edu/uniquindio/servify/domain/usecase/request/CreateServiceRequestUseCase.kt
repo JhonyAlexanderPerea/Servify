@@ -10,9 +10,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/** Se lanza cuando el usuario intenta solicitar un servicio que él mismo publicó. */
+class CannotRequestOwnServiceException :
+    IllegalArgumentException("No puedes solicitar tu propio servicio")
+
 /**
  * Caso de uso para la creación de solicitudes de servicio/citas.
  * Genera automáticamente una notificación [REQUEST_RECEIVED] para el proveedor.
+ *
+ * Un usuario no puede solicitar su propia publicación: el cliente y el proveedor serían la
+ * misma persona y la solicitud quedaría sin un tercero que preste el servicio.
  */
 class CreateServiceRequestUseCase @Inject constructor(
     private val serviceRequestRepository: ServiceRequestRepository,
@@ -31,11 +38,16 @@ class CreateServiceRequestUseCase @Inject constructor(
         val publication = publicationRepository.getPublicationById(publicationId)
             ?: throw IllegalArgumentException("La publicación $publicationId no existe")
 
+        if (publication.belongsTo(currentUser.id, currentUser.email)) {
+            throw CannotRequestOwnServiceException()
+        }
+
+        val providerId = publication.authorId.ifBlank { publication.provider.id }
         val newRequest = ServiceRequest(
             id = "req_${System.currentTimeMillis()}",
             publicationId = publicationId,
             clientId = currentUser.id,
-            providerId = publication.provider.id,
+            providerId = providerId,
             scheduledDateTime = scheduledDateTime,
             note = note,
             totalAmount = totalAmount
@@ -45,7 +57,7 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         // Generar notificación para el proveedor
         generateNotificationUseCase.generateRequestReceivedNotification(
-            providerId = publication.provider.id,
+            providerId = providerId,
             clientName = currentUser.name,
             serviceTitle = publication.title,
             requestId = newRequest.id

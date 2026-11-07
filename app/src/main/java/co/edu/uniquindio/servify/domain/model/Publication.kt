@@ -36,4 +36,14 @@ data class Publication(
     val imageList: List<String> get() = if (images.isNotEmpty()) images else imageUrls
     val interestedSize: Int get() = if (interestedUserIds.isNotEmpty()) interestedUserIds.size else interestedCount
     val wasVerified: Boolean get() = verifiedAtMillis != null || status == PublicationStatus.VERIFICADA
+
+    /**
+     * true cuando la publicación pertenece al usuario indicado (como autor o proveedor).
+     * También compara el correo porque hay datos de demostración con ids distintos para la misma
+     * persona; el correo evita que un usuario pueda solicitar su propio servicio por esa diferencia.
+     */
+    fun belongsTo(userId: String, userEmail: String? = null): Boolean =
+        authorId == userId ||
+            provider.id == userId ||
+            (!userEmail.isNullOrBlank() && provider.email.equals(userEmail, ignoreCase = true))
 }

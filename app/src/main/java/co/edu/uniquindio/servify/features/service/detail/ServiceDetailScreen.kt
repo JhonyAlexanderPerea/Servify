@@ -95,7 +95,8 @@ fun ServiceDetailScreen(
                 ServiceDetailBottomBar(
                     priceRange = detailData.priceRange,
                     hourlyPrice = detailData.hourlyPrice,
-                    onBookClick = onBookClick
+                    onBookClick = onBookClick,
+                    isOwnService = state.isOwnService
                 )
             }
         }

@@ -29,19 +29,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EditCalendar
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,9 +64,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.model.toServiceItem
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
@@ -68,6 +85,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RequestServiceScreen(
     onBackClick: () -> Unit,
@@ -76,6 +94,9 @@ fun RequestServiceScreen(
     viewModel: RequestServiceViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var showDatePickerDialog by remember { mutableStateOf(false) }
+    var showSubmitConfirmation by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess && state.createdRequestId != null) {
@@ -83,7 +104,67 @@ fun RequestServiceScreen(
         }
     }
 
+    LaunchedEffect(state.userMessage) {
+        state.userMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
+        }
+    }
+
     val availableSlots = listOf("08:00 AM", "10:00 AM", "02:00 PM", "04:00 PM", "06:00 PM")
+
+    if (showDatePickerDialog) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = state.scheduledDateMillis
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePickerDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { utcMillis ->
+                            val localDate = Instant.ofEpochMilli(utcMillis).atZone(ZoneId.of("UTC")).toLocalDate()
+                            val localMillis = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                            viewModel.onDateSelected(localMillis)
+                        }
+                        showDatePickerDialog = false
+                    }
+                ) {
+                    Text(
+                        text = "Confirmar",
+                        style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePickerDialog = false }) {
+                    Text(
+                        text = "Cancelar",
+                        style = ServifyTextStyle.SmallMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showSubmitConfirmation) {
+        ConfirmDialog(
+            title = "Confirmar solicitud",
+            message = "Se enviará la solicitud para el ${formatDateLabel(state.scheduledDateMillis)} a las ${state.selectedTimeSlot}, por un valor estimado de $${state.totalAmount.toInt()} COP. ¿Deseas continuar?",
+            confirmText = "Enviar solicitud",
+            dismissText = "Revisar",
+            icon = Icons.Default.EventAvailable,
+            onConfirm = {
+                showSubmitConfirmation = false
+                viewModel.onSubmitRequest()
+            },
+            onDismiss = { showSubmitConfirmation = false }
+        )
+    }
 
     Scaffold(
         modifier = modifier
@@ -91,6 +172,7 @@ fun RequestServiceScreen(
             .background(ServifySurface)
             .statusBarsPadding()
             .navigationBarsPadding(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -222,7 +304,7 @@ fun RequestServiceScreen(
                     }
                 }
 
-                // 2. SELECTOR DE HORARIO DISPONIBLE
+                // 2. AGENDA: SELECTOR DE FECHA Y HORARIO
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -230,22 +312,125 @@ fun RequestServiceScreen(
                     border = BorderStroke(1.dp, ServifyOutlineVariant)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = null,
+                                    tint = ServifyPrimary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "Fecha de atención",
+                                        style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = ServifyOnSurface
+                                    )
+                                    Text(
+                                        text = formatDateLabel(state.scheduledDateMillis),
+                                        style = ServifyTextStyle.Caption,
+                                        color = ServifyPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(ServifyPrimaryContainer)
+                                    .clickable { showDatePickerDialog = true }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.EditCalendar,
+                                        contentDescription = "Abrir calendario",
+                                        tint = ServifyPrimary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Calendario",
+                                        style = ServifyTextStyle.Caption.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = ServifyPrimary
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Text(
+                            text = "Seleccionar día rápido:",
+                            style = ServifyTextStyle.Caption,
+                            color = ServifyOnSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        val quickDates = remember { generateQuickDateChips() }
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(quickDates) { option ->
+                                val isSelected = isSameDay(state.scheduledDateMillis, option.millis)
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(if (isSelected) ServifyPrimary else ServifySurfaceVariant)
+                                        .border(
+                                            1.dp,
+                                            if (isSelected) ServifyPrimary else ServifyOutlineVariant,
+                                            CircleShape
+                                        )
+                                        .clickable { viewModel.onDateSelected(option.millis) }
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(
+                                        text = option.label,
+                                        style = ServifyTextStyle.Caption.copy(
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                        ),
+                                        color = if (isSelected) Color.White else ServifyOnSurface
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.Schedule,
                                 contentDescription = null,
                                 tint = ServifyPrimary,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Selecciona el horario de atención",
-                                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                color = ServifyOnSurface
+                                text = "Horarios disponibles:",
+                                style = ServifyTextStyle.Caption,
+                                color = ServifyOnSurfaceVariant
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
 
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -345,10 +530,14 @@ fun RequestServiceScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 ServifyFilledButton(
-                    text = if (state.isSubmitting) "Procesando..." else "Confirmar y Enviar Solicitud",
+                    text = when {
+                        state.isOwnService -> "No puedes solicitar tu propio servicio"
+                        state.isSubmitting -> "Procesando..."
+                        else -> "Confirmar y Enviar Solicitud"
+                    },
                     icon = Icons.Default.EventAvailable,
-                    onClick = viewModel::onSubmitRequest,
-                    enabled = !state.isSubmitting,
+                    onClick = { showSubmitConfirmation = true },
+                    enabled = !state.isSubmitting && !state.isOwnService,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -376,4 +565,37 @@ fun RequestServicePreviewDark() {
             onRequestConfirmed = {}
         )
     }
+}
+
+private data class QuickDateOption(val label: String, val millis: Long)
+
+private fun formatDateLabel(millis: Long): String {
+    val zone = ZoneId.systemDefault()
+    val date = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
+    val formatter = DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es-CO"))
+    return date.format(formatter).replaceFirstChar { it.uppercase() }
+}
+
+private fun generateQuickDateChips(): List<QuickDateOption> {
+    val zone = ZoneId.systemDefault()
+    val today = LocalDate.now(zone)
+    val formatter = DateTimeFormatter.ofPattern("EEE d MMM", Locale.forLanguageTag("es-CO"))
+
+    return (0..4).map { dayOffset ->
+        val date = today.plusDays(dayOffset.toLong())
+        val millis = date.atStartOfDay(zone).toInstant().toEpochMilli()
+        val label = when (dayOffset) {
+            0 -> "Hoy, ${date.dayOfMonth} ${date.month.name.take(3).lowercase()}"
+            1 -> "Mañana, ${date.dayOfMonth} ${date.month.name.take(3).lowercase()}"
+            else -> date.format(formatter).replaceFirstChar { it.uppercase() }
+        }
+        QuickDateOption(label, millis)
+    }
+}
+
+private fun isSameDay(millis1: Long, millis2: Long): Boolean {
+    val zone = ZoneId.systemDefault()
+    val date1 = Instant.ofEpochMilli(millis1).atZone(zone).toLocalDate()
+    val date2 = Instant.ofEpochMilli(millis2).atZone(zone).toLocalDate()
+    return date1 == date2
 }

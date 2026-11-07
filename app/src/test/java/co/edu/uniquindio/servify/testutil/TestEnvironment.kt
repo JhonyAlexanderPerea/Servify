@@ -4,6 +4,7 @@ import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryUserRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
+import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
 import co.edu.uniquindio.servify.data.seed.SeedPublications
 import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.model.AuthResult
@@ -23,6 +24,7 @@ import co.edu.uniquindio.servify.domain.usecase.publication.ObserveMyPublication
 import co.edu.uniquindio.servify.domain.usecase.publication.ObserveServicesUseCase
 import co.edu.uniquindio.servify.domain.usecase.reputation.AwardPointsUseCase
 import co.edu.uniquindio.servify.domain.usecase.reputation.ObserveUserProgressUseCase
+import co.edu.uniquindio.servify.domain.usecase.request.CreateServiceRequestUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.RegisterUserUseCase
 import co.edu.uniquindio.servify.domain.util.TimeProvider
 
@@ -38,6 +40,7 @@ class TestEnvironment(var nowMillis: Long = 2_000_000_000_000L) {
 
     val users = InMemoryUserRepository(SeedUsers.users)
     val publications = InMemoryPublicationRepository(SeedPublications.publications)
+    val serviceRequests = ServiceRequestRepositoryImpl()
     val notifications = NotificationRepositoryImpl()
     val auth = InMemoryAuthRepository(
         userRepository = users,
@@ -64,6 +67,12 @@ class TestEnvironment(var nowMillis: Long = 2_000_000_000_000L) {
     val awardPoints = AwardPointsUseCase(gamification)
 
     val generateNotification = GenerateNotificationUseCase(notifications)
+    val createServiceRequest = CreateServiceRequestUseCase(
+        serviceRequestRepository = serviceRequests,
+        publicationRepository = publications,
+        userRepository = users,
+        generateNotificationUseCase = generateNotification
+    )
     val approvePublication = ApprovePublicationUseCase(
         publicationRepository = publications,
         generateNotificationUseCase = generateNotification,

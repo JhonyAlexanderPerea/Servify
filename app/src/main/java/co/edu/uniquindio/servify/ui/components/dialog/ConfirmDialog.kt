@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.sp
+
 @Composable
 fun ConfirmDialog(
     title: String,
@@ -25,33 +28,35 @@ fun ConfirmDialog(
     onDismiss: () -> Unit,
     confirmText: String = "Confirmar",
     dismissText: String = "Cancelar",
-    isDestructive: Boolean = false
+    isDestructive: Boolean = false,
+    icon: ImageVector? = null
 ) {
     val confirmColor = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+    val dialogIcon = icon ?: if (isDestructive) Icons.Default.Warning else null
 
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(24.dp),
-        icon = if (isDestructive) {
+        icon = dialogIcon?.let {
             {
                 Icon(
-                    imageVector = Icons.Default.Warning,
+                    imageVector = it,
                     contentDescription = null,
                     tint = confirmColor
                 )
             }
-        } else null,
+        },
         title = {
             Text(
                 text = title,
-                style = ServifyTextStyle.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = ServifyTextStyle.TitleTight.copy(fontWeight = FontWeight.Bold, fontSize = 20.sp),
                 color = MaterialTheme.colorScheme.onSurface
             )
         },
         text = {
             Text(
                 text = message,
-                style = ServifyTextStyle.bodyMedium,
+                style = ServifyTextStyle.SmallMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
@@ -59,7 +64,7 @@ fun ConfirmDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     text = confirmText,
-                    style = ServifyTextStyle.labelLarge,
+                    style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                     color = confirmColor
                 )
             }
@@ -68,7 +73,7 @@ fun ConfirmDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     text = dismissText,
-                    style = ServifyTextStyle.labelLarge,
+                    style = ServifyTextStyle.SmallMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

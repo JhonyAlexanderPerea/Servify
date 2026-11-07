@@ -27,6 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +44,7 @@ import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.features.publication.component.PublicationStatusBadge
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
+import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.state.LoadingState
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -54,10 +58,28 @@ fun ModeratorPanelScreen(
     viewModel: ModeratorPanelViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    var showLogoutConfirmation by remember { mutableStateOf(false) }
+
+    if (showLogoutConfirmation) {
+        ConfirmDialog(
+            title = "Cerrar sesión",
+            message = "¿Estás seguro de que deseas cerrar la sesión de moderador en Servify?",
+            confirmText = "Cerrar sesión",
+            dismissText = "Cancelar",
+            isDestructive = true,
+            icon = Icons.AutoMirrored.Filled.Logout,
+            onConfirm = {
+                showLogoutConfirmation = false
+                onLogoutClick()
+            },
+            onDismiss = { showLogoutConfirmation = false }
+        )
+    }
+
     ModeratorPanelContent(
         state = state,
         onReviewClick = onReviewClick,
-        onLogoutClick = onLogoutClick,
+        onLogoutClick = { showLogoutConfirmation = true },
         modifier = modifier
     )
 }

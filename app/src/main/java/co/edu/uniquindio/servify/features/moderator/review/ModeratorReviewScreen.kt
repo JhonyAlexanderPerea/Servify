@@ -82,7 +82,7 @@ fun ModeratorReviewScreen(
         state = state,
         snackbarHostState = snackbarHostState,
         onBackClick = onBackClick,
-        onApprove = viewModel::onApprove,
+        onApprove = viewModel::onApproveClick,
         onRejectClick = viewModel::onRejectClick,
         onFinalizeClick = viewModel::onFinalizeClick,
         modifier = modifier
@@ -97,6 +97,17 @@ fun ModeratorReviewScreen(
             onReasonTextChange = viewModel::onRejectTextChange,
             onConfirm = viewModel::onConfirmReject,
             onDismiss = viewModel::onDismissRejectSheet
+        )
+    }
+
+    if (state.showApproveDialog) {
+        ConfirmDialog(
+            title = "Verificar publicación",
+            message = "La publicación será visible en el marketplace y el autor recibirá la notificación de verificación. ¿Deseas continuar?",
+            confirmText = "Verificar",
+            icon = Icons.Default.Check,
+            onConfirm = viewModel::onConfirmApprove,
+            onDismiss = viewModel::onDismissApproveDialog
         )
     }
 

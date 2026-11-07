@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import co.edu.uniquindio.servify.domain.rules.FeedRules
 import javax.inject.Inject
 
 data class ExploreUiState(
@@ -46,7 +47,7 @@ class ExploreViewModel @Inject constructor(
         _selectedService
     ) { services, categories, query, categoryId, selected ->
 
-        val filtered = services.filter { pub ->
+        val filtered = FeedRules.publicFeed(services).filter { pub ->
             val matchesCategory = categoryId.isNullOrBlank() || pub.categoryId.equals(categoryId, ignoreCase = true)
             val matchesQuery = query.isBlank() ||
                     pub.title.contains(query, ignoreCase = true) ||

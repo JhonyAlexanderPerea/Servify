@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.features.service.model
 import androidx.compose.ui.graphics.Color
 import co.edu.uniquindio.servify.domain.model.Comment
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.ui.format.formatCop
 
 data class TrustFactor(
     val title: String,
@@ -31,6 +32,7 @@ data class ServiceDetailData(
     val zone: String,
     val city: String,
     val images: List<String>,
+    val providerId: String = "",
     val providerName: String,
     val providerInitials: String,
     val providerColor: Color,
@@ -82,11 +84,12 @@ fun Publication.toServiceDetailData(): ServiceDetailData {
         category = categoryId,
         subcategory = subcategoryId ?: categoryId.replaceFirstChar { it.uppercase() },
         description = description,
-        priceRange = "$${price.toInt()} COP / $priceUnit",
-        hourlyPrice = "$${price.toInt()} COP / $priceUnit",
+        priceRange = "${formatCop(price)} COP / $priceUnit",
+        hourlyPrice = "${formatCop(price)} COP / $priceUnit",
         zone = locationName,
         city = locationName,
         images = if (images.isNotEmpty()) images else listOf("https://images.unsplash.com/photo-1504307651254-35680f356dfd"),
+        providerId = provider.id,
         providerName = provider.name,
         providerInitials = if (initials.isNotBlank()) initials else "PR",
         providerColor = Color(0xFF1A55E3),

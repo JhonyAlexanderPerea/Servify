@@ -25,6 +25,7 @@ data class ModeratorReviewUiState(
     val showRejectSheet: Boolean = false,
     val rejectText: String = "",
     val rejectError: String? = null,
+    val showApproveDialog: Boolean = false,
     val showFinalizeDialog: Boolean = false,
     val isProcessing: Boolean = false,
     val message: String? = null,
@@ -58,6 +59,20 @@ class ModeratorReviewViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun onApproveClick() {
+        if (_uiState.value.isProcessing) return
+        _uiState.update { it.copy(showApproveDialog = true) }
+    }
+
+    fun onDismissApproveDialog() {
+        _uiState.update { it.copy(showApproveDialog = false) }
+    }
+
+    fun onConfirmApprove() {
+        _uiState.update { it.copy(showApproveDialog = false) }
+        onApprove()
     }
 
     fun onApprove() {

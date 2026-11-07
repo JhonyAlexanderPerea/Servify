@@ -1,5 +1,27 @@
 package co.edu.uniquindio.servify.features.home.component
 
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -78,7 +100,8 @@ fun HomeTopAppBar(
     onLocationClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hasUnreadNotifications: Boolean = true
 ) {
     Row(
         modifier = modifier
@@ -140,14 +163,18 @@ fun HomeTopAppBar(
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp)
                 )
-                Box(
-                    modifier = Modifier
-                        .size(9.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.error)
-                        .align(Alignment.TopEnd)
-                        .padding(2.dp)
-                )
+                if (hasUnreadNotifications) {
+                    // Dentro del círculo: antes caía en la esquina y el recorte circular lo cortaba.
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 9.dp, end = 10.dp)
+                            .size(9.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.error)
+                            .border(1.5.dp, MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    )
+                }
             }
 
             Box(
@@ -166,11 +193,12 @@ fun HomeTopAppBar(
                 )
                 Box(
                     modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 4.dp, end = 4.dp)
                         .size(10.dp)
                         .clip(CircleShape)
                         .background(ServifyOnline)
-                        .border(1.5.dp, MaterialTheme.colorScheme.onPrimary, CircleShape)
-                        .align(Alignment.BottomEnd)
+                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
                 )
             }
         }
@@ -187,8 +215,12 @@ fun HomeSearchBar(
     onQueryChange: (String) -> Unit,
     onFilterClick: () -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "¿Qué servicio necesitas?"
+    placeholder: String = "¿Qué servicio necesitas?",
+    showFilterButton: Boolean = true
 ) {
+    val colors = MaterialTheme.colorScheme
+    val focusManager = LocalFocusManager.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -196,47 +228,77 @@ fun HomeSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
+        // Campo de texto real (antes era un Row clicable que mostraba el texto: no se podía escribir).
+        BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .clickable { onQueryChange(query) }
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = if (query.isEmpty()) placeholder else query,
-                style = ServifyTextStyle.Small,
-                color = if (query.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-        }
+                .height(48.dp),
+            singleLine = true,
+            textStyle = ServifyTextStyle.Small.copy(color = colors.onSurface),
+            cursorBrush = SolidColor(colors.primary),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .background(colors.surfaceContainerHigh)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = colors.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                        if (query.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                style = ServifyTextStyle.Small,
+                                color = colors.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        innerTextField()
+                    }
+                    if (query.isNotEmpty()) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Borrar búsqueda",
+                            tint = colors.onSurfaceVariant,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .clickable(role = Role.Button) { onQueryChange("") }
+                        )
+                    }
+                }
+            }
+        )
 
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .clickable(onClick = onFilterClick),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = "Filtros",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(22.dp)
-            )
+        if (showFilterButton) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(colors.primaryContainer)
+                    .clickable(role = Role.Button, onClickLabel = "Abrir filtros", onClick = onFilterClick),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = "Filtros",
+                    tint = colors.onPrimaryContainer,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
         }
     }
 }
@@ -443,7 +505,9 @@ fun TrustIndexBadge(
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp
             ),
-            color = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.secondary,
+            maxLines = 1,
+            softWrap = false
         )
     }
 }
@@ -558,21 +622,6 @@ fun ServiceFeedCard(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                        .align(Alignment.TopStart)
-                ) {
-                    Text(
-                        text = service.subcategory,
-                        style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
                 }
 
                 if (service.isVerified) {
@@ -708,90 +757,85 @@ fun ServiceFeedCard(
                     TrustIndexBadge(trustIndexPercent = service.trustIndex)
                 }
 
-                if (service.nextAvailableSlot != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Próxima cita: ${service.nextAvailableSlot}",
-                            style = ServifyTextStyle.Caption.copy(
-                                color = MaterialTheme.colorScheme.secondary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        )
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(38.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                            .clickable(onClick = onFavoriteToggle)
-                            .padding(horizontal = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = if (service.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Me interesa",
-                                tint = if (service.isFavorite) ServifyExtra.favorite else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Me interesa",
-                                style = ServifyTextStyle.SmallMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = "(${service.interestedCount})",
-                                style = ServifyTextStyle.Caption,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(38.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                            .clickable(onClick = onBookClick),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "Agendar",
-                                style = ServifyTextStyle.SmallMedium,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
+                    InterestButton(
+                        isInterested = service.isFavorite,
+                        count = service.interestedCount,
+                        onClick = onFavoriteToggle
+                    )
+                    ServifyFilledButton(
+                        text = "Solicitar servicio",
+                        onClick = onBookClick,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
+    }
+}
+
+/**
+ * "Me interesa": corazón con contador. Al activarse el corazón rebota (resorte corto) y el
+ * color cambia con transición; mide 48dp para ser cómodo de tocar.
+ */
+@Composable
+fun InterestButton(
+    isInterested: Boolean,
+    count: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scale = remember { Animatable(1f) }
+    var first by remember { mutableStateOf(true) }
+    LaunchedEffect(isInterested) {
+        if (first) {
+            first = false
+        } else if (isInterested) {
+            scale.animateTo(1.3f, tween(90))
+            scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+        }
+    }
+    val tint by animateColorAsState(
+        targetValue = if (isInterested) ServifyExtra.favorite else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(200),
+        label = "interestTint"
+    )
+    Row(
+        modifier = modifier
+            .height(48.dp)
+            .clip(CircleShape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+            .clickable(
+                role = Role.Button,
+                onClickLabel = "Me interesa",
+                onClick = onClick
+            )
+            .padding(horizontal = 16.dp)
+            .semantics { contentDescription = "Me interesa, $count personas interesadas" },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = if (isInterested) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .size(20.dp)
+                .graphicsLayer {
+                    scaleX = scale.value
+                    scaleY = scale.value
+                }
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = "$count",
+            style = ServifyTextStyle.SmallMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

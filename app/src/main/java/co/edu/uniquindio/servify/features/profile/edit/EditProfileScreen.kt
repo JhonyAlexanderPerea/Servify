@@ -32,11 +32,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +62,7 @@ fun EditProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showSaveConfirmationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
@@ -75,6 +79,21 @@ fun EditProfileScreen(
             snackbarHostState.showSnackbar(message)
             viewModel.clearMessage()
         }
+    }
+
+    if (showSaveConfirmationDialog) {
+        ConfirmDialog(
+            title = "Confirmar Cambios",
+            message = "¿Deseas aplicar y guardar los cambios realizados en tu configuración de perfil?",
+            confirmText = "Guardar",
+            dismissText = "Cancelar",
+            icon = Icons.Default.Settings,
+            onConfirm = {
+                showSaveConfirmationDialog = false
+                viewModel.onSaveProfile()
+            },
+            onDismiss = { showSaveConfirmationDialog = false }
+        )
     }
 
     if (uiState.showDeleteConfirmationDialog) {
@@ -157,7 +176,7 @@ fun EditProfileScreen(
 
             // Botón Guardar Cambios
             Button(
-                onClick = { viewModel.onSaveProfile() },
+                onClick = { showSaveConfirmationDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),

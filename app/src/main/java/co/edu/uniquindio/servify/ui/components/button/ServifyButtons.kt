@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.ui.components.button
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import co.edu.uniquindio.servify.ui.motion.pressScale
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 // -----------------------------------------
@@ -41,10 +44,15 @@ fun ServifyFilledButton(
     enabled: Boolean = true
 ) {
 
+    val interactionSource = remember { MutableInteractionSource() }
+
     Button(
         onClick = onClick,
-        modifier = modifier.height(48.dp),
+        modifier = modifier
+            .height(48.dp)
+            .pressScale(interactionSource),
         enabled = enabled,
+        interactionSource = interactionSource,
         shape = CircleShape,
         contentPadding = PaddingValues(horizontal = 24.dp),
         colors = ButtonDefaults.buttonColors(
@@ -76,10 +84,15 @@ fun ServifyOutlinedButton(
     enabled: Boolean = true
 ) {
 
+    val interactionSource = remember { MutableInteractionSource() }
+
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.height(48.dp),
+        modifier = modifier
+            .height(48.dp)
+            .pressScale(interactionSource),
         enabled = enabled,
+        interactionSource = interactionSource,
         shape = CircleShape,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         contentPadding = PaddingValues(horizontal = 24.dp),
@@ -187,6 +200,8 @@ private fun ButtonContent(
 
     Text(
         text = text,
-        style = ServifyTextStyle.BodyMedium
+        style = ServifyTextStyle.BodyMedium,
+        maxLines = 1,
+        softWrap = false
     )
 }

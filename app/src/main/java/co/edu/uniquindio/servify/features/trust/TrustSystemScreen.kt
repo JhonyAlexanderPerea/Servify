@@ -131,7 +131,7 @@ fun TrustSystemScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8FFF8)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                         border = BorderStroke(1.5.dp, ServifyTertiary.copy(alpha = 0.4f))
                     ) {
                         Column(

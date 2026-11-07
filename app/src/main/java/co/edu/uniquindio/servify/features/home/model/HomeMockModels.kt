@@ -55,7 +55,7 @@ fun Publication.toServiceItem(): ServiceItem {
         else -> "Profesional"
     }
 
-    val priceFormatted = String.format(Locale.getDefault(), "$%.0f COP / %s", price, priceUnit)
+    val priceFormatted = String.format(Locale.forLanguageTag("es-CO"), "$%,d COP / %s", price.toLong(), priceUnit)
 
     return ServiceItem(
         id = id,

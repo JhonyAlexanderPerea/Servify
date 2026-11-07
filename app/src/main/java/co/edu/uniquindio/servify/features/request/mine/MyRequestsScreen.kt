@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,9 +25,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import co.edu.uniquindio.servify.domain.model.RequestStatus
 import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
+import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.state.EmptyState
 import co.edu.uniquindio.servify.ui.components.state.LoadingState
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
@@ -51,11 +57,30 @@ fun MyRequestsScreen(
     viewModel: MyRequestsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    var requestToCancel by remember { mutableStateOf<RequestItem?>(null) }
+
+    if (requestToCancel != null) {
+        ConfirmDialog(
+            title = "Cancelar Agendamiento",
+            message = "¿Estás seguro de que deseas cancelar la solicitud para \"${requestToCancel?.title}\"? Esta acción informará al proveedor.",
+            confirmText = "Sí, cancelar",
+            dismissText = "Volver",
+            isDestructive = true,
+            icon = Icons.Default.EventBusy,
+            onConfirm = {
+                requestToCancel?.id?.let { viewModel.cancelRequest(it) }
+                requestToCancel = null
+            },
+            onDismiss = { requestToCancel = null }
+        )
+    }
+
     MyRequestsContent(
         state = state,
         onBackClick = onBackClick,
         onRequestClick = onRequestClick,
         onExploreClick = onExploreClick,
+        onCancelRequest = { requestToCancel = it },
         modifier = modifier
     )
 }
@@ -66,6 +91,7 @@ fun MyRequestsContent(
     onBackClick: () -> Unit,
     onRequestClick: (String) -> Unit,
     onExploreClick: () -> Unit,
+    onCancelRequest: (RequestItem) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -121,7 +147,11 @@ fun MyRequestsContent(
                     .padding(paddingValues)
             ) {
                 items(state.requests, key = { it.id }) { item ->
-                    RequestCard(item = item, onClick = { onRequestClick(item.publicationId) })
+                    RequestCard(
+                        item = item,
+                        onClick = { onRequestClick(item.publicationId) },
+                        onCancelClick = { onCancelRequest(item) }
+                    )
                 }
             }
         }
@@ -129,7 +159,11 @@ fun MyRequestsContent(
 }
 
 @Composable
-private fun RequestCard(item: RequestItem, onClick: () -> Unit) {
+private fun RequestCard(
+    item: RequestItem,
+    onClick: () -> Unit,
+    onCancelClick: () -> Unit = {}
+) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -174,6 +208,20 @@ private fun RequestCard(item: RequestItem, onClick: () -> Unit) {
                     style = ServifyTextStyle.Small,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+            }
+            if (item.status == RequestStatus.PENDING || item.status == RequestStatus.ACCEPTED) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onCancelClick) {
+                        Text(
+                            text = "Cancelar agendamiento",
+                            style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
         }
     }

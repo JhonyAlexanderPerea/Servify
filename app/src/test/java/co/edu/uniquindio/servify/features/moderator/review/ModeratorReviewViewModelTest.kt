@@ -71,6 +71,35 @@ class ModeratorReviewViewModelTest {
     }
 
     @Test
+    fun verify_action_requests_confirmation_and_can_be_dismissed_without_changes() {
+        val viewModel = newViewModel("pub_jhony_tutorias")
+        awaitState(viewModel) { !it.isLoading }
+
+        viewModel.onApproveClick()
+
+        assertTrue(viewModel.uiState.value.showApproveDialog)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
+
+        viewModel.onDismissApproveDialog()
+
+        assertFalse(viewModel.uiState.value.showApproveDialog)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
+    }
+
+    @Test
+    fun confirming_verification_applies_the_approval() {
+        val viewModel = newViewModel("pub_jhony_tutorias")
+        awaitState(viewModel) { !it.isLoading }
+
+        viewModel.onApproveClick()
+        viewModel.onConfirmApprove()
+
+        val state = awaitState(viewModel) { it.finished }
+        assertFalse(state.showApproveDialog)
+        assertEquals(PublicationStatus.VERIFICADA, env.publications.getById("pub_jhony_tutorias")?.status)
+    }
+
+    @Test
     fun approving_an_already_reviewed_publication_shows_a_message() {
         val viewModel = newViewModel("pub_jhony_plomeria")
         awaitState(viewModel) { !it.isLoading }

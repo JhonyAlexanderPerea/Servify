@@ -39,6 +39,8 @@ data class PublicationFormUiState(
     val isFormValid: Boolean = false,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    /** Id de la publicación que se acaba de crear o reenviar (para abrir "Publicación enviada"). */
+    val savedPublicationId: String? = null,
     val isAiAnalyzing: Boolean = false,
     val showAiSuggestion: Boolean = false,
     val aiSuggestedTitle: String = "",
@@ -278,9 +280,11 @@ class PublicationFlowViewModel @Inject constructor(
             val images = state.images.ifEmpty { listOf(DEFAULT_IMAGE) }
             val editingId = state.publicationId
 
+            val savedId: String
             if (editingId.isNullOrBlank()) {
+                savedId = "pub_${System.currentTimeMillis()}"
                 val publication = Publication(
-                    id = "pub_${System.currentTimeMillis()}",
+                    id = savedId,
                     title = state.title.trim(),
                     description = state.description.trim(),
                     categoryId = state.categoryId,
@@ -302,6 +306,7 @@ class PublicationFlowViewModel @Inject constructor(
                 createPublicationUseCase(publication)
                 awardPointsUseCase(currentUser.id, PointEvent.PUBLICATION_CREATED)
             } else {
+                savedId = editingId
                 val existing = getPublicationByIdUseCase(editingId)
                 val isOwner = existing != null &&
                     (existing.authorId.isBlank() || existing.authorId == currentUser.id)
@@ -332,7 +337,7 @@ class PublicationFlowViewModel @Inject constructor(
             }
 
             _uiState.update {
-                it.copy(isLoading = false, isSuccess = true, currentStep = 3)
+                it.copy(isLoading = false, isSuccess = true, currentStep = 3, savedPublicationId = savedId)
             }
         }
     }

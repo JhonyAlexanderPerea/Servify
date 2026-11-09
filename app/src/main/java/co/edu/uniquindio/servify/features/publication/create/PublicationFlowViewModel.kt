@@ -85,7 +85,7 @@ class PublicationFlowViewModel @Inject constructor(
                         price = initialPrice(existing).toString(),
                         priceUnit = existing.priceUnit,
                         locationName = existing.locationName.ifBlank { existing.city.ifBlank { "Armenia, Quindío" } },
-                        images = existing.images,
+                        images = existing.imageUrls,
                         isLoading = false
                     )
                 }
@@ -294,7 +294,7 @@ class PublicationFlowViewModel @Inject constructor(
                     price = price,
                     priceRange = formatPrice(price, state.priceUnit),
                     priceUnit = state.priceUnit,
-                    images = images,
+                    imageUrls = images,
                     provider = currentUser,
                     authorId = currentUser.id,
                     status = PublicationStatus.PENDIENTE,
@@ -327,7 +327,7 @@ class PublicationFlowViewModel @Inject constructor(
                         price = price,
                         priceRange = formatPrice(price, state.priceUnit),
                         priceUnit = state.priceUnit,
-                        images = images,
+                        imageUrls = images,
                         locationName = state.locationName,
                         city = state.locationName,
                         status = PublicationStatus.PENDIENTE,

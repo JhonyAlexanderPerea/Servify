@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.domain.usecase.comment
 import co.edu.uniquindio.servify.domain.model.Comment
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
+import co.edu.uniquindio.servify.domain.usecase.reputation.EvaluateAchievementsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -14,7 +15,8 @@ import javax.inject.Inject
  */
 class AddCommentUseCase @Inject constructor(
     private val commentRepository: CommentRepository,
-    private val publicationRepository: PublicationRepository
+    private val publicationRepository: PublicationRepository,
+    private val evaluateAchievementsUseCase: EvaluateAchievementsUseCase
 ) {
     suspend operator fun invoke(comment: Comment) = withContext(Dispatchers.IO) {
         // 1. Guardar comentario
@@ -34,5 +36,8 @@ class AddCommentUseCase @Inject constructor(
             )
             publicationRepository.updatePublication(updatedPublication)
         }
+
+        // 4. Un comentario nuevo puede desbloquear la insignia "10 comentarios"
+        evaluateAchievementsUseCase(comment.authorId)
     }
 }

@@ -9,4 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface CommentRepository {
     fun observeCommentsForPublication(publicationId: String): Flow<List<Comment>>
     suspend fun addComment(comment: Comment)
+
+    /** Lectura síncrona de todos los comentarios (para evaluar insignias). */
+    fun snapshot(): List<Comment>
 }

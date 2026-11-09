@@ -1,6 +1,7 @@
 package co.edu.uniquindio.servify.features.home.model
 
 import androidx.compose.ui.graphics.Color
+import co.edu.uniquindio.servify.domain.model.Category
 import co.edu.uniquindio.servify.domain.model.Publication
 import java.util.Locale
 
@@ -10,6 +11,15 @@ data class CategoryItem(
     val iconName: String,
     val color: Color,
     val backgroundColor: Color
+)
+
+/** Convierte la categoría del dominio (colores ARGB) al modelo de UI con [Color]. */
+fun Category.toCategoryItem(): CategoryItem = CategoryItem(
+    id = id,
+    label = label,
+    iconName = iconName,
+    color = Color(colorArgb),
+    backgroundColor = Color(backgroundArgb)
 )
 
 data class AppointmentBannerItem(
@@ -66,7 +76,7 @@ fun Publication.toServiceItem(): ServiceItem {
         priceRange = priceFormatted,
         zone = locationName,
         city = locationName,
-        imageUrl = images.firstOrNull() ?: "",
+        imageUrl = imageUrls.firstOrNull() ?: "",
         providerName = provider.name,
         providerInitials = if (initials.isNotBlank()) initials else "PR",
         providerColor = Color(0xFF1A55E3),
@@ -85,51 +95,6 @@ object HomeMockData {
     val currentUserCity = "Armenia, Quindío"
     val currentUserName = "Jhony"
     val currentUserInitials = "JR"
-
-    val categories = listOf(
-        CategoryItem(
-            id = "hogar",
-            label = "Hogar",
-            iconName = "home_repair_service",
-            color = Color(0xFF1A55E3),
-            backgroundColor = Color(0xFFD6E2FF)
-        ),
-        CategoryItem(
-            id = "educacion",
-            label = "Educación",
-            iconName = "school",
-            color = Color(0xFF7B2FBE),
-            backgroundColor = Color(0xFFEDE7F6)
-        ),
-        CategoryItem(
-            id = "mascotas",
-            label = "Mascotas",
-            iconName = "pets",
-            color = Color(0xFFEA4C89),
-            backgroundColor = Color(0xFFFCE4EC)
-        ),
-        CategoryItem(
-            id = "tecnologia",
-            label = "Tecnología",
-            iconName = "computer",
-            color = Color(0xFF0097A7),
-            backgroundColor = Color(0xFFE0F7FA)
-        ),
-        CategoryItem(
-            id = "transporte",
-            label = "Transporte",
-            iconName = "local_shipping",
-            color = Color(0xFFF57C00),
-            backgroundColor = Color(0xFFFFF3E0)
-        ),
-        CategoryItem(
-            id = "salud",
-            label = "Salud",
-            iconName = "health_and_safety",
-            color = Color(0xFF388E3C),
-            backgroundColor = Color(0xFFE8F5E9)
-        )
-    )
 
     val nextAppointment = AppointmentBannerItem(
         id = "apt_1",

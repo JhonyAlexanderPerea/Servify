@@ -255,7 +255,7 @@ fun AppNavigation(
             val reqId = backStackEntry.arguments?.getString("requestId") ?: "req_1"
             RequestConfirmedScreen(
                 requestId = reqId,
-                onGoToAgenda = { goToDashboard(Screen.MyRequests.route) },
+                onGoToMyRequests = { goToDashboard(Screen.MyRequests.route) },
                 onGoToFeed = { goToDashboard(null) }
             )
         }

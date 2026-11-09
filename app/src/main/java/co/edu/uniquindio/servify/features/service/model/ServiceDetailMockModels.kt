@@ -3,13 +3,8 @@ package co.edu.uniquindio.servify.features.service.model
 import androidx.compose.ui.graphics.Color
 import co.edu.uniquindio.servify.domain.model.Comment
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.domain.model.TrustFactor
 import co.edu.uniquindio.servify.ui.format.formatCop
-
-data class TrustFactor(
-    val title: String,
-    val description: String,
-    val isVerified: Boolean
-)
 
 data class CommentItemData(
     val id: String,
@@ -88,7 +83,7 @@ fun Publication.toServiceDetailData(): ServiceDetailData {
         hourlyPrice = "${formatCop(price)} COP / $priceUnit",
         zone = locationName,
         city = locationName,
-        images = if (images.isNotEmpty()) images else listOf("https://images.unsplash.com/photo-1504307651254-35680f356dfd"),
+        images = if (imageUrls.isNotEmpty()) imageUrls else listOf("https://images.unsplash.com/photo-1504307651254-35680f356dfd"),
         providerId = provider.id,
         providerName = provider.name,
         providerInitials = if (initials.isNotBlank()) initials else "PR",

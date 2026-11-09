@@ -20,6 +20,8 @@ class CommentRepositoryImpl @Inject constructor() : CommentRepository {
         }
     }
 
+    override fun snapshot(): List<Comment> = _comments.value
+
     override suspend fun addComment(comment: Comment) {
         _comments.update { listOf(comment) + it }
     }

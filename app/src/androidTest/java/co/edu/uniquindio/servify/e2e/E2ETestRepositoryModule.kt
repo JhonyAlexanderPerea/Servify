@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.e2e
 import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
 import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
+import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.UserRepositoryImpl
@@ -10,6 +11,7 @@ import co.edu.uniquindio.servify.data.seed.SeedPublications
 import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.di.RepositoryModule
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import co.edu.uniquindio.servify.domain.repository.CategoryRepository
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
 import co.edu.uniquindio.servify.domain.repository.NotificationRepository
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
@@ -57,4 +59,8 @@ object E2ETestRepositoryModule {
     @Provides
     @Singleton
     fun provideCommentRepository(): CommentRepository = CommentRepositoryImpl()
+
+    @Provides
+    @Singleton
+    fun provideCategoryRepository(): CategoryRepository = InMemoryCategoryRepository()
 }

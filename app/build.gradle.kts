@@ -22,7 +22,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner =
-            "androidx.test.runner.AndroidJUnitRunner"
+            "co.edu.uniquindio.servify.HiltTestRunner"
     }
 
     buildTypes {
@@ -52,6 +52,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.animation)
 
     implementation(libs.androidx.compose.material3)
 
@@ -113,6 +114,14 @@ dependencies {
 
     androidTestImplementation(
         libs.androidx.junit
+    )
+
+    androidTestImplementation(
+        libs.hilt.android.testing
+    )
+
+    kspAndroidTest(
+        libs.hilt.compiler
     )
 
     debugImplementation(

@@ -14,7 +14,13 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.graphicsLayer
+import co.edu.uniquindio.servify.navigation.Screen
+import co.edu.uniquindio.servify.ui.motion.ServifyMotion
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +37,8 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 fun BottomNavigationBar(
     currentRoute: String?,
     onDestinationSelect: (BottomNavDestination) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    notificationBadgeCount: Int = 0
 ) {
     NavigationBar(
         modifier = modifier,
@@ -50,7 +57,7 @@ fun BottomNavigationBar(
                     icon = {
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
+                                .size(32.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
@@ -59,7 +66,7 @@ fun BottomNavigationBar(
                                 imageVector = if (isSelected) destination.selectedIcon else destination.icon,
                                 contentDescription = destination.label,
                                 tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     },
@@ -83,28 +90,45 @@ fun BottomNavigationBar(
                     selected = isSelected,
                     onClick = { onDestinationSelect(destination) },
                     icon = {
-                        if (destination.badgeCount != null && destination.badgeCount > 0) {
+                        val badge = if (destination.route == Screen.Notifications.route) {
+                            notificationBadgeCount
+                        } else {
+                            destination.badgeCount ?: 0
+                        }
+                        // Sutil: el icono activo crece un 10 % al seleccionarse.
+                        val iconScale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.1f else 1f,
+                            animationSpec = tween(ServifyMotion.MEDIUM, easing = ServifyMotion.Decelerate),
+                            label = "navIconScale"
+                        )
+                        val iconModifier = Modifier
+                            .size(22.dp)
+                            .graphicsLayer {
+                                scaleX = iconScale
+                                scaleY = iconScale
+                            }
+                        if (badge > 0) {
                             BadgedBox(
                                 badge = {
                                     Badge(
                                         containerColor = MaterialTheme.colorScheme.error,
                                         contentColor = MaterialTheme.colorScheme.onError
                                     ) {
-                                        Text(text = "${destination.badgeCount}")
+                                        Text(text = if (badge > 9) "9+" else "$badge")
                                     }
                                 }
                             ) {
                                 Icon(
                                     imageVector = if (isSelected) destination.selectedIcon else destination.icon,
                                     contentDescription = destination.label,
-                                    modifier = Modifier.size(22.dp)
+                                    modifier = iconModifier
                                 )
                             }
                         } else {
                             Icon(
                                 imageVector = if (isSelected) destination.selectedIcon else destination.icon,
                                 contentDescription = destination.label,
-                                modifier = Modifier.size(22.dp)
+                                modifier = iconModifier
                             )
                         }
                     },

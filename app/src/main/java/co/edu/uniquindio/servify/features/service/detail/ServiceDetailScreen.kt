@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.features.service.detail
 
+import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +70,7 @@ fun ServiceDetailScreen(
     onBookClick: () -> Unit,
     modifier: Modifier = Modifier,
     onShareClick: () -> Unit = {},
+    onTrustClick: (providerId: String) -> Unit = {},
     viewModel: ServiceDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -93,7 +95,8 @@ fun ServiceDetailScreen(
                 ServiceDetailBottomBar(
                     priceRange = detailData.priceRange,
                     hourlyPrice = detailData.hourlyPrice,
-                    onBookClick = onBookClick
+                    onBookClick = onBookClick,
+                    isOwnService = state.isOwnService
                 )
             }
         }
@@ -237,10 +240,17 @@ fun ServiceDetailScreen(
 
                 // 4. SISTEMA DE CONFIANZA (TRUST FACTORS)
                 item {
-                    TrustSystemCard(
-                        trustIndex = detailData.trustIndex,
-                        trustFactors = detailData.trustFactors
-                    )
+                    Column {
+                        TrustSystemCard(
+                            trustIndex = detailData.trustIndex,
+                            trustFactors = detailData.trustFactors
+                        )
+                        // Entrada a la pantalla "Índice de confianza" (antes no había forma de llegar a ella).
+                        ServifyTextButton(
+                            text = "Ver cómo se calcula el índice de confianza",
+                            onClick = { onTrustClick(detailData.providerId) }
+                        )
+                    }
                 }
 
                 // 5. DESCRIPCIÓN DEL SERVICIO

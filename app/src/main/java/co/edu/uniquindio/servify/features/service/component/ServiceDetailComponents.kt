@@ -54,7 +54,7 @@ import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.component.StarRatingRow
 import co.edu.uniquindio.servify.features.service.model.CommentItemData
 import co.edu.uniquindio.servify.features.service.model.ServiceDetailData
-import co.edu.uniquindio.servify.features.service.model.TrustFactor
+import co.edu.uniquindio.servify.domain.model.TrustFactor
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
@@ -347,12 +347,16 @@ fun ProviderCard(
                         style = ServifyTextStyle.SmallMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary
-                        )
+                        ),
+                        maxLines = 1,
+                        softWrap = false
                     )
                     Text(
                         text = "Confianza",
                         style = ServifyTextStyle.Caption,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
@@ -382,7 +386,10 @@ fun TrustSystemCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -400,32 +407,40 @@ fun TrustSystemCard(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Índice de Confianza Servify",
                             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Garantía y perfil verificado por el sistema",
                             style = ServifyTextStyle.Caption,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.secondary)
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = "$trustIndex%",
                         style = ServifyTextStyle.SmallMedium.copy(
                             color = MaterialTheme.colorScheme.onSecondary,
                             fontWeight = FontWeight.Bold
-                        )
+                        ),
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
@@ -713,7 +728,8 @@ fun ServiceDetailBottomBar(
     priceRange: String,
     hourlyPrice: String,
     onBookClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isOwnService: Boolean = false
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -728,27 +744,41 @@ fun ServiceDetailBottomBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(end = 12.dp)
+            ) {
                 Text(
                     text = "Tarifa estimada",
                     style = ServifyTextStyle.Caption,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = hourlyPrice,
                     style = ServifyTextStyle.TitleTight.copy(
-                        fontSize = 18.sp,
+                        fontSize = 17.sp,
                         color = MaterialTheme.colorScheme.primary
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            ServifyFilledButton(
-                text = "Agendar Cita",
-                icon = Icons.Default.CalendarMonth,
-                onClick = onBookClick,
-                modifier = Modifier.width(180.dp)
-            )
+            if (isOwnService) {
+                ServifyFilledButton(
+                    text = "Tu servicio publicado",
+                    onClick = {},
+                    enabled = false
+                )
+            } else {
+                ServifyFilledButton(
+                    text = "Solicitar servicio",
+                    onClick = onBookClick
+                )
+            }
         }
     }
 }

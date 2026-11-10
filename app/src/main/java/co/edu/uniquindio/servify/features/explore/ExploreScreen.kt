@@ -1,6 +1,16 @@
 package co.edu.uniquindio.servify.features.explore
 
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.BiasAlignment
+import androidx.compose.ui.geometry.Offset
+import co.edu.uniquindio.servify.ui.format.formatCop
+import co.edu.uniquindio.servify.ui.motion.ServifyMotion
+import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -127,7 +137,8 @@ fun ExploreScreen(
                 HomeSearchBar(
                     query = state.searchQuery,
                     onQueryChange = viewModel::onSearchQueryChanged,
-                    onFilterClick = { /* Abrir modal filtros */ },
+                    onFilterClick = {},
+                    showFilterButton = false,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -147,10 +158,15 @@ fun ExploreScreen(
                         .clip(RoundedCornerShape(24.dp))
                         .background(
                             brush = Brush.linearGradient(
-                                colors = listOf(Color(0xFFE2E8F0), Color(0xFFCBD5E1))
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
                             )
                         )
                 ) {
+                    MapBackdrop(modifier = Modifier.matchParentSize())
+
                     // Fondo estilizado de mapa urbano
                     Box(
                         modifier = Modifier
@@ -182,48 +198,11 @@ fun ExploreScreen(
                     state.nearbyServices.forEachIndexed { index, publication ->
                         val isSelected = state.selectedService?.id == publication.id
 
-                        val alignment = when (index % 4) {
-                            0 -> Alignment.TopStart
-                            1 -> Alignment.Center
-                            2 -> Alignment.BottomEnd
-                            else -> Alignment.BottomStart
-                        }
-
-                        val topOffset = when (index % 4) {
-                            0 -> 40.dp
-                            1 -> 0.dp
-                            2 -> 0.dp
-                            else -> 0.dp
-                        }
-
-                        val startOffset = when (index % 4) {
-                            0 -> 30.dp
-                            else -> 0.dp
-                        }
-
-                        val endOffset = when (index % 4) {
-                            2 -> 40.dp
-                            else -> 0.dp
-                        }
-
-                        val bottomOffset = when (index % 4) {
-                            2 -> 80.dp
-                            3 -> 60.dp
-                            else -> 0.dp
-                        }
-
                         ServiceMapMarker(
                             publication = publication,
                             isSelected = isSelected,
                             onClick = { viewModel.onMarkerSelected(publication) },
-                            modifier = Modifier
-                                .align(alignment)
-                                .padding(
-                                    top = topOffset,
-                                    start = startOffset,
-                                    end = endOffset,
-                                    bottom = bottomOffset
-                                )
+                            modifier = Modifier.align(MapPinSlots[index % MapPinSlots.size])
                         )
                     }
 
@@ -249,15 +228,21 @@ fun ExploreScreen(
                     // 3. TARJETA FLOTANTE DEL SERVICIO SELECCIONADO
                     if (state.selectedService != null) {
                         state.selectedService?.let { selected ->
-                            NearbyServiceFloatingCard(
-                                publication = selected,
-                                onClick = { onServiceClick(selected.id) },
-                                onCloseClick = { viewModel.onDismissSelectedService() },
-                                onFavoriteToggle = { viewModel.onToggleInterest(selected.id) },
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(12.dp)
-                            )
+                            Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = fadeIn(tween(ServifyMotion.MEDIUM)) +
+                                        slideInVertically(tween(ServifyMotion.LONG, easing = ServifyMotion.Decelerate)) { it / 4 }
+                                ) {
+                                    NearbyServiceFloatingCard(
+                                        publication = selected,
+                                        onClick = { onServiceClick(selected.id) },
+                                        onCloseClick = { viewModel.onDismissSelectedService() },
+                                        onFavoriteToggle = { viewModel.onToggleInterest(selected.id) },
+                                        modifier = Modifier.padding(12.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -283,7 +268,8 @@ fun ExploreScreen(
                         items(state.nearbyServices, key = { it.id }) { service ->
                             ExploreServiceMiniCard(
                                 publication = service,
-                                onClick = { viewModel.onMarkerSelected(service) }
+                                onClick = { viewModel.onMarkerSelected(service) },
+                                modifier = Modifier.animateItem()
                             )
                         }
                     }
@@ -304,9 +290,14 @@ private fun ServiceMapMarker(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val markerBg = if (isSelected) ServifyPrimary else MaterialTheme.colorScheme.surface
-    val textColor = if (isSelected) Color.White else ServifyOnSurface
-    val strokeColor = if (isSelected) Color.White else ServifyPrimary
+    val colors = MaterialTheme.colorScheme
+    val markerBg by animateColorAsState(
+        targetValue = if (isSelected) colors.primary else colors.surface,
+        animationSpec = tween(ServifyMotion.MEDIUM),
+        label = "markerBg"
+    )
+    val textColor = if (isSelected) colors.onPrimary else colors.onSurface
+    val strokeColor = if (isSelected) colors.onPrimary else colors.primary
 
     Row(
         modifier = modifier
@@ -320,7 +311,7 @@ private fun ServiceMapMarker(
         Icon(
             imageVector = Icons.Default.Place,
             contentDescription = null,
-            tint = if (isSelected) Color.White else ServifyPrimary,
+            tint = if (isSelected) colors.onPrimary else colors.primary,
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
@@ -414,7 +405,7 @@ private fun NearbyServiceFloatingCard(
                         Icon(
                             imageVector = if (publication.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorito",
-                            tint = if (publication.isFavorite) Color(0xFFEA4C89) else ServifyOnSurfaceVariant,
+                            tint = if (publication.isFavorite) ServifyExtra.favorite else ServifyOnSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -457,7 +448,7 @@ private fun NearbyServiceFloatingCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "$${publication.price.toInt()} COP / ${publication.priceUnit}",
+                    text = "${formatCop(publication.price)} COP / ${publication.priceUnit}",
                     style = ServifyTextStyle.SmallMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = ServifyPrimary
@@ -486,12 +477,13 @@ private fun NearbyServiceFloatingCard(
 @Composable
 private fun ExploreServiceMiniCard(
     publication: Publication,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val service = publication.toServiceItem()
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .width(260.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
@@ -504,7 +496,10 @@ private fun ExploreServiceMiniCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -526,10 +521,12 @@ private fun ExploreServiceMiniCard(
                         style = ServifyTextStyle.SmallMedium,
                         color = ServifyOnSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                 }
 
+                Spacer(modifier = Modifier.width(8.dp))
                 TrustIndexBadge(trustIndexPercent = service.trustIndex)
             }
 
@@ -551,6 +548,44 @@ private fun ExploreServiceMiniCard(
                 overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// FONDO DEL MAPA (MOCK) Y POSICIONES DE MARCADORES
+// -----------------------------------------------------------------------------
+
+/** Casillas fijas y bien separadas: los marcadores ya no se pisan entre sí. */
+private val MapPinSlots = listOf(
+    BiasAlignment(-0.55f, -0.70f),
+    BiasAlignment(0.50f, -0.30f),
+    BiasAlignment(-0.40f, 0.10f),
+    BiasAlignment(0.45f, 0.55f),
+    BiasAlignment(-0.55f, 0.75f),
+    BiasAlignment(0.10f, -0.90f),
+    BiasAlignment(0.05f, 0.35f),
+    BiasAlignment(-0.10f, -0.45f)
+)
+
+/** Cuadrícula de "calles" que usa el color del texto del tema: se ve bien en claro y en oscuro. */
+@Composable
+private fun MapBackdrop(modifier: Modifier = Modifier) {
+    val line = MaterialTheme.colorScheme.onSurface
+    Canvas(modifier = modifier) {
+        val step = 56.dp.toPx()
+        var x = step
+        while (x < size.width) {
+            drawLine(line.copy(alpha = 0.06f), Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.dp.toPx())
+            x += step
+        }
+        var y = step
+        while (y < size.height) {
+            drawLine(line.copy(alpha = 0.06f), Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
+            y += step
+        }
+        // dos avenidas diagonales
+        drawLine(line.copy(alpha = 0.10f), Offset(0f, size.height * 0.85f), Offset(size.width, size.height * 0.2f), strokeWidth = 5.dp.toPx())
+        drawLine(line.copy(alpha = 0.08f), Offset(size.width * 0.2f, 0f), Offset(size.width * 0.8f, size.height), strokeWidth = 4.dp.toPx())
     }
 }
 

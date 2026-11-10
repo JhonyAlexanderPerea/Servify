@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.features.publication.create
 
+import androidx.compose.runtime.LaunchedEffect
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -64,7 +65,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 @Composable
 fun CreatePublicationScreen(
     onBackClick: () -> Unit,
-    onPublishSuccess: () -> Unit,
+    onPublishSuccess: (publicationId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PublicationFlowViewModel = hiltViewModel()
 ) {
@@ -118,52 +119,18 @@ fun CreatePublicationScreen(
                 CircularProgressIndicator(color = ServifyPrimary)
             }
         } else if (state.isSuccess) {
-            Column(
+            // Al guardar se abre "Publicación enviada" (pendiente de verificación). Antes aquí se
+            // mostraba un texto que decía que ya estaba en el feed, lo cual ya no es cierto.
+            LaunchedEffect(state.savedPublicationId) {
+                state.savedPublicationId?.let(onPublishSuccess)
+            }
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Éxito",
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = if (state.publicationId != null) "¡Publicación Actualizada Exitosamente!" else "¡Publicación Creada y Publicada!",
-                    style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Tu servicio fue registrado reactivamente en la capa de datos en memoria. Ya está disponible en el feed del Marketplace y en tu perfil de proveedor.",
-                    style = ServifyTextStyle.SmallRelaxed,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                ServifyFilledButton(
-                    text = "Ir al Inicio / Mis Publicaciones",
-                    onClick = onPublishSuccess,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                CircularProgressIndicator(color = ServifyPrimary)
             }
         } else {
             Column(

@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
-import co.edu.uniquindio.servify.features.service.model.TrustFactor
+import co.edu.uniquindio.servify.domain.model.TrustFactor
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyOutlineVariant
@@ -131,7 +131,7 @@ fun TrustSystemScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8FFF8)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                         border = BorderStroke(1.5.dp, ServifyTertiary.copy(alpha = 0.4f))
                     ) {
                         Column(

@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
+import co.edu.uniquindio.servify.domain.rules.PointEvent
+import co.edu.uniquindio.servify.domain.rules.PublicationRules
+import co.edu.uniquindio.servify.domain.usecase.reputation.AwardPointsUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.CreatePublicationUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.GetPublicationByIdUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.UpdatePublicationUseCase
@@ -36,6 +39,8 @@ data class PublicationFormUiState(
     val isFormValid: Boolean = false,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    /** Id de la publicación que se acaba de crear o reenviar (para abrir "Publicación enviada"). */
+    val savedPublicationId: String? = null,
     val isAiAnalyzing: Boolean = false,
     val showAiSuggestion: Boolean = false,
     val aiSuggestedTitle: String = "",
@@ -51,7 +56,8 @@ class PublicationFlowViewModel @Inject constructor(
     private val getPublicationByIdUseCase: GetPublicationByIdUseCase,
     private val createPublicationUseCase: CreatePublicationUseCase,
     private val updatePublicationUseCase: UpdatePublicationUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val awardPointsUseCase: AwardPointsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PublicationFormUiState())
@@ -74,12 +80,12 @@ class PublicationFlowViewModel @Inject constructor(
                         publicationId = existing.id,
                         title = existing.title,
                         description = existing.description,
-                        categoryId = existing.categoryId,
-                        subcategoryId = existing.subcategoryId ?: "",
-                        price = existing.price.toInt().toString(),
+                        categoryId = existing.categoryId.ifBlank { existing.category },
+                        subcategoryId = existing.subcategoryId ?: existing.subcategory,
+                        price = initialPrice(existing).toString(),
                         priceUnit = existing.priceUnit,
-                        locationName = existing.locationName,
-                        images = existing.images,
+                        locationName = existing.locationName.ifBlank { existing.city.ifBlank { "Armenia, Quindío" } },
+                        images = existing.imageUrls,
                         isLoading = false
                     )
                 }
@@ -252,6 +258,16 @@ class PublicationFlowViewModel @Inject constructor(
         }
     }
 
+    fun onMessageShown() {
+        _uiState.update { it.copy(userMessage = null) }
+    }
+
+    /**
+     * Crear: la publicación nace PENDIENTE (toda publicación debe pasar por moderación) con el
+     * usuario en sesión como autor, y se le suman los puntos de crear.
+     * Editar: solo si es del autor y está PENDIENTE o RECHAZADA; al guardar vuelve a PENDIENTE,
+     * se limpia el motivo de rechazo y queda otra vez en la cola del moderador.
+     */
     fun onSavePublication() {
         if (!validateForm()) return
 
@@ -260,39 +276,82 @@ class PublicationFlowViewModel @Inject constructor(
 
             val state = _uiState.value
             val currentUser = getCurrentUserUseCase()
+            val price = state.price.toDoubleOrNull() ?: 80000.0
+            val images = state.images.ifEmpty { listOf(DEFAULT_IMAGE) }
+            val editingId = state.publicationId
 
-            val isEditing = !state.publicationId.isNullOrBlank()
-            val pubId = state.publicationId ?: "pub_${System.currentTimeMillis()}"
-
-            val publication = Publication(
-                id = pubId,
-                title = state.title.trim(),
-                description = state.description.trim(),
-                categoryId = state.categoryId,
-                subcategoryId = state.subcategoryId.ifBlank { null },
-                price = state.price.toDoubleOrNull() ?: 80000.0,
-                priceUnit = state.priceUnit,
-                images = if (state.images.isNotEmpty()) state.images else listOf("https://images.unsplash.com/photo-1504307651254-35680f356dfd"),
-                provider = currentUser,
-                status = PublicationStatus.APPROVED,
-                ratingAverage = 5.0,
-                reviewsCount = 1,
-                locationName = state.locationName
-            )
-
-            if (isEditing) {
-                updatePublicationUseCase(publication)
-            } else {
+            val savedId: String
+            if (editingId.isNullOrBlank()) {
+                savedId = "pub_${System.currentTimeMillis()}"
+                val publication = Publication(
+                    id = savedId,
+                    title = state.title.trim(),
+                    description = state.description.trim(),
+                    categoryId = state.categoryId,
+                    category = state.categoryId,
+                    subcategoryId = state.subcategoryId.ifBlank { null },
+                    subcategory = state.subcategoryId,
+                    price = price,
+                    priceRange = formatPrice(price, state.priceUnit),
+                    priceUnit = state.priceUnit,
+                    imageUrls = images,
+                    provider = currentUser,
+                    authorId = currentUser.id,
+                    status = PublicationStatus.PENDIENTE,
+                    ratingAverage = 5.0,
+                    reviewsCount = 1,
+                    locationName = state.locationName,
+                    city = state.locationName
+                )
                 createPublicationUseCase(publication)
+                awardPointsUseCase(currentUser.id, PointEvent.PUBLICATION_CREATED)
+            } else {
+                savedId = editingId
+                val existing = getPublicationByIdUseCase(editingId)
+                val isOwner = existing != null &&
+                    (existing.authorId.isBlank() || existing.authorId == currentUser.id)
+                if (existing == null || !isOwner || !PublicationRules.canEdit(existing.status)) {
+                    _uiState.update {
+                        it.copy(isLoading = false, userMessage = "Esta publicación ya no se puede editar")
+                    }
+                    return@launch
+                }
+                updatePublicationUseCase(
+                    existing.copy(
+                        title = state.title.trim(),
+                        description = state.description.trim(),
+                        categoryId = state.categoryId,
+                        category = state.categoryId,
+                        subcategoryId = state.subcategoryId.ifBlank { null },
+                        subcategory = state.subcategoryId,
+                        price = price,
+                        priceRange = formatPrice(price, state.priceUnit),
+                        priceUnit = state.priceUnit,
+                        imageUrls = images,
+                        locationName = state.locationName,
+                        city = state.locationName,
+                        status = PublicationStatus.PENDIENTE,
+                        rejectionReason = null
+                    )
+                )
             }
 
             _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    isSuccess = true,
-                    currentStep = 3
-                )
+                it.copy(isLoading = false, isSuccess = true, currentStep = 3, savedPublicationId = savedId)
             }
         }
     }
+}
+
+private const val DEFAULT_IMAGE = "https://images.unsplash.com/photo-1504307651254-35680f356dfd"
+
+/** "$80.000 por trabajo" (la lista "Mis publicaciones" muestra este texto). */
+private fun formatPrice(price: Double, unit: String): String =
+    "$" + "%,d".format(price.toInt()).replace(',', '.') + " " + unit
+
+/** Precio inicial al editar: el numérico o, si es 0 (datos semilla), el primer valor de priceRange. */
+private fun initialPrice(publication: Publication): Int {
+    if (publication.price > 0) return publication.price.toInt()
+    val firstSegment = publication.priceRange.substringBefore("–")
+    return firstSegment.filter { it.isDigit() }.toIntOrNull() ?: 0
 }

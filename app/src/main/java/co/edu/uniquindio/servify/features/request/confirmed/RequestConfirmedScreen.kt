@@ -51,7 +51,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 @Composable
 fun RequestConfirmedScreen(
     requestId: String,
-    onGoToAgenda: () -> Unit,
+    onGoToMyRequests: () -> Unit,
     onGoToFeed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -75,7 +75,7 @@ fun RequestConfirmedScreen(
                 modifier = Modifier
                     .size(90.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFDCFCE7)),
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -178,16 +178,16 @@ fun RequestConfirmedScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             ServifyFilledButton(
-                text = "Ver en Mi Agenda",
+                text = "Ver mis solicitudes",
                 icon = Icons.Default.CalendarMonth,
-                onClick = onGoToAgenda,
+                onClick = onGoToMyRequests,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             ServifyOutlinedButton(
-                text = "Volver al Feed",
+                text = "Volver al inicio",
                 icon = Icons.Default.Home,
                 onClick = onGoToFeed,
                 modifier = Modifier.fillMaxWidth()
@@ -202,7 +202,7 @@ fun RequestConfirmedPreviewLight() {
     ServifyTheme(darkTheme = false) {
         RequestConfirmedScreen(
             requestId = "req_101",
-            onGoToAgenda = {},
+            onGoToMyRequests = {},
             onGoToFeed = {}
         )
     }
@@ -214,7 +214,7 @@ fun RequestConfirmedPreviewDark() {
     ServifyTheme(darkTheme = true) {
         RequestConfirmedScreen(
             requestId = "req_101",
-            onGoToAgenda = {},
+            onGoToMyRequests = {},
             onGoToFeed = {}
         )
     }

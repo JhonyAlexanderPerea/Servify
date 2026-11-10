@@ -39,6 +39,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,10 +76,31 @@ fun ProfileScreen(
     actions: ProfileActions,
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = hiltViewModel()
-
 ) {
     val state by viewModel.uiState.collectAsState()
-    ProfileContent(state = state, actions = actions, modifier = modifier)
+    var showLogoutConfirmation by remember { mutableStateOf(false) }
+
+    if (showLogoutConfirmation) {
+        ConfirmDialog(
+            title = "Cerrar Sesión",
+            message = "¿Estás seguro de que deseas cerrar tu sesión en Servify?",
+            confirmText = "Cerrar sesión",
+            dismissText = "Cancelar",
+            isDestructive = true,
+            icon = Icons.AutoMirrored.Filled.Logout,
+            onConfirm = {
+                showLogoutConfirmation = false
+                actions.onLogoutClick()
+            },
+            onDismiss = { showLogoutConfirmation = false }
+        )
+    }
+
+    ProfileContent(
+        state = state,
+        actions = actions.copy(onLogoutClick = { showLogoutConfirmation = true }),
+        modifier = modifier
+    )
 }
 
 @Composable

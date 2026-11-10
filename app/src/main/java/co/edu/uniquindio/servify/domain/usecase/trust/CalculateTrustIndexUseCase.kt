@@ -3,7 +3,7 @@ package co.edu.uniquindio.servify.domain.usecase.trust
 import co.edu.uniquindio.servify.domain.model.ReputationLevel
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.repository.UserRepository
-import co.edu.uniquindio.servify.features.service.model.TrustFactor
+import co.edu.uniquindio.servify.domain.model.TrustFactor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext

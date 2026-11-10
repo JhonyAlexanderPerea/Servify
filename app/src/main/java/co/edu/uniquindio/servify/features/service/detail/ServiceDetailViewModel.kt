@@ -28,7 +28,14 @@ data class ServiceDetailUiState(
     val newCommentRating: Int = 5,
     val isLoading: Boolean = false,
     val isSubmittingComment: Boolean = false,
+    val isOwnService: Boolean = false,
     val userMessage: String? = null
+)
+
+private data class CommentFormData(
+    val text: String,
+    val rating: Int,
+    val isSubmitting: Boolean
 )
 
 @HiltViewModel
@@ -47,23 +54,32 @@ class ServiceDetailViewModel @Inject constructor(
     private val _newCommentRating = MutableStateFlow(5)
     private val _isSubmittingComment = MutableStateFlow(false)
 
-    val uiState: StateFlow<ServiceDetailUiState> = combine(
-        observeServicesUseCase(),
-        observeCommentsUseCase(serviceId),
+    private val _commentFormFlow = combine(
         _newCommentText,
         _newCommentRating,
         _isSubmittingComment
-    ) { services, comments, commentText, rating, submitting ->
+    ) { text, rating, submitting ->
+        CommentFormData(text, rating, submitting)
+    }
+
+    val uiState: StateFlow<ServiceDetailUiState> = combine(
+        observeServicesUseCase(),
+        observeCommentsUseCase(serviceId),
+        userRepository.observeCurrentUser(),
+        _commentFormFlow
+    ) { services, comments, currentUser, formData ->
 
         val foundService = services.find { it.id == serviceId }
+        val isOwn = foundService?.belongsTo(currentUser.id, currentUser.email) == true
 
         ServiceDetailUiState(
             service = foundService,
             comments = comments,
-            newCommentText = commentText,
-            newCommentRating = rating,
+            newCommentText = formData.text,
+            newCommentRating = formData.rating,
             isLoading = false,
-            isSubmittingComment = submitting
+            isSubmittingComment = formData.isSubmitting,
+            isOwnService = isOwn
         )
     }.stateIn(
         scope = viewModelScope,

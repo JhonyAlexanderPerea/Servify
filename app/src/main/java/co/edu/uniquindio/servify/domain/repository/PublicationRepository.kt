@@ -10,9 +10,9 @@ interface PublicationRepository {
 
     fun observeByAuthor(authorId: String): Flow<List<Publication>>
 
-    fun getPublicationById(id: String): Publication? = getById(id)
+    suspend fun getPublicationById(id: String): Publication? = getById(id)
 
-    fun getById(id: String): Publication?
+    suspend fun getById(id: String): Publication?
 
     fun snapshot(): List<Publication>
 
@@ -20,15 +20,15 @@ interface PublicationRepository {
         add(publication)
     }
 
-    fun add(publication: Publication)
+    suspend fun add(publication: Publication)
 
     suspend fun updatePublication(publication: Publication) {
         update(publication.id) { publication }
     }
 
-    fun update(id: String, transform: (Publication) -> Publication): Publication?
+    suspend fun update(id: String, transform: (Publication) -> Publication): Publication?
 
     suspend fun deletePublication(id: String): Boolean = delete(id)
 
-    fun delete(id: String): Boolean
+    suspend fun delete(id: String): Boolean
 }

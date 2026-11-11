@@ -8,7 +8,7 @@ import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryIm
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryRepository
 import co.edu.uniquindio.servify.data.repository.memory.SampleData
 import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
-import co.edu.uniquindio.servify.data.repository.memory.UserRepositoryImpl
+import co.edu.uniquindio.servify.data.repository.remote.UserRemoteRepositoryImpl
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.CategoryRepository
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
@@ -40,7 +40,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(
-        impl: UserRepositoryImpl
+        impl: UserRemoteRepositoryImpl
     ): UserRepository
 
     @Binds

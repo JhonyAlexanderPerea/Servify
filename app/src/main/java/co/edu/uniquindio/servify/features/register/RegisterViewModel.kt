@@ -108,7 +108,7 @@ class RegisterViewModel @Inject constructor(
                     onSuccess = { result ->
                         when (result) {
                             is AuthResult.Success -> _uiState.update {
-                                it.copy(isLoading = false, registered = true)
+                                it.copy(isLoading = false)
                             }
 
                             is AuthResult.Failure -> _uiState.update {

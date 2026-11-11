@@ -53,7 +53,6 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 @Composable
 fun ModeratorPanelScreen(
     onReviewClick: (publicationId: String) -> Unit,
-    onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ModeratorPanelViewModel = hiltViewModel()
 ) {
@@ -70,7 +69,7 @@ fun ModeratorPanelScreen(
             icon = Icons.AutoMirrored.Filled.Logout,
             onConfirm = {
                 showLogoutConfirmation = false
-                onLogoutClick()
+                viewModel.logout()
             },
             onDismiss = { showLogoutConfirmation = false }
         )

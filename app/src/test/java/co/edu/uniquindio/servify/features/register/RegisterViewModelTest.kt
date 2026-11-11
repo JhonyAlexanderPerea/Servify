@@ -1,6 +1,7 @@
 package co.edu.uniquindio.servify.features.register
 
 import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
+import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.usecase.user.RegisterUserUseCase
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
 import co.edu.uniquindio.servify.testutil.TestEnvironment
@@ -80,8 +81,10 @@ class RegisterViewModelTest {
         fillStepTwo()
         viewModel.register()
 
-        assertTrue(viewModel.uiState.value.registered)
+        val saved = runBlocking { env.session.session.first() }
         assertNotNull(runBlocking { env.users.findByEmail("nuevo@servify.demo") })
+        assertEquals(env.auth.currentUserSnapshot?.id, saved?.userId)
+        assertEquals(UserRole.USER, saved?.role)
         assertEquals("nuevo@servify.demo", env.auth.currentUserSnapshot?.email)
     }
 
@@ -102,7 +105,6 @@ class RegisterViewModelTest {
 
         val state = vm.uiState.value
         assertFalse(state.isLoading)
-        assertFalse(state.registered)
         assertEquals(
             "No se pudo completar el registro. Revisa tu conexión e inténtalo de nuevo.",
             state.registerError
@@ -118,8 +120,8 @@ class RegisterViewModelTest {
         viewModel.register()
 
         val state = viewModel.uiState.value
-        assertFalse(state.registered)
         assertEquals(1, state.step)
         assertEquals("Ya existe una cuenta con este correo", state.emailError)
+        assertNull(runBlocking { env.session.session.first() })
     }
 }

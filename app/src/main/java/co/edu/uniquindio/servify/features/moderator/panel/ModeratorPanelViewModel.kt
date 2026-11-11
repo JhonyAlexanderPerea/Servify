@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.ModerationMetrics
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.rules.ModerationRules
+import co.edu.uniquindio.servify.domain.usecase.auth.LogoutUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.moderation.ObserveModerationMetricsUseCase
 import co.edu.uniquindio.servify.domain.usecase.moderation.ObservePendingPublicationsUseCase
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Tarjeta de la lista de pendientes (mockup 22). */
@@ -44,7 +46,8 @@ class ModeratorPanelViewModel @Inject constructor(
     observeSessionUseCase: ObserveSessionUseCase,
     observePendingPublicationsUseCase: ObservePendingPublicationsUseCase,
     observeModerationMetricsUseCase: ObserveModerationMetricsUseCase,
-    private val timeProvider: TimeProvider
+    private val timeProvider: TimeProvider,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<ModeratorPanelUiState> = combine(
@@ -66,6 +69,11 @@ class ModeratorPanelViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ModeratorPanelUiState()
     )
+
+    fun logout() {
+        // Al borrarse la sesión, AppNavigation muestra automáticamente AuthNavigation
+        viewModelScope.launch { logoutUseCase() }
+    }
 }
 
 private fun Publication.toPendingItem(position: Int, now: Long): PendingItem {

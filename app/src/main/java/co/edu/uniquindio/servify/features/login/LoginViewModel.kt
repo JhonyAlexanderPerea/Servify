@@ -92,7 +92,7 @@ class LoginViewModel @Inject constructor(
                     onSuccess = { result ->
                         when (result) {
                             is AuthResult.Success -> _uiState.update {
-                                it.copy(isLoading = false, loggedInRole = result.user.role)
+                                it.copy(isLoading = false)
                             }
 
                             is AuthResult.Failure -> _uiState.update {

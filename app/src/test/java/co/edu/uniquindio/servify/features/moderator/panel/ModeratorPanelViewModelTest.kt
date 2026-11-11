@@ -28,7 +28,8 @@ class ModeratorPanelViewModelTest {
             observeSessionUseCase = env.observeSession,
             observePendingPublicationsUseCase = env.observePendingPublications,
             observeModerationMetricsUseCase = env.observeModerationMetrics,
-            timeProvider = env.timeProvider
+            timeProvider = env.timeProvider,
+            logoutUseCase = env.logout
         )
     }
 
@@ -134,12 +135,23 @@ class ModeratorPanelViewModelTest {
             observeSessionUseCase = env.observeSession,
             observePendingPublicationsUseCase = env.observePendingPublications,
             observeModerationMetricsUseCase = env.observeModerationMetrics,
-            timeProvider = env.timeProvider
+            timeProvider = env.timeProvider,
+            logoutUseCase = env.logout
         )
 
         val state = awaitState(viewModel) { !it.isLoading }
 
         assertEquals("", state.moderatorEmail)
         assertEquals(2, state.pending.size)
+    }
+
+    @Test
+    fun logout_clears_the_session() {
+        val viewModel = newViewModel()
+
+        viewModel.logout()
+
+        assertEquals(null, runBlocking { env.session.session.first() })
+        assertEquals(null, env.auth.currentUserSnapshot)
     }
 }

@@ -90,7 +90,7 @@ fun ProfileScreen(
             icon = Icons.AutoMirrored.Filled.Logout,
             onConfirm = {
                 showLogoutConfirmation = false
-                actions.onLogoutClick()
+                viewModel.logout()
             },
             onDismiss = { showLogoutConfirmation = false }
         )

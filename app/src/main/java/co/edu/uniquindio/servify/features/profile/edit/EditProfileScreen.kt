@@ -57,22 +57,11 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 @Composable
 fun EditProfileScreen(
     onBackClick: () -> Unit,
-    onNavigateToLogin: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSaveConfirmationDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        viewModel.navigationEvent.collect { event ->
-            when (event) {
-                is NavigationEvent.NavigateToLogin -> {
-                    onNavigateToLogin()
-                }
-            }
-        }
-    }
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { message ->
@@ -256,7 +245,6 @@ fun EditProfileScreenPreview() {
     ServifyTheme(darkTheme = false) {
         EditProfileScreen(
             onBackClick = {},
-            onNavigateToLogin = {}
         )
     }
 }
@@ -267,7 +255,6 @@ fun EditProfileScreenPreviewDark() {
     ServifyTheme(darkTheme = true) {
         EditProfileScreen(
             onBackClick = {},
-            onNavigateToLogin = {}
         )
     }
 }

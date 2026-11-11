@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.features.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.domain.usecase.auth.LogoutUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ObserveMyPublicationsUseCase
 import co.edu.uniquindio.servify.domain.usecase.reputation.ObserveUserProgressUseCase
@@ -27,7 +28,8 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     observeSessionUseCase: ObserveSessionUseCase,
     observeUserProgressUseCase: ObserveUserProgressUseCase,
-    observeMyPublicationsUseCase: ObserveMyPublicationsUseCase
+    observeMyPublicationsUseCase: ObserveMyPublicationsUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -49,5 +51,10 @@ class ProfileViewModel @Inject constructor(
                 .filterNotNull()
                 .collect { state -> _uiState.value = state }
         }
+    }
+
+    fun logout() {
+        // Al borrarse la sesión, AppNavigation muestra automáticamente AuthNavigation
+        viewModelScope.launch { logoutUseCase() }
     }
 }

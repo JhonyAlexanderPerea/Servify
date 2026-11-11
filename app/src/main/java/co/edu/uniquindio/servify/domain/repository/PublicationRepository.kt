@@ -10,26 +10,25 @@ interface PublicationRepository {
 
     fun observeByAuthor(authorId: String): Flow<List<Publication>>
 
-    suspend fun getPublicationById(id: String): Publication? = getById(id)
+    fun getPublicationById(id: String): Publication? = getById(id)
 
-    suspend fun getById(id: String): Publication?
+    fun getById(id: String): Publication?
 
-    /** Lectura síncrona de la caché local (en Firestore, la última lista recibida del listener). */
     fun snapshot(): List<Publication>
 
     suspend fun createPublication(publication: Publication) {
         add(publication)
     }
 
-    suspend fun add(publication: Publication)
+    fun add(publication: Publication)
 
     suspend fun updatePublication(publication: Publication) {
         update(publication.id) { publication }
     }
 
-    suspend fun update(id: String, transform: (Publication) -> Publication): Publication?
+    fun update(id: String, transform: (Publication) -> Publication): Publication?
 
     suspend fun deletePublication(id: String): Boolean = delete(id)
 
-    suspend fun delete(id: String): Boolean
+    fun delete(id: String): Boolean
 }

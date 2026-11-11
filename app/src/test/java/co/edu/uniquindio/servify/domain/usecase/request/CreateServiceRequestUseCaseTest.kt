@@ -37,7 +37,7 @@ class CreateServiceRequestUseCaseTest {
     @Test
     fun `detecta la publicacion propia aunque el id del proveedor sea distinto`() = runBlocking {
         env.loginAs(TestEnvironment.JHONY_EMAIL)
-        env.addPublication(
+        env.publications.add(
             Publication(
                 id = "pub_alias_jhony",
                 title = "Servicio con id de proveedor distinto",

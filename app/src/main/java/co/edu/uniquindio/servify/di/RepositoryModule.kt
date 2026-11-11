@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.di
 
 import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
+import co.edu.uniquindio.servify.data.repository.local.SessionRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryRepository
@@ -15,6 +16,7 @@ import co.edu.uniquindio.servify.domain.repository.CommentRepository
 import co.edu.uniquindio.servify.domain.repository.NotificationRepository
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
+import co.edu.uniquindio.servify.domain.repository.SessionRepository
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -59,6 +61,10 @@ abstract class RepositoryModule {
     abstract fun bindNotificationRepository(
         impl: NotificationRepositoryImpl
     ): NotificationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSessionRepository(impl: SessionRepositoryImpl): SessionRepository
 
     companion object {
         @Provides

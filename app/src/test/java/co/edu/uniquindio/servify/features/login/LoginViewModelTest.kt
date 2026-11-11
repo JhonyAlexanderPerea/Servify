@@ -1,8 +1,13 @@
 package co.edu.uniquindio.servify.features.login
 
+import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
 import co.edu.uniquindio.servify.domain.model.UserRole
+import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
 import co.edu.uniquindio.servify.testutil.TestEnvironment
+import co.edu.uniquindio.servify.testutil.ThrowingAuthRepository
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -105,6 +110,24 @@ class LoginViewModelTest {
 
         assertNull(env.auth.currentUserSnapshot)
         assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun a_network_failure_shows_a_generic_message_and_does_not_open_a_session() {
+        val session = InMemorySessionRepository()
+        val vm = LoginViewModel(LoginUserUseCase(ThrowingAuthRepository(), session))
+        vm.onEmailChange(TestEnvironment.JHONY_EMAIL)
+        vm.onPasswordChange(TestEnvironment.JHONY_PASSWORD)
+
+        vm.login()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        assertEquals(
+            "No se pudo iniciar sesión. Revisa tu conexión e inténtalo de nuevo.",
+            state.loginError
+        )
+        assertNull(runBlocking { session.session.first() })
     }
 
     @Test

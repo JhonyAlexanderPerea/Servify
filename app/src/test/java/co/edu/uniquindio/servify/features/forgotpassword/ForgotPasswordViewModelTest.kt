@@ -2,8 +2,10 @@ package co.edu.uniquindio.servify.features.forgotpassword
 
 import androidx.lifecycle.SavedStateHandle
 import co.edu.uniquindio.servify.domain.model.UserRole
+import co.edu.uniquindio.servify.domain.usecase.auth.SendPasswordResetUseCase
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
 import co.edu.uniquindio.servify.testutil.TestEnvironment
+import co.edu.uniquindio.servify.testutil.ThrowingAuthRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -86,6 +88,25 @@ class ForgotPasswordViewModelTest {
 
         assertTrue(vm.uiState.value.sent)
         assertTrue(env.auth.sentPasswordResets.isEmpty())
+    }
+
+    @Test
+    fun a_network_failure_shows_a_generic_message_and_stops_loading() {
+        val vm = ForgotPasswordViewModel(
+            SavedStateHandle(emptyMap()),
+            SendPasswordResetUseCase(ThrowingAuthRepository())
+        )
+        vm.onEmailChange(TestEnvironment.JHONY_EMAIL)
+
+        vm.sendRecoveryEmail()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        assertFalse(state.sent)
+        assertEquals(
+            "No se pudo enviar el correo. Revisa tu conexión e inténtalo de nuevo.",
+            state.error
+        )
     }
 
     @Test

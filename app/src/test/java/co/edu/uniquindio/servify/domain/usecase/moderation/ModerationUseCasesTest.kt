@@ -37,7 +37,7 @@ class ModerationUseCasesTest {
 
         val result = env.approvePublication("pub_jhony_tutorias")
 
-        val updated = env.publications.getById("pub_jhony_tutorias")!!
+        val updated = env.publicationById("pub_jhony_tutorias")!!
         assertEquals(ModerationResult.Success, result)
         assertEquals(PublicationStatus.VERIFICADA, updated.status)
         assertEquals(env.nowMillis, updated.verifiedAtMillis)
@@ -54,7 +54,7 @@ class ModerationUseCasesTest {
 
     @Test
     fun approving_clears_a_previous_rejection_reason() = runBlocking {
-        env.publications.add(
+        env.addPublication(
             Publication(
                 id = "pending_with_reason",
                 title = "Publicación corregida",
@@ -68,12 +68,12 @@ class ModerationUseCasesTest {
 
         env.approvePublication("pending_with_reason")
 
-        assertNull(env.publications.getById("pending_with_reason")!!.rejectionReason)
+        assertNull(env.publicationById("pending_with_reason")!!.rejectionReason)
     }
 
     @Test
     fun approving_uses_the_provider_when_the_author_id_is_blank() = runBlocking {
-        env.publications.add(pendingWithBlankAuthor())
+        env.addPublication(pendingWithBlankAuthor())
 
         env.approvePublication("custom_pending")
 
@@ -88,7 +88,7 @@ class ModerationUseCasesTest {
             "pub_jhony_computadores" to PublicationStatus.FINALIZADA
         ).forEach { (id, status) ->
             assertEquals(ModerationResult.NotAllowed(status), env.approvePublication(id))
-            assertEquals(status, env.publications.getById(id)!!.status)
+            assertEquals(status, env.publicationById(id)!!.status)
         }
     }
 
@@ -101,7 +101,7 @@ class ModerationUseCasesTest {
     fun rejecting_requires_a_written_reason_before_touching_the_publication() = runBlocking {
         listOf("", "   ", "corto").forEach { reason ->
             assertEquals(ModerationResult.ReasonRequired, env.rejectPublication("pub_jhony_tutorias", reason))
-            assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")!!.status)
+            assertEquals(PublicationStatus.PENDIENTE, env.publicationById("pub_jhony_tutorias")!!.status)
         }
         assertTrue(notificationsFor("pub_jhony_tutorias").isEmpty())
     }
@@ -112,7 +112,7 @@ class ModerationUseCasesTest {
 
         val result = env.rejectPublication("pub_jhony_tutorias", reason)
 
-        val updated = env.publications.getById("pub_jhony_tutorias")!!
+        val updated = env.publicationById("pub_jhony_tutorias")!!
         assertEquals(ModerationResult.Success, result)
         assertEquals(PublicationStatus.RECHAZADA, updated.status)
         assertEquals(reason.trim(), updated.rejectionReason)
@@ -127,7 +127,7 @@ class ModerationUseCasesTest {
 
     @Test
     fun rejecting_uses_the_provider_when_the_author_id_is_blank() = runBlocking {
-        env.publications.add(pendingWithBlankAuthor())
+        env.addPublication(pendingWithBlankAuthor())
 
         env.rejectPublication("custom_pending", "Motivo suficientemente largo")
 
@@ -145,7 +145,7 @@ class ModerationUseCasesTest {
                 ModerationResult.NotAllowed(status),
                 env.rejectPublication(id, "Motivo suficientemente largo")
             )
-            assertEquals(status, env.publications.getById(id)!!.status)
+            assertEquals(status, env.publicationById(id)!!.status)
         }
     }
 
@@ -161,7 +161,7 @@ class ModerationUseCasesTest {
     fun finalizing_sets_the_finalized_status_and_timestamp() = runBlocking {
         val result = env.finalizePublication("pub_jhony_tutorias")
 
-        val updated = env.publications.getById("pub_jhony_tutorias")!!
+        val updated = env.publicationById("pub_jhony_tutorias")!!
         assertEquals(ModerationResult.Success, result)
         assertEquals(PublicationStatus.FINALIZADA, updated.status)
         assertEquals(env.nowMillis, updated.finalizedAtMillis)
@@ -169,11 +169,11 @@ class ModerationUseCasesTest {
 
     @Test
     fun finalizing_keeps_the_verification_date() = runBlocking {
-        val verifiedAt = env.publications.getById("pub_jhony_plomeria")!!.verifiedAtMillis
+        val verifiedAt = env.publicationById("pub_jhony_plomeria")!!.verifiedAtMillis
 
         env.finalizePublication("pub_jhony_plomeria")
 
-        assertEquals(verifiedAt, env.publications.getById("pub_jhony_plomeria")!!.verifiedAtMillis)
+        assertEquals(verifiedAt, env.publicationById("pub_jhony_plomeria")!!.verifiedAtMillis)
     }
 
     @Test
@@ -199,14 +199,14 @@ class ModerationUseCasesTest {
 
     @Test
     fun pending_queue_reflects_changes() = runBlocking {
-        env.publications.add(
+        env.addPublication(
             Publication(
                 id = "older_pending",
                 title = "Pendiente antigua",
                 description = "Descripción",
                 authorId = SeedUsers.JHONY_ID,
                 status = PublicationStatus.PENDIENTE,
-                createdAtMillis = env.publications.getById("pub_valentina_soporte")!!.createdAtMillis - 1
+                createdAtMillis = env.publicationById("pub_valentina_soporte")!!.createdAtMillis - 1
             )
         )
 
@@ -228,7 +228,7 @@ class ModerationUseCasesTest {
 
     @Test
     fun verified_today_only_counts_publications_verified_on_the_current_day() = runBlocking {
-        env.nowMillis = env.publications.getById("pub_jhony_plomeria")!!.verifiedAtMillis!!
+        env.nowMillis = env.publicationById("pub_jhony_plomeria")!!.verifiedAtMillis!!
 
         val metrics = env.observeModerationMetrics().first()
 

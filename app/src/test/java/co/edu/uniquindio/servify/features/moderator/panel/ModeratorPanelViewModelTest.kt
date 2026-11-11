@@ -63,7 +63,7 @@ class ModeratorPanelViewModelTest {
         assertEquals(listOf(1, 2), state.pending.map { it.position })
 
         val first = state.pending.first()
-        val publication = env.publications.getById(first.id)!!
+        val publication = env.publicationById(first.id)!!
         assertEquals(publication.title, first.title)
         assertEquals("Tecnología > Soporte técnico", first.category)
         assertEquals(publication.provider.name, first.providerName)
@@ -77,7 +77,7 @@ class ModeratorPanelViewModelTest {
 
     @Test
     fun uses_category_id_and_location_name_when_the_labels_are_blank() {
-        env.publications.add(
+        env.addPublication(
             Publication(
                 id = "custom_pending",
                 title = "Servicio sin etiquetas",

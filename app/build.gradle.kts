@@ -1,8 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+}
+
+// Claves y datos de firma locales (local.properties no se sube al repositorio).
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -23,10 +31,31 @@ android {
 
         testInstrumentationRunner =
             "co.edu.uniquindio.servify.HiltTestRunner"
+
+        // Tokens y claves: se definen en local.properties y se exponen como recursos string.
+        resValue("string", "mapbox_access_token", localProperties.getProperty("MAPBOX_ACCESS_TOKEN", ""))
+        resValue("string", "openrouter_api_key", localProperties.getProperty("OPENROUTER_API_KEY", ""))
+
+        // Mapbox solo incluye librerías nativas para estas arquitecturas.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            // Con ?.let el build debug no falla si no están definidos en local.properties.
+            storeFile = localProperties.getProperty("RELEASE_STORE_FILE")?.let { file(it) }
+            storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")
+            keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")
+            keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
+            // TODO(fase-3): activar R8 (enable = true) cuando los DTOs tengan @Keep.
             optimization {
                 enable = false
             }
@@ -40,6 +69,7 @@ android {
 
     buildFeatures {
         compose = true
+        resValues = true
     }
 }
 

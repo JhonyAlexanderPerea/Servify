@@ -8,6 +8,7 @@ import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepository
 import co.edu.uniquindio.servify.data.seed.SeedPublications
 import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.service.GamificationService
 import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
@@ -27,6 +28,7 @@ import co.edu.uniquindio.servify.domain.usecase.reputation.ObserveUserProgressUs
 import co.edu.uniquindio.servify.domain.usecase.request.CreateServiceRequestUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.RegisterUserUseCase
 import co.edu.uniquindio.servify.domain.util.TimeProvider
+import kotlinx.coroutines.runBlocking
 
 /**
  * Arma el mismo grafo que la app (repositorios en memoria + datos semilla) pero a mano, sin Hilt,
@@ -88,6 +90,11 @@ class TestEnvironment(var nowMillis: Long = 2_000_000_000_000L) {
     suspend fun loginAs(email: String, password: String = SeedUsers.credentials.getValue(email)) {
         check(loginUser(email, password) is AuthResult.Success) { "No se pudo iniciar sesión como $email" }
     }
+
+    /** Fachadas síncronas para preparar y leer datos desde tests que no son suspend. */
+    fun addPublication(publication: Publication) = runBlocking { publications.add(publication) }
+
+    fun publicationById(id: String): Publication? = runBlocking { publications.getById(id) }
 
     companion object {
         const val JHONY_EMAIL = "jhony.ramirez@gmail.com"

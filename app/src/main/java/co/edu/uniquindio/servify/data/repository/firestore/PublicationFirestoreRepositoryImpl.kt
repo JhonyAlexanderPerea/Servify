@@ -5,7 +5,6 @@ import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
@@ -45,7 +44,7 @@ class PublicationFirestoreRepositoryImpl @Inject constructor(
                     val list = snapshot.documents.mapNotNull { doc ->
                         try {
                             doc.toObject(PublicationDto::class.java)?.copy(id = doc.id)?.toDomain()
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             null
                         }
                     }
@@ -67,7 +66,7 @@ class PublicationFirestoreRepositoryImpl @Inject constructor(
                     val list = snapshot.documents.mapNotNull { doc ->
                         try {
                             doc.toObject(PublicationDto::class.java)?.copy(id = doc.id)?.toDomain()
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             null
                         }
                     }.sortedByDescending { it.createdAt }
@@ -99,7 +98,7 @@ class PublicationFirestoreRepositoryImpl @Inject constructor(
                 var list = snapshot.documents.mapNotNull { doc ->
                     try {
                         doc.toObject(PublicationDto::class.java)?.copy(id = doc.id)?.toDomain()
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 }
@@ -121,27 +120,23 @@ class PublicationFirestoreRepositoryImpl @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    override fun getById(id: String): Publication? {
+    override suspend fun getById(id: String): Publication? {
         return getPublicationById(id)
     }
 
     /**
      * Obtiene una publicación por su ID desde Firestore usando suspend/await().
      */
-    override fun getPublicationById(id: String): Publication? {
-        return runBlocking {
-            try {
-                val doc = collection.document(id).get().await()
-                if (doc.exists()) {
-                    doc.toObject(PublicationDto::class.java)?.copy(id = doc.id)?.toDomain()
-                } else {
-                    null
-                }
-            } catch (e: FirebaseFirestoreException) {
-                null
-            } catch (e: Exception) {
+    override suspend fun getPublicationById(id: String): Publication? {
+        return try {
+            val doc = collection.document(id).get().await()
+            if (doc.exists()) {
+                doc.toObject(PublicationDto::class.java)?.copy(id = doc.id)?.toDomain()
+            } else {
                 null
             }
+        } catch (_: Exception) {
+            null
         }
     }
 
@@ -152,7 +147,7 @@ class PublicationFirestoreRepositoryImpl @Inject constructor(
                 snapshot.documents.mapNotNull { doc ->
                     doc.toObject(PublicationDto::class.java)?.copy(id = doc.id)?.toDomain()
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 emptyList()
             }
         }
@@ -162,55 +157,41 @@ class PublicationFirestoreRepositoryImpl @Inject constructor(
      * Crea una nueva publicación en Firestore con ID autogenerado si es necesario.
      */
     override suspend fun createPublication(publication: Publication) {
-        try {
-            val docId = if (publication.id.isBlank()) collection.document().id else publication.id
-            val pubWithId = publication.copy(id = docId)
-            val dto = PublicationDto.fromDomain(pubWithId)
-            collection.document(docId).set(dto.toDocument()).await()
-        } catch (e: FirebaseFirestoreException) {
-            throw e
-        } catch (e: Exception) {
-            throw e
-        }
+        add(publication)
     }
 
-    override fun add(publication: Publication) {
-        runBlocking { createPublication(publication) }
+    override suspend fun add(publication: Publication) {
+        val docId = publication.id.ifBlank { collection.document().id }
+        val pubWithId = publication.copy(id = docId)
+        val dto = PublicationDto.fromDomain(pubWithId)
+        collection.document(docId).set(dto.toDocument()).await()
     }
 
     /**
      * Actualiza una publicación existente en Firestore utilizando `SetOptions.merge()`.
      */
     override suspend fun updatePublication(publication: Publication) {
-        try {
-            val dto = PublicationDto.fromDomain(publication)
-            collection.document(publication.id).set(dto.toDocument(), SetOptions.merge()).await()
-        } catch (e: FirebaseFirestoreException) {
-            throw e
-        } catch (e: Exception) {
-            throw e
-        }
+        val dto = PublicationDto.fromDomain(publication)
+        collection.document(publication.id).set(dto.toDocument(), SetOptions.merge()).await()
     }
 
-    override fun update(id: String, transform: (Publication) -> Publication): Publication? {
-        return runBlocking {
-            val current = getPublicationById(id) ?: return@runBlocking null
-            val updated = transform(current)
-            updatePublication(updated)
-            updated
-        }
+    override suspend fun update(id: String, transform: (Publication) -> Publication): Publication? {
+        val current = getPublicationById(id) ?: return null
+        val updated = transform(current)
+        updatePublication(updated)
+        return updated
     }
 
     override suspend fun deletePublication(id: String): Boolean {
+        return delete(id)
+    }
+
+    override suspend fun delete(id: String): Boolean {
         return try {
             collection.document(id).delete().await()
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
-    }
-
-    override fun delete(id: String): Boolean {
-        return runBlocking { deletePublication(id) }
     }
 }

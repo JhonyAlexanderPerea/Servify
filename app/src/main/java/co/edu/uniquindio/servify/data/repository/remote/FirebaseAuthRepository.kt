@@ -1,0 +1,129 @@
+package co.edu.uniquindio.servify.data.repository.remote
+
+import co.edu.uniquindio.servify.data.remote.user.UserDto
+import co.edu.uniquindio.servify.data.remote.user.authStateFlow
+import co.edu.uniquindio.servify.data.remote.user.observeUser
+import co.edu.uniquindio.servify.data.remote.user.toUser
+import co.edu.uniquindio.servify.domain.model.AuthError
+import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.model.PasswordResetResult
+import co.edu.uniquindio.servify.domain.model.User
+import co.edu.uniquindio.servify.domain.model.UserRole
+import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import co.edu.uniquindio.servify.domain.rules.CredentialRules
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class FirebaseAuthRepository @Inject constructor(
+    firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
+) : AuthRepository {
+
+    private val users = firestore.collection("users")
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val currentUser: Flow<User?> = auth.authStateFlow().flatMapLatest { firebaseUser ->
+        if (firebaseUser == null) flowOf(null) else users.document(firebaseUser.uid).observeUser()
+    }
+
+    override suspend fun login(email: String, password: String, requiredRole: UserRole?): AuthResult {
+        // Autenticar con Firebase Authentication
+        val signIn = try {
+            auth.signInWithEmailAndPassword(CredentialRules.normalizeEmail(email), password).await()
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            return AuthResult.Failure(AuthError.INVALID_CREDENTIALS) // correo o contraseña incorrectos
+        } catch (e: FirebaseAuthInvalidUserException) {
+            return AuthResult.Failure(AuthError.INVALID_CREDENTIALS) // la cuenta no existe o está deshabilitada
+        }
+        val uid = signIn.user?.uid ?: throw IllegalStateException("Usuario no encontrado")
+
+        // Recuperar el perfil desde Firestore. Si no existe, se cierra la sesión de Firebase para no
+        // quedar autenticado a medias
+        val user = users.document(uid).get().await().toUser()
+        if (user == null) {
+            auth.signOut()
+            return AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
+        }
+        if (requiredRole != null && user.role != requiredRole) {
+            auth.signOut()
+            return AuthResult.Failure(AuthError.ROLE_NOT_ALLOWED)
+        }
+        return AuthResult.Success(user)
+    }
+
+    override suspend fun register(
+        name: String,
+        lastName: String,
+        email: String,
+        password: String,
+        city: String
+    ): AuthResult {
+        if (name.isBlank() || lastName.isBlank() || city.isBlank()) {
+            return AuthResult.Failure(AuthError.MISSING_FIELDS)
+        }
+        if (!CredentialRules.isValidEmail(email)) return AuthResult.Failure(AuthError.INVALID_EMAIL)
+        if (!CredentialRules.isStrongEnough(password)) return AuthResult.Failure(AuthError.WEAK_PASSWORD)
+
+        val normalized = CredentialRules.normalizeEmail(email)
+        // Firebase Authentication rechaza los correos repetidos: no hace falta consultarlos antes.
+        // OJO con el orden: FirebaseAuthWeakPasswordException es subclase de FirebaseAuthInvalidCredentialsException
+        val created = try {
+            auth.createUserWithEmailAndPassword(normalized, password).await()
+        } catch (e: FirebaseAuthUserCollisionException) {
+            return AuthResult.Failure(AuthError.EMAIL_ALREADY_REGISTERED)
+        } catch (e: FirebaseAuthWeakPasswordException) {
+            return AuthResult.Failure(AuthError.WEAK_PASSWORD)
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            return AuthResult.Failure(AuthError.INVALID_EMAIL)
+        }
+        val firebaseUser = created.user ?: throw IllegalStateException("Error al obtener el UID del usuario creado")
+
+        // El documento usa el UID de Authentication como id. El registro SIEMPRE crea rol USER
+        val newUser = User(
+            id = firebaseUser.uid,
+            name = name.trim(),
+            lastName = lastName.trim(),
+            email = normalized,
+            city = city.trim(),
+            role = UserRole.USER,
+            memberSinceMillis = System.currentTimeMillis()
+        )
+        try {
+            users.document(firebaseUser.uid).set(UserDto.fromDomain(newUser)).await()
+        } catch (e: Exception) {
+            // Si no se pudo guardar el perfil, se borra la cuenta para no dejarla incompleta.
+            // NonCancellable: el borrado termina aunque se cancele la corrutina
+            withContext(NonCancellable) { runCatching { firebaseUser.delete().await() } }
+            throw e
+        }
+        return AuthResult.Success(newUser)
+    }
+
+    override suspend fun sendPasswordReset(email: String, requiredRole: UserRole?): PasswordResetResult {
+        if (!CredentialRules.isValidEmail(email)) return PasswordResetResult.InvalidEmail
+        try {
+            auth.sendPasswordResetEmail(CredentialRules.normalizeEmail(email)).await()
+        } catch (e: FirebaseAuthInvalidUserException) {
+            // La respuesta es la misma exista o no la cuenta, para no revelar qué correos están registrados
+        }
+        return PasswordResetResult.Sent
+    }
+
+    override fun logout() {
+        auth.signOut()
+    }
+}

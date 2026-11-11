@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.features.register
 
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
 import co.edu.uniquindio.servify.testutil.TestEnvironment
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -75,7 +76,7 @@ class RegisterViewModelTest {
         viewModel.register()
 
         assertTrue(viewModel.uiState.value.registered)
-        assertNotNull(env.users.findByEmail("nuevo@servify.demo"))
+        assertNotNull(runBlocking { env.users.findByEmail("nuevo@servify.demo") })
         assertEquals("nuevo@servify.demo", env.auth.currentUserSnapshot?.email)
     }
 

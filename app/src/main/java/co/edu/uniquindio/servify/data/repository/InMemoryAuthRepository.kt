@@ -8,10 +8,15 @@ import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import co.edu.uniquindio.servify.domain.rules.CredentialRules
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 class InMemoryAuthRepository(
@@ -30,11 +35,15 @@ class InMemoryAuthRepository(
 
     private val sessionUserId = MutableStateFlow<String?>(null)
 
-    override val currentUser: Flow<User?> =
-        combine(sessionUserId, userRepository.users) { id, users -> users.firstOrNull { it.id == id } }
+    private val mutex = Mutex()
 
-    override val currentUserSnapshot: User?
-        get() = sessionUserId.value?.let(userRepository::getById)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val currentUser: Flow<User?> = sessionUserId.flatMapLatest { id ->
+        if (id == null) flowOf(null) else userRepository.observeUserById(id)
+    }
+
+    val currentUserSnapshot: User?
+        get() = sessionUserId.value?.let { id -> runBlocking { userRepository.getById(id) } }
 
     override suspend fun login(email: String, password: String, requiredRole: UserRole?): AuthResult {
         val normalized = CredentialRules.normalizeEmail(email)
@@ -62,7 +71,7 @@ class InMemoryAuthRepository(
 
         val normalized = CredentialRules.normalizeEmail(email)
         // Registro siempre crea rol USER: ningún registro puede producir un moderador.
-        val user = synchronized(passwords) {
+        val user = mutex.withLock {
             if (userRepository.findByEmail(normalized) != null) return AuthResult.Failure(AuthError.EMAIL_ALREADY_REGISTERED)
             val created = User(
                 id = idGenerator(),

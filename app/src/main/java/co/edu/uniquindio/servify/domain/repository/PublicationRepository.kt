@@ -14,6 +14,7 @@ interface PublicationRepository {
 
     suspend fun getById(id: String): Publication?
 
+    /** Lectura síncrona de la caché local (en Firestore, la última lista recibida del listener). */
     fun snapshot(): List<Publication>
 
     suspend fun createPublication(publication: Publication) {

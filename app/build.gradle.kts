@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+// Claves y datos de firma locales (local.properties no se sube al repositorio).
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }

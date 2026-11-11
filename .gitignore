@@ -14,5 +14,6 @@
 .cxx
 local.properties
 
+# Firmas de release (nunca subir)
 *.jks
 *.keystore

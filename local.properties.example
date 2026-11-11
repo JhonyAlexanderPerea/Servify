@@ -1,0 +1,14 @@
+# Plantilla de local.properties
+# Copiar este archivo como 'local.properties' en la raíz y rellenar con tus credenciales.
+
+sdk.dir=/path/to/Android/Sdk
+
+# API Keys & Tokens
+MAPBOX_ACCESS_TOKEN=tu_mapbox_access_token_aqui
+OPENROUTER_API_KEY=tu_openrouter_api_key_aqui
+
+# Release Signing Config (Opcional)
+# RELEASE_STORE_FILE=app/release.jks
+# RELEASE_STORE_PASSWORD=tu_password
+# RELEASE_KEY_ALIAS=tu_alias
+# RELEASE_KEY_PASSWORD=tu_password

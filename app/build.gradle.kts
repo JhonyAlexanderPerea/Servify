@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 // Claves y datos de firma locales (local.properties no se sube al repositorio).
@@ -163,4 +164,15 @@ dependencies {
     )
 
     implementation("androidx.compose.material:material-icons-extended")
+
+    // -----------------------------------------
+    // Firebase (Authentication + Firestore)
+    // -----------------------------------------
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.kotlinx.coroutines.play.services)
+
+
 }

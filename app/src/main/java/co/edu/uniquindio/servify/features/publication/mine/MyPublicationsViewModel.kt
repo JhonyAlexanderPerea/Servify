@@ -80,12 +80,14 @@ class MyPublicationsViewModel @Inject constructor(
         val userId = currentUserId ?: return
         _uiState.update { it.copy(pendingConfirmation = null) }
 
-        val result = when (pending.action) {
-            PublicationAction.ELIMINAR -> deletePublicationUseCase(userId, pending.publicationId)
-            PublicationAction.FINALIZAR -> markPublicationCompletedUseCase(userId, pending.publicationId)
-            else -> return
+        viewModelScope.launch {
+            val result = when (pending.action) {
+                PublicationAction.ELIMINAR -> deletePublicationUseCase(userId, pending.publicationId)
+                PublicationAction.FINALIZAR -> markPublicationCompletedUseCase(userId, pending.publicationId)
+                else -> return@launch
+            }
+            _uiState.update { it.copy(message = messageFor(pending, result)) }
         }
-        _uiState.update { it.copy(message = messageFor(pending, result)) }
     }
 
     fun onMessageShown() {

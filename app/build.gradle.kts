@@ -101,6 +101,8 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.data.store)
 
     // -----------------------------------------
     // Dependency Injection (Hilt & Inject)

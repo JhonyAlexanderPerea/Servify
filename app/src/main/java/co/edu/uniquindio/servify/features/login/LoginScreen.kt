@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,7 +43,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
 import co.edu.uniquindio.servify.ui.components.display.ServifyLogo
@@ -55,18 +53,12 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (UserRole) -> Unit,
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
 
     val state by viewModel.uiState.collectAsState()
-
-    // Al autenticarse, se navega según el rol (usuario -> Home, moderador -> panel de moderación).
-    LaunchedEffect(state.loggedInRole) {
-        state.loggedInRole?.let(onLoginSuccess)
-    }
 
     Column(
         modifier = Modifier

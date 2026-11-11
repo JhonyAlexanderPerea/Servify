@@ -87,15 +87,29 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, loginError = null) }
 
         viewModelScope.launch {
-            when (val result = loginUserUseCase(state.email, state.password)) {
-                is AuthResult.Success -> _uiState.update {
-                    it.copy(isLoading = false, loggedInRole = result.user.role)
-                }
+            runCatching { loginUserUseCase(state.email, state.password) }
+                .fold(
+                    onSuccess = { result ->
+                        when (result) {
+                            is AuthResult.Success -> _uiState.update {
+                                it.copy(isLoading = false)
+                            }
 
-                is AuthResult.Failure -> _uiState.update {
-                    it.copy(isLoading = false, loginError = result.error.toMessage())
-                }
-            }
+                            is AuthResult.Failure -> _uiState.update {
+                                it.copy(isLoading = false, loginError = result.error.toMessage())
+                            }
+                        }
+                    },
+                    onFailure = {
+                        // TODO(i18n): mover a strings.xml
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                loginError = "No se pudo iniciar sesión. Revisa tu conexión e inténtalo de nuevo."
+                            )
+                        }
+                    }
+                )
         }
     }
 

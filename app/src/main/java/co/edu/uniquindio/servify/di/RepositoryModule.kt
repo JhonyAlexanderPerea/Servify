@@ -1,20 +1,21 @@
 package co.edu.uniquindio.servify.di
 
-import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
+import co.edu.uniquindio.servify.data.repository.local.SessionRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
+import co.edu.uniquindio.servify.data.repository.remote.FirebaseAuthRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryRepository
 import co.edu.uniquindio.servify.data.repository.memory.SampleData
 import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
-import co.edu.uniquindio.servify.data.repository.memory.UserRepositoryImpl
-import co.edu.uniquindio.servify.data.seed.SeedUsers
+import co.edu.uniquindio.servify.data.repository.remote.UserRemoteRepositoryImpl
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.CategoryRepository
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
 import co.edu.uniquindio.servify.domain.repository.NotificationRepository
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
+import co.edu.uniquindio.servify.domain.repository.SessionRepository
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -39,7 +40,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(
-        impl: UserRepositoryImpl
+        impl: UserRemoteRepositoryImpl
     ): UserRepository
 
     @Binds
@@ -60,16 +61,18 @@ abstract class RepositoryModule {
         impl: NotificationRepositoryImpl
     ): NotificationRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindSessionRepository(impl: SessionRepositoryImpl): SessionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(impl: FirebaseAuthRepository): AuthRepository
+
     companion object {
         @Provides
         @Singleton
         fun providePublicationRepository(): PublicationRepository =
             InMemoryPublicationRepository(SampleData.publicationsList)
-
-        @Provides
-        @Singleton
-        fun provideAuthRepository(
-            userRepository: UserRepository
-        ): AuthRepository = InMemoryAuthRepository(userRepository, SeedUsers.credentials)
     }
 }

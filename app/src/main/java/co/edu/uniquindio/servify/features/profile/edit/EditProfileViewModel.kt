@@ -2,15 +2,13 @@ package co.edu.uniquindio.servify.features.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.domain.usecase.auth.LogoutUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.DeleteUserAccountUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.ObserveCurrentUserUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.UpdateUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,14 +18,12 @@ import javax.inject.Inject
 class EditProfileViewModel @Inject constructor(
     private val observeCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
-    private val deleteUserAccountUseCase: DeleteUserAccountUseCase
+    private val deleteUserAccountUseCase: DeleteUserAccountUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
     val uiState: StateFlow<EditProfileUiState> = _uiState.asStateFlow()
-
-    private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
-    val navigationEvent: SharedFlow<NavigationEvent> = _navigationEvent.asSharedFlow()
 
     init {
         loadCurrentUser()
@@ -100,7 +96,7 @@ class EditProfileViewModel @Inject constructor(
             try {
                 deleteUserAccountUseCase()
                 _uiState.update { it.copy(showDeleteConfirmationDialog = false) }
-                _navigationEvent.emit(NavigationEvent.NavigateToLogin)
+                logoutUseCase()
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -115,8 +111,4 @@ class EditProfileViewModel @Inject constructor(
     fun clearMessage() {
         _uiState.update { it.copy(userMessage = null) }
     }
-}
-
-sealed class NavigationEvent {
-    data object NavigateToLogin : NavigationEvent()
 }

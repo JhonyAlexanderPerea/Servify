@@ -12,9 +12,6 @@ interface AuthRepository {
     /** Usuario con sesión activa (se actualiza si cambian sus puntos/insignias); null si no hay sesión. */
     val currentUser: Flow<User?>
 
-    /** Lectura síncrona de la sesión actual. */
-    val currentUserSnapshot: User?
-
     /**
      * Valida contra los usuarios registrados. Si [requiredRole] no es null y la cuenta
      * tiene otro rol, falla con ROLE_NOT_ALLOWED y NO abre sesión (login de moderador).

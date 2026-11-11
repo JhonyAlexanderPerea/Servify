@@ -50,7 +50,6 @@ fun MainScreen(
     /** Ruta del dashboard que debe abrirse al volver (p. ej. Mis publicaciones tras "Publicación enviada"). */
     pendingRoute: String? = null,
     onPendingRouteConsumed: () -> Unit = {},
-    onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     dashboardNavController: NavHostController = rememberNavController(),
     dashboardViewModel: DashboardViewModel = hiltViewModel()
@@ -186,7 +185,6 @@ fun MainScreen(
                         onAchievementsClick = { dashboardNavController.navigate(Screen.Achievements.route) },
                         onStatisticsClick = { dashboardNavController.navigate(Screen.Statistics.route) },
                         onSettingsClick = onNavigateToEditProfile,
-                        onLogoutClick = onLogoutClick,
                         onNavigateToEditProfile = onNavigateToEditProfile,
                         onNavigateToStatistics = { dashboardNavController.navigate(Screen.Statistics.route) }
                     )

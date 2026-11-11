@@ -95,30 +95,44 @@ class RegisterViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, registerError = null) }
 
         viewModelScope.launch {
-            val result = registerUserUseCase(
-                name = state.name,
-                lastName = state.lastName,
-                email = state.email,
-                password = state.password,
-                city = state.city
-            )
-
-            when (result) {
-                is AuthResult.Success -> _uiState.update {
-                    it.copy(isLoading = false, registered = true)
-                }
-
-                is AuthResult.Failure -> _uiState.update {
-                    // El email se captura en el paso 1: si falla por él, se vuelve a ese paso.
-                    if (result.error == AuthError.EMAIL_ALREADY_REGISTERED ||
-                        result.error == AuthError.INVALID_EMAIL
-                    ) {
-                        it.copy(isLoading = false, step = 1, emailError = result.error.toMessage())
-                    } else {
-                        it.copy(isLoading = false, registerError = result.error.toMessage())
-                    }
-                }
+            runCatching {
+                registerUserUseCase(
+                    name = state.name,
+                    lastName = state.lastName,
+                    email = state.email,
+                    password = state.password,
+                    city = state.city
+                )
             }
+                .fold(
+                    onSuccess = { result ->
+                        when (result) {
+                            is AuthResult.Success -> _uiState.update {
+                                it.copy(isLoading = false)
+                            }
+
+                            is AuthResult.Failure -> _uiState.update {
+                                // El email se captura en el paso 1: si falla por él, se vuelve a ese paso.
+                                if (result.error == AuthError.EMAIL_ALREADY_REGISTERED ||
+                                    result.error == AuthError.INVALID_EMAIL
+                                ) {
+                                    it.copy(isLoading = false, step = 1, emailError = result.error.toMessage())
+                                } else {
+                                    it.copy(isLoading = false, registerError = result.error.toMessage())
+                                }
+                            }
+                        }
+                    },
+                    onFailure = {
+                        // TODO(i18n): mover a strings.xml
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                registerError = "No se pudo completar el registro. Revisa tu conexión e inténtalo de nuevo."
+                            )
+                        }
+                    }
+                )
         }
     }
 }

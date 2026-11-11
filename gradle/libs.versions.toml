@@ -17,6 +17,7 @@ navigationCompose = "2.9.6"
 animation = "1.12.1"
 firebaseBom = "35.1.0"
 googleServices = "4.5.0"
+dataStore = "1.2.1"
 
 
 
@@ -50,6 +51,8 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+data-store = { module = "androidx.datastore:datastore-preferences", version.ref = "dataStore" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 
 
 

@@ -27,7 +27,6 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,15 +50,10 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 @Composable
 fun RegisterScreen(
     onBack: () -> Unit,
-    onRegisterSuccess: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
 
     val state by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(state.registered) {
-        if (state.registered) onRegisterSuccess()
-    }
 
     Column(
         modifier = Modifier

@@ -54,7 +54,7 @@ class GamificationService(
 ) {
 
     /** Suma/resta puntos por [event], luego evalúa insignias. Null si el usuario no existe. */
-    fun award(userId: String, event: PointEvent): AwardResult? {
+    suspend fun award(userId: String, event: PointEvent): AwardResult? {
         val before = userRepository.getById(userId) ?: return null
         userRepository.update(userId) { it.copy(points = ReputationRules.applyEvent(it.points, event)) }
         val newBadges = evaluateBadges(userId)
@@ -66,7 +66,7 @@ class GamificationService(
      * Evalúa y registra las insignias nuevas (sin tocar puntos). Úsalo cuando cambia algo que no son
      * puntos: verificar/rechazar una publicación, por ejemplo. Devuelve solo las recién desbloqueadas.
      */
-    fun evaluateBadges(userId: String, notify: Boolean = true): Set<Badge> {
+    suspend fun evaluateBadges(userId: String, notify: Boolean = true): Set<Badge> {
         val user = userRepository.getById(userId) ?: return emptySet()
         val unlocked = BadgeEvaluator.newlyUnlocked(user, publications(), comments())
         if (unlocked.isEmpty()) return emptySet()
@@ -75,28 +75,22 @@ class GamificationService(
         return unlocked
     }
 
-    fun progressOf(userId: String): UserProgress? {
+    suspend fun progressOf(userId: String): UserProgress? {
         val user = userRepository.getById(userId) ?: return null
-        return UserProgress(
-            user = user,
-            level = ReputationRules.progress(user.points),
-            badges = BadgeEvaluator.progress(user, publications(), comments())
-        )
+        return buildProgress(user)
     }
 
     /**
-     * Flujo reactivo del progreso: vuelve a emitir cuando cambia cualquier usuario
+     * Flujo reactivo del progreso: vuelve a emitir cuando cambia el usuario
      * (puntos o insignias), de modo que las pantallas de Logros y Estadísticas se
      * actualizan solas.
      */
     fun observeProgress(userId: String): Flow<UserProgress?> =
-        userRepository.users.map { users ->
-            users.firstOrNull { it.id == userId }?.let { user ->
-                UserProgress(
-                    user = user,
-                    level = ReputationRules.progress(user.points),
-                    badges = BadgeEvaluator.progress(user, publications(), comments())
-                )
-            }
-        }
+        userRepository.observeUserById(userId).map { user -> user?.let(::buildProgress) }
+
+    private fun buildProgress(user: User): UserProgress = UserProgress(
+        user = user,
+        level = ReputationRules.progress(user.points),
+        badges = BadgeEvaluator.progress(user, publications(), comments())
+    )
 }

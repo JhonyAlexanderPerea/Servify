@@ -4,8 +4,10 @@ import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.model.Badge
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
 import co.edu.uniquindio.servify.testutil.TestEnvironment
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -17,7 +19,12 @@ class ProfileViewModelTest {
 
     private val env = TestEnvironment()
 
-    private fun newViewModel() = ProfileViewModel(env.observeSession, env.observeUserProgress, env.observeMyPublications)
+    private fun newViewModel() = ProfileViewModel(
+        env.observeSession,
+        env.observeUserProgress,
+        env.observeMyPublications,
+        env.logout
+    )
 
     @Test
     fun is_loading_until_there_is_a_session() {
@@ -88,6 +95,15 @@ class ProfileViewModelTest {
         env.markCompleted(SeedUsers.JHONY_ID, "pub_jhony_plomeria")
 
         assertEquals(2, vm.uiState.value.finalizedCount)
+    }
+
+    @Test
+    fun logout_clears_the_session() = runBlocking {
+        env.loginAs(TestEnvironment.JHONY_EMAIL)
+        newViewModel().logout()
+
+        assertNull(env.session.session.first())
+        assertNull(env.auth.currentUserSnapshot)
     }
 
     @Test

@@ -62,6 +62,11 @@ class FirebaseAuthRepository @Inject constructor(
             auth.signOut()
             return AuthResult.Failure(AuthError.ROLE_NOT_ALLOWED)
         }
+        // Los moderadores están exentos: sus cuentas se crean a mano en la consola y no tienen el correo verificado
+        if (user.role != UserRole.MODERATOR && signIn.user?.isEmailVerified != true) {
+            auth.signOut()
+            return AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)
+        }
         return AuthResult.Success(user)
     }
 
@@ -104,13 +109,17 @@ class FirebaseAuthRepository @Inject constructor(
         )
         try {
             users.document(firebaseUser.uid).set(UserDto.fromDomain(newUser)).await()
+            // El correo de verificación va dentro del mismo try: si falla, se hace rollback de la cuenta
+            firebaseUser.sendEmailVerification().await()
         } catch (e: Exception) {
             // Si no se pudo guardar el perfil, se borra la cuenta para no dejarla incompleta.
             // NonCancellable: el borrado termina aunque se cancele la corrutina
             withContext(NonCancellable) { runCatching { firebaseUser.delete().await() } }
             throw e
         }
-        return AuthResult.Success(newUser)
+        // Sin sesión hasta verificar el correo: se cierra la sesión que Firebase abre al crear la cuenta
+        auth.signOut()
+        return AuthResult.VerificationRequired(normalized)
     }
 
     override suspend fun sendPasswordReset(email: String, requiredRole: UserRole?): PasswordResetResult {

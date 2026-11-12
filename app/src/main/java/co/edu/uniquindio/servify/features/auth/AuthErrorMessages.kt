@@ -10,4 +10,6 @@ fun AuthError.toMessage(): String = when (this) {
     AuthError.INVALID_EMAIL -> "Correo electrónico inválido"
     AuthError.WEAK_PASSWORD -> "La contraseña debe tener mínimo 8 caracteres"
     AuthError.MISSING_FIELDS -> "Completa todos los campos"
+    // TODO(i18n): mover a strings.xml
+    AuthError.EMAIL_NOT_VERIFIED -> "Verifica tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada y la carpeta de spam."
 }

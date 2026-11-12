@@ -36,6 +36,8 @@ android {
         // Tokens y claves: se definen en local.properties y se exponen como recursos string.
         resValue("string", "mapbox_access_token", localProperties.getProperty("MAPBOX_ACCESS_TOKEN", ""))
         resValue("string", "openrouter_api_key", localProperties.getProperty("OPENROUTER_API_KEY", ""))
+        // Dominio de los enlaces de Firebase Auth: <project-id>.firebaseapp.com (definirlo en local.properties)
+        resValue("string", "firebase_auth_host", localProperties.getProperty("FIREBASE_AUTH_HOST", "localhost.invalid"))
 
         // Mapbox solo incluye librerías nativas para estas arquitecturas.
         ndk {

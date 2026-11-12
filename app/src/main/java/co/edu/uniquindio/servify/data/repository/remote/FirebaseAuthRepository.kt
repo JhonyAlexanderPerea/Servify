@@ -6,12 +6,14 @@ import co.edu.uniquindio.servify.data.remote.user.observeUser
 import co.edu.uniquindio.servify.data.remote.user.toUser
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.rules.CredentialRules
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -130,6 +132,18 @@ class FirebaseAuthRepository @Inject constructor(
             // La respuesta es la misma exista o no la cuenta, para no revelar qué correos están registrados
         }
         return PasswordResetResult.Sent
+    }
+
+    override suspend fun confirmPasswordReset(oobCode: String, newPassword: String): ConfirmPasswordResetResult {
+        return try {
+            auth.confirmPasswordReset(oobCode, newPassword).await()
+            ConfirmPasswordResetResult.SUCCESS
+        } catch (e: FirebaseAuthWeakPasswordException) {
+            ConfirmPasswordResetResult.WEAK_PASSWORD
+        } catch (e: FirebaseAuthException) {
+            // Código inválido, vencido o ya usado
+            ConfirmPasswordResetResult.INVALID_OR_EXPIRED_CODE
+        }
     }
 
     override fun logout() {

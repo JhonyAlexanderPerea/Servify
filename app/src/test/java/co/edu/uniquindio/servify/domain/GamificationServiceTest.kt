@@ -8,6 +8,9 @@ import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.rules.PointEvent
 import co.edu.uniquindio.servify.domain.service.GamificationService
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -91,6 +94,37 @@ class GamificationServiceTest {
             service.evaluateBadges("u1", notify = false)
             assertTrue(notified.isEmpty())
             assertTrue(Badge.PRIMERA_VERIFICADA in repo.getById("u1")!!.badges)
+        }
+    }
+
+    @Test
+    fun award_persists_points_and_badges_and_observe_progress_reflects_them() {
+        runBlocking {
+            pubs = listOf(publication())
+
+            service.award("u1", PointEvent.PUBLICATION_CREATED)
+
+            val saved = repo.getById("u1")!!
+            assertEquals(20, saved.points)
+            assertTrue(Badge.PRIMERA_PUBLICACION in saved.badges)
+
+            val progress = service.observeProgress("u1").first()!!
+            assertEquals(20, progress.user.points)
+            assertTrue(Badge.PRIMERA_PUBLICACION in progress.user.badges)
+            assertTrue(progress.badges.first { it.badge == Badge.PRIMERA_PUBLICACION }.unlocked)
+        }
+    }
+
+    @Test
+    fun concurrent_awards_add_every_event_exactly_once() {
+        runBlocking {
+            coroutineScope {
+                repeat(20) {
+                    launch { service.award("u1", PointEvent.COMMENT_POSTED) }
+                }
+            }
+
+            assertEquals(20 * PointEvent.COMMENT_POSTED.points, repo.getById("u1")!!.points)
         }
     }
 

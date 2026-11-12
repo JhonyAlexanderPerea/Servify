@@ -7,11 +7,13 @@ import co.edu.uniquindio.servify.data.remote.user.toUser
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
+import co.edu.uniquindio.servify.domain.model.DeleteAccountResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.rules.CredentialRules
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -144,6 +146,28 @@ class FirebaseAuthRepository @Inject constructor(
             // Código inválido, vencido o ya usado
             ConfirmPasswordResetResult.INVALID_OR_EXPIRED_CODE
         }
+    }
+
+    /**
+     * Borra primero el perfil y luego la cuenta de Authentication (mientras la sesión sigue activa).
+     * Si falla el último paso queda una cuenta de Authentication sin perfil; al iniciar sesión,
+     * [login] la rechaza porque no encuentra el perfil.
+     */
+    override suspend fun deleteAccount(password: String): DeleteAccountResult {
+        val firebaseUser = auth.currentUser ?: throw IllegalStateException("No hay una sesión iniciada")
+        val email = firebaseUser.email ?: throw IllegalStateException("La cuenta no tiene correo")
+        // Borrar una cuenta exige un inicio de sesión reciente: se reautentica con la contraseña
+        try {
+            firebaseUser.reauthenticate(EmailAuthProvider.getCredential(email, password)).await()
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            return DeleteAccountResult.WRONG_PASSWORD
+        } catch (e: FirebaseAuthInvalidUserException) {
+            return DeleteAccountResult.WRONG_PASSWORD
+        }
+        // Primero los datos (mientras la sesión sigue activa) y luego la cuenta de Authentication
+        users.document(firebaseUser.uid).delete().await()
+        firebaseUser.delete().await()
+        return DeleteAccountResult.SUCCESS
     }
 
     override fun logout() {

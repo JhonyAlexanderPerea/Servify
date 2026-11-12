@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.domain.repository
 
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
+import co.edu.uniquindio.servify.domain.model.DeleteAccountResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
@@ -40,6 +41,12 @@ interface AuthRepository {
      * código existe: el resultado distingue código inválido o vencido de contraseña débil.
      */
     suspend fun confirmPasswordReset(oobCode: String, newPassword: String): ConfirmPasswordResetResult
+
+    /**
+     * Elimina la cuenta autenticada tras reautenticar con [password]. Si la contraseña no
+     * coincide devuelve WRONG_PASSWORD sin borrar nada.
+     */
+    suspend fun deleteAccount(password: String): DeleteAccountResult
 
     /** Cierra la sesión y limpia el estado. */
     fun logout()

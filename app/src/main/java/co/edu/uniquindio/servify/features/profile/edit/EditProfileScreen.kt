@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.edu.uniquindio.servify.features.profile.edit.component.DeleteAccountDialog
 import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -86,14 +87,13 @@ fun EditProfileScreen(
     }
 
     if (uiState.showDeleteConfirmationDialog) {
-        ConfirmDialog(
-            title = "Eliminar cuenta",
-            message = "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
-            confirmText = "Eliminar",
-            dismissText = "Cancelar",
-            isDestructive = true,
-            onConfirm = { viewModel.onConfirmDeleteAccount() },
-            onDismiss = { viewModel.onDismissDeleteConfirmation() }
+        DeleteAccountDialog(
+            password = uiState.deletePassword,
+            passwordError = uiState.deletePasswordError,
+            isDeleting = uiState.isDeletingAccount,
+            onPasswordChange = viewModel::onDeletePasswordChanged,
+            onConfirm = viewModel::onConfirmDeleteAccount,
+            onDismiss = viewModel::onDismissDeleteConfirmation
         )
     }
 

@@ -8,5 +8,7 @@ data class EditProfileUiState(
     val isSaving: Boolean = false,
     val showDeleteConfirmationDialog: Boolean = false,
     val isDeletingAccount: Boolean = false,
+    val deletePassword: String = "",
+    val deletePasswordError: String? = null,
     val userMessage: String? = null
 )

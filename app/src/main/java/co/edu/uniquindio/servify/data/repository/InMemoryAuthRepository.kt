@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.data.repository
 
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
@@ -106,6 +107,12 @@ class InMemoryAuthRepository(
             sentResets += normalized
         }
         return PasswordResetResult.Sent
+    }
+
+    override suspend fun confirmPasswordReset(oobCode: String, newPassword: String): ConfirmPasswordResetResult {
+        if (oobCode.isBlank()) return ConfirmPasswordResetResult.INVALID_OR_EXPIRED_CODE
+        if (!CredentialRules.isStrongEnough(newPassword)) return ConfirmPasswordResetResult.WEAK_PASSWORD
+        return ConfirmPasswordResetResult.SUCCESS
     }
 
     override fun logout() {

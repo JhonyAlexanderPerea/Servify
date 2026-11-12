@@ -98,6 +98,15 @@ class LoginViewModel @Inject constructor(
                             is AuthResult.Failure -> _uiState.update {
                                 it.copy(isLoading = false, loginError = result.error.toMessage())
                             }
+
+                            // El login nunca devuelve VerificationRequired: se trata como error genérico.
+                            is AuthResult.VerificationRequired -> _uiState.update {
+                                // TODO(i18n): mover a strings.xml
+                                it.copy(
+                                    isLoading = false,
+                                    loginError = "No se pudo iniciar sesión. Inténtalo de nuevo."
+                                )
+                            }
                         }
                     },
                     onFailure = {

@@ -1,6 +1,7 @@
 package co.edu.uniquindio.servify.domain.repository
 
 import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
@@ -33,6 +34,12 @@ interface AuthRepository {
      * ni al revés). Ver [PasswordResetResult] sobre por qué el resultado no revela si la cuenta existe.
      */
     suspend fun sendPasswordReset(email: String, requiredRole: UserRole? = null): PasswordResetResult
+
+    /**
+     * Confirma el restablecimiento con el [oobCode] del enlace enviado por Firebase. No revela si el
+     * código existe: el resultado distingue código inválido o vencido de contraseña débil.
+     */
+    suspend fun confirmPasswordReset(oobCode: String, newPassword: String): ConfirmPasswordResetResult
 
     /** Cierra la sesión y limpia el estado. */
     fun logout()

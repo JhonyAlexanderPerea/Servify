@@ -6,12 +6,14 @@ import co.edu.uniquindio.servify.data.remote.user.observeUser
 import co.edu.uniquindio.servify.data.remote.user.toUser
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
+import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.rules.CredentialRules
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -62,6 +64,11 @@ class FirebaseAuthRepository @Inject constructor(
             auth.signOut()
             return AuthResult.Failure(AuthError.ROLE_NOT_ALLOWED)
         }
+        // Los moderadores están exentos: sus cuentas se crean a mano en la consola y no tienen el correo verificado
+        if (user.role != UserRole.MODERATOR && signIn.user?.isEmailVerified != true) {
+            auth.signOut()
+            return AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)
+        }
         return AuthResult.Success(user)
     }
 
@@ -104,13 +111,17 @@ class FirebaseAuthRepository @Inject constructor(
         )
         try {
             users.document(firebaseUser.uid).set(UserDto.fromDomain(newUser)).await()
+            // El correo de verificación va dentro del mismo try: si falla, se hace rollback de la cuenta
+            firebaseUser.sendEmailVerification().await()
         } catch (e: Exception) {
             // Si no se pudo guardar el perfil, se borra la cuenta para no dejarla incompleta.
             // NonCancellable: el borrado termina aunque se cancele la corrutina
             withContext(NonCancellable) { runCatching { firebaseUser.delete().await() } }
             throw e
         }
-        return AuthResult.Success(newUser)
+        // Sin sesión hasta verificar el correo: se cierra la sesión que Firebase abre al crear la cuenta
+        auth.signOut()
+        return AuthResult.VerificationRequired(normalized)
     }
 
     override suspend fun sendPasswordReset(email: String, requiredRole: UserRole?): PasswordResetResult {
@@ -121,6 +132,18 @@ class FirebaseAuthRepository @Inject constructor(
             // La respuesta es la misma exista o no la cuenta, para no revelar qué correos están registrados
         }
         return PasswordResetResult.Sent
+    }
+
+    override suspend fun confirmPasswordReset(oobCode: String, newPassword: String): ConfirmPasswordResetResult {
+        return try {
+            auth.confirmPasswordReset(oobCode, newPassword).await()
+            ConfirmPasswordResetResult.SUCCESS
+        } catch (e: FirebaseAuthWeakPasswordException) {
+            ConfirmPasswordResetResult.WEAK_PASSWORD
+        } catch (e: FirebaseAuthException) {
+            // Código inválido, vencido o ya usado
+            ConfirmPasswordResetResult.INVALID_OR_EXPIRED_CODE
+        }
     }
 
     override fun logout() {

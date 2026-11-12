@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.data.repository
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
+import co.edu.uniquindio.servify.domain.model.DeleteAccountResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
@@ -113,6 +114,21 @@ class InMemoryAuthRepository(
         if (oobCode.isBlank()) return ConfirmPasswordResetResult.INVALID_OR_EXPIRED_CODE
         if (!CredentialRules.isStrongEnough(newPassword)) return ConfirmPasswordResetResult.WEAK_PASSWORD
         return ConfirmPasswordResetResult.SUCCESS
+    }
+
+    /**
+     * Simulación: el usuario queda en el repositorio en memoria pero ya no puede iniciar sesión
+     * porque se elimina su contraseña. Solo se borra la sesión si la contraseña coincide.
+     */
+    override suspend fun deleteAccount(password: String): DeleteAccountResult {
+        val id = sessionUserId.value ?: throw IllegalStateException("No hay una sesión iniciada")
+        val user = userRepository.getById(id) ?: throw IllegalStateException("Usuario no encontrado")
+        val normalized = CredentialRules.normalizeEmail(user.email)
+        val validPassword = synchronized(passwords) { passwords[normalized] == password }
+        if (!validPassword) return DeleteAccountResult.WRONG_PASSWORD
+        synchronized(passwords) { passwords.remove(normalized) }
+        sessionUserId.value = null
+        return DeleteAccountResult.SUCCESS
     }
 
     override fun logout() {

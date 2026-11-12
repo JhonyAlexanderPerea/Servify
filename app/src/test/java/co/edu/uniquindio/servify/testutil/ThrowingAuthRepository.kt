@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.testutil
 
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
+import co.edu.uniquindio.servify.domain.model.DeleteAccountResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
@@ -30,6 +31,9 @@ class ThrowingAuthRepository : AuthRepository {
         throw IOException("sin red")
 
     override suspend fun confirmPasswordReset(oobCode: String, newPassword: String): ConfirmPasswordResetResult =
+        throw IOException("sin red")
+
+    override suspend fun deleteAccount(password: String): DeleteAccountResult =
         throw IOException("sin red")
 
     override fun logout() = Unit

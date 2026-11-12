@@ -15,6 +15,9 @@ import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.LogoutUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveUserSessionUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.DeleteUserAccountUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.ObserveCurrentUserUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.UpdateUserProfileUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.SendPasswordResetUseCase
 import co.edu.uniquindio.servify.domain.usecase.moderation.ApprovePublicationUseCase
 import co.edu.uniquindio.servify.domain.usecase.moderation.FinalizePublicationByModeratorUseCase
@@ -66,6 +69,9 @@ class TestEnvironment(var nowMillis: Long = 2_000_000_000_000L) {
     val logout = LogoutUseCase(auth, session)
     val observeSession = ObserveSessionUseCase(auth)
     val observeUserSession = ObserveUserSessionUseCase(session)
+    val observeCurrentUser = ObserveCurrentUserUseCase(users)
+    val updateUserProfile = UpdateUserProfileUseCase(users)
+    val deleteAccount = DeleteUserAccountUseCase(auth, session)
     val sendPasswordReset = SendPasswordResetUseCase(auth)
     val observeMyPublications = ObserveMyPublicationsUseCase(publications)
     val observeServices = ObserveServicesUseCase(publications)

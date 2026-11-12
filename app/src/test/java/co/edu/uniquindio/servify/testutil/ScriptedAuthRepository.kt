@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.testutil
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.ConfirmPasswordResetResult
+import co.edu.uniquindio.servify.domain.model.DeleteAccountResult
 import co.edu.uniquindio.servify.domain.model.PasswordResetResult
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.model.UserRole
@@ -14,7 +15,8 @@ import kotlinx.coroutines.flow.flowOf
 class ScriptedAuthRepository(
     private val registerResult: AuthResult = AuthResult.Failure(AuthError.INVALID_CREDENTIALS),
     private val loginResult: AuthResult = AuthResult.Failure(AuthError.INVALID_CREDENTIALS),
-    private val confirmPasswordResetResult: ConfirmPasswordResetResult = ConfirmPasswordResetResult.SUCCESS
+    private val confirmPasswordResetResult: ConfirmPasswordResetResult = ConfirmPasswordResetResult.SUCCESS,
+    private val deleteAccountResult: DeleteAccountResult = DeleteAccountResult.SUCCESS
 ) : AuthRepository {
 
     override val currentUser: Flow<User?> = flowOf(null)
@@ -35,6 +37,9 @@ class ScriptedAuthRepository(
 
     override suspend fun confirmPasswordReset(oobCode: String, newPassword: String): ConfirmPasswordResetResult =
         confirmPasswordResetResult
+
+    override suspend fun deleteAccount(password: String): DeleteAccountResult =
+        deleteAccountResult
 
     override fun logout() = Unit
 }

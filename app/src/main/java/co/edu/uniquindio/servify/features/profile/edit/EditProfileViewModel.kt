@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.DeleteAccountResult
 import co.edu.uniquindio.servify.domain.usecase.user.DeleteUserAccountUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.ObserveCurrentUserUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.RemoveProfilePhotoUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.UpdateUserProfileUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.UploadProfilePhotoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,9 @@ import javax.inject.Inject
 class EditProfileViewModel @Inject constructor(
     private val observeCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
-    private val deleteUserAccountUseCase: DeleteUserAccountUseCase
+    private val deleteUserAccountUseCase: DeleteUserAccountUseCase,
+    private val uploadProfilePhotoUseCase: UploadProfilePhotoUseCase,
+    private val removeProfilePhotoUseCase: RemoveProfilePhotoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
@@ -50,6 +54,59 @@ class EditProfileViewModel @Inject constructor(
 
     fun onPhoneChanged(phone: String) {
         _uiState.update { it.copy(phone = phone) }
+    }
+
+    fun onPhotoSelected(localUri: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUploadingPhoto = true) }
+            runCatching {
+                val user = observeCurrentUserUseCase().first()
+                uploadProfilePhotoUseCase(user.id, localUri)
+            }.fold(
+                onSuccess = { url ->
+                    // TODO(i18n): mover a strings.xml
+                    _uiState.update { it.copy(isUploadingPhoto = false, avatarUrl = url, userMessage = "Foto actualizada") }
+                },
+                onFailure = {
+                    // TODO(i18n): mover a strings.xml
+                    _uiState.update {
+                        it.copy(
+                            isUploadingPhoto = false,
+                            userMessage = "No se pudo subir la foto. Revisa tu conexión e inténtalo de nuevo."
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun onRemovePhoto() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRemovingPhoto = true) }
+            runCatching {
+                val user = observeCurrentUserUseCase().first()
+                removeProfilePhotoUseCase(user.id)
+            }.fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(
+                            isRemovingPhoto = false,
+                            avatarUrl = null,
+                            userMessage = "Foto de perfil restablecida"
+                        )
+                    }
+                },
+                onFailure = {
+                    // TODO(i18n): mover a strings.xml
+                    _uiState.update {
+                        it.copy(
+                            isRemovingPhoto = false,
+                            userMessage = "No se pudo eliminar la foto. Inténtalo de nuevo."
+                        )
+                    }
+                }
+            )
+        }
     }
 
     fun onSaveProfile() {

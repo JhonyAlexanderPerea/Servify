@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.Place
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,11 +50,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import co.edu.uniquindio.servify.domain.model.Badge
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
@@ -109,6 +116,8 @@ fun ProfileContent(
     actions: ProfileActions,
     modifier: Modifier = Modifier
 ) {
+    var showAvatarPreview by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -154,9 +163,43 @@ fun ProfileContent(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { ProfileHeaderCard(state) }
+            item { ProfileHeaderCard(state, onAvatarClick = { showAvatarPreview = true }) }
             item { BadgesSection(state) }
             item { ProfileMenu(actions) }
+        }
+    }
+
+    if (showAvatarPreview && !state.avatarUrl.isNullOrBlank()) {
+        Dialog(
+            onDismissRequest = { showAvatarPreview = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = state.avatarUrl,
+                    contentDescription = "Foto de perfil ampliada",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+                IconButton(
+                    onClick = { showAvatarPreview = false },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar foto de perfil",
+                        tint = Color.White
+                    )
+                }
+            }
         }
     }
 }
@@ -166,7 +209,7 @@ fun ProfileContent(
 // -----------------------------------------------------------------------------
 
 @Composable
-private fun ProfileHeaderCard(state: ProfileUiState) {
+private fun ProfileHeaderCard(state: ProfileUiState, onAvatarClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -179,16 +222,31 @@ private fun ProfileHeaderCard(state: ProfileUiState) {
                     modifier = Modifier
                         .size(60.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable(
+                            enabled = !state.avatarUrl.isNullOrBlank(),
+                            role = Role.Button,
+                            onClickLabel = "Ver foto de perfil",
+                            onClick = onAvatarClick
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = state.initials,
-                        style = ServifyTextStyle.Title.copy(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 22.sp
+                    if (!state.avatarUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = state.avatarUrl,
+                            contentDescription = "Foto de perfil",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
-                    )
+                    } else {
+                        Text(
+                            text = state.initials,
+                            style = ServifyTextStyle.Title.copy(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 22.sp
+                            )
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(14.dp))

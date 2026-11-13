@@ -4,6 +4,7 @@ import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
 import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryRepository
+import co.edu.uniquindio.servify.data.repository.memory.InMemoryImageRepository
 import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
@@ -14,6 +15,7 @@ import co.edu.uniquindio.servify.di.RepositoryModule
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.CategoryRepository
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
+import co.edu.uniquindio.servify.domain.repository.ImageRepository
 import co.edu.uniquindio.servify.domain.repository.NotificationRepository
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
@@ -69,4 +71,8 @@ object E2ETestRepositoryModule {
     @Provides
     @Singleton
     fun provideSessionRepository(): SessionRepository = InMemorySessionRepository()
+
+    @Provides
+    @Singleton
+    fun provideImageRepository(): ImageRepository = InMemoryImageRepository()
 }

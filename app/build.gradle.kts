@@ -38,6 +38,9 @@ android {
         resValue("string", "openrouter_api_key", localProperties.getProperty("OPENROUTER_API_KEY", ""))
         // Dominio de los enlaces de Firebase Auth: <project-id>.firebaseapp.com (definirlo en local.properties)
         resValue("string", "firebase_auth_host", localProperties.getProperty("FIREBASE_AUTH_HOST", "localhost.invalid"))
+        // Cloudinary (almacenamiento de imágenes): se definen en local.properties; NUNCA el API Secret
+        resValue("string", "cloudinary_cloud_name", localProperties.getProperty("CLOUDINARY_CLOUD_NAME", ""))
+        resValue("string", "cloudinary_upload_preset", localProperties.getProperty("CLOUDINARY_UPLOAD_PRESET", ""))
 
         // Mapbox solo incluye librerías nativas para estas arquitecturas.
         ndk {
@@ -168,6 +171,13 @@ dependencies {
     )
 
     implementation("androidx.compose.material:material-icons-extended")
+
+    // -----------------------------------------
+    // Imágenes (Coil)
+    // -----------------------------------------
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     // -----------------------------------------
     // Firebase (Authentication + Firestore)

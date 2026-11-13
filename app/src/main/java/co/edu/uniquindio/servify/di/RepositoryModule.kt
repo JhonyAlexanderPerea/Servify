@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.di
 
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
 import co.edu.uniquindio.servify.data.repository.local.SessionRepositoryImpl
+import co.edu.uniquindio.servify.data.repository.remote.CloudinaryImageRepository
 import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.remote.FirebaseAuthRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
@@ -12,6 +13,7 @@ import co.edu.uniquindio.servify.data.repository.remote.UserRemoteRepositoryImpl
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.CategoryRepository
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
+import co.edu.uniquindio.servify.domain.repository.ImageRepository
 import co.edu.uniquindio.servify.domain.repository.NotificationRepository
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
@@ -68,6 +70,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(impl: FirebaseAuthRepository): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindImageRepository(impl: CloudinaryImageRepository): ImageRepository
 
     companion object {
         @Provides

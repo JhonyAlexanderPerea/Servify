@@ -3,7 +3,6 @@ package co.edu.uniquindio.servify.features.home.component
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -32,6 +31,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -74,6 +74,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,6 +87,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyOnline
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.contentColorOn
+import coil3.compose.AsyncImage
 import java.util.Locale
 
 // -----------------------------------------------------------------------------
@@ -97,6 +99,7 @@ fun HomeTopAppBar(
     userName: String,
     userCity: String,
     userInitials: String,
+    userAvatarUrl: String?,
     onLocationClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
@@ -185,12 +188,21 @@ fun HomeTopAppBar(
                     .clickable(onClick = onProfileClick),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = userInitials,
-                    style = ServifyTextStyle.SmallMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                if (!userAvatarUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = userAvatarUrl,
+                        contentDescription = "Foto de perfil",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Text(
+                        text = userInitials,
+                        style = ServifyTextStyle.SmallMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)

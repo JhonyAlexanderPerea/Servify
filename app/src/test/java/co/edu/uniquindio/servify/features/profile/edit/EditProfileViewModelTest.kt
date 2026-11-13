@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.features.profile.edit
 import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
 import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.usecase.user.DeleteUserAccountUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.UploadProfilePhotoUseCase
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
 import co.edu.uniquindio.servify.testutil.TestEnvironment
 import co.edu.uniquindio.servify.testutil.ThrowingAuthRepository
@@ -12,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -25,7 +27,8 @@ class EditProfileViewModelTest {
     private fun viewModel() = EditProfileViewModel(
         observeCurrentUserUseCase = env.observeCurrentUser,
         updateUserProfileUseCase = env.updateUserProfile,
-        deleteUserAccountUseCase = env.deleteAccount
+        deleteUserAccountUseCase = env.deleteAccount,
+        uploadProfilePhotoUseCase = env.uploadProfilePhoto
     )
 
     @Test
@@ -52,6 +55,49 @@ class EditProfileViewModelTest {
         assertEquals("3001234567", saved?.phone)
         assertFalse(viewModel.uiState.value.isSaving)
         assertEquals("Perfil actualizado correctamente", viewModel.uiState.value.userMessage)
+    }
+
+    @Test
+    fun selecting_a_photo_uploads_it_and_persists_the_new_avatar_url() {
+        val viewModel = viewModel()
+
+        viewModel.onPhotoSelected("content://galeria/foto.jpg")
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isUploadingPhoto)
+        assertEquals("Foto actualizada", state.userMessage)
+        assertNotNull(state.avatarUrl)
+        val saved = runBlocking { env.users.getById(SeedUsers.JHONY_ID) }
+        assertEquals(state.avatarUrl, saved?.avatarUrl)
+        val (localUri, remotePath) = env.images.uploads.single()
+        assertEquals("content://galeria/foto.jpg", localUri)
+        assertTrue(remotePath.startsWith("servify/avatars/${SeedUsers.JHONY_ID}/"))
+    }
+
+    @Test
+    fun a_failed_photo_upload_shows_a_message_and_stops_the_loading_state() {
+        val viewModel = EditProfileViewModel(
+            observeCurrentUserUseCase = env.observeCurrentUser,
+            updateUserProfileUseCase = env.updateUserProfile,
+            deleteUserAccountUseCase = env.deleteAccount,
+            uploadProfilePhotoUseCase = UploadProfilePhotoUseCase(
+                imageRepository = object : co.edu.uniquindio.servify.domain.repository.ImageRepository {
+                    override suspend fun uploadImage(localUri: String, remotePath: String): String =
+                        throw IllegalStateException("sin red")
+                },
+                userRepository = env.users
+            )
+        )
+
+        viewModel.onPhotoSelected("content://galeria/foto.jpg")
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isUploadingPhoto)
+        assertNull(state.avatarUrl)
+        assertEquals(
+            "No se pudo subir la foto. Revisa tu conexión e inténtalo de nuevo.",
+            state.userMessage
+        )
     }
 
     @Test
@@ -100,7 +146,8 @@ class EditProfileViewModelTest {
             deleteUserAccountUseCase = DeleteUserAccountUseCase(
                 ThrowingAuthRepository(),
                 InMemorySessionRepository()
-            )
+            ),
+            uploadProfilePhotoUseCase = env.uploadProfilePhoto
         )
         viewModel.onShowDeleteConfirmation()
         viewModel.onDeletePasswordChanged(TestEnvironment.JHONY_PASSWORD)

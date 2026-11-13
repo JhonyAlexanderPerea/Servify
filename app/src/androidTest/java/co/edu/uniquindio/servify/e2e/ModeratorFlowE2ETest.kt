@@ -23,6 +23,8 @@ class ModeratorFlowE2ETest : BaseE2ETest() {
         assertText("Rechazar publicación")
 
         clickText("Verificar publicación")
+        waitForText("¿Deseas continuar?", substring = true)
+        clickText("Verificar")
 
         waitForText("Panel de moderación")
         assertText("Pendientes de revisión (1)")
@@ -50,7 +52,12 @@ class ModeratorFlowE2ETest : BaseE2ETest() {
         loginAsModerator()
 
         composeRule.onNodeWithContentDescription("Cerrar sesión").performClick()
+        waitForText("¿Estás seguro de que deseas cerrar la sesión de moderador en Servify?")
+        // El diálogo repite "Cerrar sesión" en el título y en el botón: el botón es el último.
+        composeRule.onAllNodesWithText("Cerrar sesión")[1].performClick()
 
+        waitForText("Omitir")
+        clickText("Omitir")
         waitForText("Bienvenido de nuevo")
         assertText("Iniciar sesión")
     }

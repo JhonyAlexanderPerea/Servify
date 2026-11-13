@@ -9,6 +9,7 @@ import co.edu.uniquindio.servify.testutil.TestEnvironment
 import co.edu.uniquindio.servify.testutil.ThrowingAuthRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -16,6 +17,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.io.IOException
 
 class EditProfileViewModelTest {
 
@@ -28,7 +30,8 @@ class EditProfileViewModelTest {
         observeCurrentUserUseCase = env.observeCurrentUser,
         updateUserProfileUseCase = env.updateUserProfile,
         deleteUserAccountUseCase = env.deleteAccount,
-        uploadProfilePhotoUseCase = env.uploadProfilePhoto
+        uploadProfilePhotoUseCase = env.uploadProfilePhoto,
+        removeProfilePhotoUseCase = env.removeProfilePhoto
     )
 
     @Test
@@ -49,6 +52,12 @@ class EditProfileViewModelTest {
         viewModel.onPhoneChanged(" 3001234567 ")
 
         viewModel.onSaveProfile()
+
+        runBlocking {
+            withTimeout(2_000) {
+                viewModel.uiState.first { it.userMessage == "Perfil actualizado correctamente" }
+            }
+        }
 
         val saved = runBlocking { env.users.getById(SeedUsers.JHONY_ID) }
         assertEquals("Jhony Actualizado", saved?.name)
@@ -75,6 +84,21 @@ class EditProfileViewModelTest {
     }
 
     @Test
+    fun removing_the_photo_restores_the_default_avatar() {
+        val viewModel = viewModel()
+        viewModel.onPhotoSelected("content://galeria/foto.jpg")
+        assertNotNull(viewModel.uiState.value.avatarUrl)
+
+        viewModel.onRemovePhoto()
+
+        val state = viewModel.uiState.value
+        assertNull(state.avatarUrl)
+        assertFalse(state.isRemovingPhoto)
+        assertEquals("Foto de perfil restablecida", state.userMessage)
+        assertNull(runBlocking { env.users.getById(SeedUsers.JHONY_ID)?.avatarUrl })
+    }
+
+    @Test
     fun a_failed_photo_upload_shows_a_message_and_stops_the_loading_state() {
         val viewModel = EditProfileViewModel(
             observeCurrentUserUseCase = env.observeCurrentUser,
@@ -83,10 +107,11 @@ class EditProfileViewModelTest {
             uploadProfilePhotoUseCase = UploadProfilePhotoUseCase(
                 imageRepository = object : co.edu.uniquindio.servify.domain.repository.ImageRepository {
                     override suspend fun uploadImage(localUri: String, remotePath: String): String =
-                        throw IllegalStateException("sin red")
+                        throw IOException("sin red")
                 },
                 userRepository = env.users
-            )
+            ),
+            removeProfilePhotoUseCase = env.removeProfilePhoto
         )
 
         viewModel.onPhotoSelected("content://galeria/foto.jpg")
@@ -147,7 +172,8 @@ class EditProfileViewModelTest {
                 ThrowingAuthRepository(),
                 InMemorySessionRepository()
             ),
-            uploadProfilePhotoUseCase = env.uploadProfilePhoto
+            uploadProfilePhotoUseCase = env.uploadProfilePhoto,
+            removeProfilePhotoUseCase = env.removeProfilePhoto
         )
         viewModel.onShowDeleteConfirmation()
         viewModel.onDeletePasswordChanged(TestEnvironment.JHONY_PASSWORD)

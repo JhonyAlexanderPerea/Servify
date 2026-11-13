@@ -35,6 +35,7 @@ data class HomeUiState(
     val userMessage: String? = null,
     val userName: String = "",
     val userInitials: String = "",
+    val userAvatarUrl: String? = null,
     val unreadCount: Int = 0
 )
 
@@ -42,7 +43,12 @@ data class HomeUiState(
 val HomeQuickFilters = listOf("Cerca de mí", "Ciudad", "Precio", "Mejor valorados", "Verificados")
 
 private data class HomeFilters(val query: String, val categoryId: String?, val chip: String)
-private data class HomeUserInfo(val name: String, val initials: String, val unread: Int)
+private data class HomeUserInfo(
+    val name: String,
+    val initials: String,
+    val avatarUrl: String?,
+    val unread: Int
+)
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -69,6 +75,7 @@ class HomeViewModel @Inject constructor(
             name = fullName.substringBefore(' '),
             initials = fullName.split(' ').filter { it.isNotBlank() }.take(2)
                 .joinToString("") { it.first().uppercase() },
+            avatarUrl = user?.avatarUrl,
             unread = notifications.count { !it.isRead }
         )
     }
@@ -101,6 +108,7 @@ class HomeViewModel @Inject constructor(
             isLoading = false,
             userName = user.name,
             userInitials = user.initials,
+            userAvatarUrl = user.avatarUrl,
             unreadCount = user.unread
         )
     }.stateIn(

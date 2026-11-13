@@ -57,6 +57,13 @@ abstract class BaseE2ETest {
         composeRule.onAllNodes(hasSetTextAction())[index].performTextReplacement(text)
     }
 
+    /** Espera a que terminen las transiciones y solo queden los campos de la pantalla actual. */
+    protected fun waitForTextFields(count: Int, timeoutMillis: Long = 5_000) {
+        composeRule.waitUntil(timeoutMillis) {
+            composeRule.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == count
+        }
+    }
+
     protected fun openLoginFromOnboarding() {
         clickText("Omitir")
         waitForText("Bienvenido de nuevo")

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.DeleteAccountResult
 import co.edu.uniquindio.servify.domain.usecase.user.DeleteUserAccountUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.ObserveCurrentUserUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.RemoveProfilePhotoUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.UpdateUserProfileUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.UploadProfilePhotoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ class EditProfileViewModel @Inject constructor(
     private val observeCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
     private val deleteUserAccountUseCase: DeleteUserAccountUseCase,
-    private val uploadProfilePhotoUseCase: UploadProfilePhotoUseCase
+    private val uploadProfilePhotoUseCase: UploadProfilePhotoUseCase,
+    private val removeProfilePhotoUseCase: RemoveProfilePhotoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
@@ -71,6 +73,35 @@ class EditProfileViewModel @Inject constructor(
                         it.copy(
                             isUploadingPhoto = false,
                             userMessage = "No se pudo subir la foto. Revisa tu conexión e inténtalo de nuevo."
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun onRemovePhoto() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRemovingPhoto = true) }
+            runCatching {
+                val user = observeCurrentUserUseCase().first()
+                removeProfilePhotoUseCase(user.id)
+            }.fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(
+                            isRemovingPhoto = false,
+                            avatarUrl = null,
+                            userMessage = "Foto de perfil restablecida"
+                        )
+                    }
+                },
+                onFailure = {
+                    // TODO(i18n): mover a strings.xml
+                    _uiState.update {
+                        it.copy(
+                            isRemovingPhoto = false,
+                            userMessage = "No se pudo eliminar la foto. Inténtalo de nuevo."
                         )
                     }
                 }

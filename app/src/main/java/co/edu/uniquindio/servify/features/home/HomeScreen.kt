@@ -88,6 +88,7 @@ fun HomeScreen(
                 userName = state.userName.ifBlank { HomeMockData.currentUserName },
                 userCity = HomeMockData.currentUserCity,
                 userInitials = state.userInitials.ifBlank { HomeMockData.currentUserInitials },
+                userAvatarUrl = state.userAvatarUrl,
                 hasUnreadNotifications = state.unreadCount > 0,
                 onLocationClick = onLocationClick,
                 onNotificationClick = onNotificationClick,

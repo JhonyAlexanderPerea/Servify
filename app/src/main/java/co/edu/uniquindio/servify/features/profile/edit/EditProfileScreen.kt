@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
@@ -68,6 +70,7 @@ fun EditProfileScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSaveConfirmationDialog by remember { mutableStateOf(false) }
+    var showRemovePhotoDialog by remember { mutableStateOf(false) }
 
     // GetContent: el usuario elige de la galería y la app solo recibe permiso de lectura temporal
     val pickImageLauncher = rememberLauncherForActivityResult(
@@ -109,6 +112,21 @@ fun EditProfileScreen(
         )
     }
 
+    if (showRemovePhotoDialog) {
+        ConfirmDialog(
+            title = "Eliminar foto de perfil",
+            message = "Tu foto actual se quitará y se mostrarán tus iniciales. ¿Deseas continuar?",
+            confirmText = "Eliminar",
+            dismissText = "Cancelar",
+            isDestructive = true,
+            onConfirm = {
+                showRemovePhotoDialog = false
+                viewModel.onRemovePhoto()
+            },
+            onDismiss = { showRemovePhotoDialog = false }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -143,9 +161,26 @@ fun EditProfileScreen(
             // Avatar editable
             AvatarPicker(
                 avatarUrl = uiState.avatarUrl,
-                isUploading = uiState.isUploadingPhoto,
+                isUploading = uiState.isUploadingPhoto || uiState.isRemovingPhoto,
                 onPickImage = { pickImageLauncher.launch("image/*") }
             )
+
+            if (!uiState.avatarUrl.isNullOrBlank()) {
+                TextButton(
+                    onClick = { showRemovePhotoDialog = true },
+                    enabled = !uiState.isUploadingPhoto && !uiState.isRemovingPhoto
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (uiState.isRemovingPhoto) "Eliminando..." else "Eliminar foto de perfil"
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

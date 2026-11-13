@@ -18,6 +18,7 @@ import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveUserSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.DeleteUserAccountUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.ObserveCurrentUserUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.RemoveProfilePhotoUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.UpdateUserProfileUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.UploadProfilePhotoUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.SendPasswordResetUseCase
@@ -76,6 +77,7 @@ class TestEnvironment(var nowMillis: Long = 2_000_000_000_000L) {
     val updateUserProfile = UpdateUserProfileUseCase(users)
     val deleteAccount = DeleteUserAccountUseCase(auth, session)
     val uploadProfilePhoto = UploadProfilePhotoUseCase(images, users)
+    val removeProfilePhoto = RemoveProfilePhotoUseCase(users)
     val sendPasswordReset = SendPasswordResetUseCase(auth)
     val observeMyPublications = ObserveMyPublicationsUseCase(publications)
     val observeServices = ObserveServicesUseCase(publications)

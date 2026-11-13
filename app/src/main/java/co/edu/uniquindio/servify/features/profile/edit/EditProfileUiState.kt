@@ -5,6 +5,7 @@ data class EditProfileUiState(
     val email: String = "",
     val phone: String = "",
     val avatarUrl: String? = null,
+    val isUploadingPhoto: Boolean = false,
     val isSaving: Boolean = false,
     val showDeleteConfirmationDialog: Boolean = false,
     val isDeletingAccount: Boolean = false,

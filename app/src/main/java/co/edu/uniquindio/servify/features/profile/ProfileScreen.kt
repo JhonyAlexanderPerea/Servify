@@ -48,11 +48,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import co.edu.uniquindio.servify.domain.model.Badge
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
@@ -182,13 +184,22 @@ private fun ProfileHeaderCard(state: ProfileUiState) {
                         .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = state.initials,
-                        style = ServifyTextStyle.Title.copy(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 22.sp
+                    if (!state.avatarUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = state.avatarUrl,
+                            contentDescription = "Foto de perfil",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
-                    )
+                    } else {
+                        Text(
+                            text = state.initials,
+                            style = ServifyTextStyle.Title.copy(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 22.sp
+                            )
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(14.dp))

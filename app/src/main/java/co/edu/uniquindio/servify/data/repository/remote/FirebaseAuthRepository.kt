@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.data.repository.remote
 
+import android.util.Log
 import co.edu.uniquindio.servify.data.remote.user.UserDto
 import co.edu.uniquindio.servify.data.remote.user.authStateFlow
 import co.edu.uniquindio.servify.data.remote.user.observeUser
@@ -45,40 +46,46 @@ class FirebaseAuthRepository @Inject constructor(
     }
 
     override suspend fun login(email: String, password: String, requiredRole: UserRole?): AuthResult {
-        // Autenticar con Firebase Authentication
-        val signIn = try {
-            auth.signInWithEmailAndPassword(CredentialRules.normalizeEmail(email), password).await()
+        return try {
+            val signIn = auth.signInWithEmailAndPassword(CredentialRules.normalizeEmail(email), password).await()
+            val firebaseUser = signIn.user ?: return AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
+            val uid = firebaseUser.uid
+
+            var user = users.document(uid).get().await().toUser()
+            if (user == null) {
+                user = User(
+                    id = uid,
+                    name = firebaseUser.displayName ?: email.substringBefore("@"),
+                    email = firebaseUser.email ?: email,
+                    role = UserRole.USER,
+                    isVerified = firebaseUser.isEmailVerified
+                )
+                runCatching { users.document(uid).set(UserDto.fromDomain(user)).await() }
+            }
+
+            if (requiredRole != null && user.role != requiredRole) {
+                auth.signOut()
+                return AuthResult.Failure(AuthError.ROLE_NOT_ALLOWED)
+            }
+
+            if (user.role != UserRole.MODERATOR && firebaseUser.isEmailVerified != true) {
+                auth.signOut()
+                return AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)
+            }
+
+            if (firebaseUser.isEmailVerified && !user.isVerified) {
+                runCatching { users.document(uid).update("verified", true).await() }
+            }
+
+            AuthResult.Success(user.copy(isVerified = firebaseUser.isEmailVerified || user.isVerified))
         } catch (e: FirebaseAuthInvalidCredentialsException) {
-            return AuthResult.Failure(AuthError.INVALID_CREDENTIALS) // correo o contraseña incorrectos
+            AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
         } catch (e: FirebaseAuthInvalidUserException) {
-            return AuthResult.Failure(AuthError.INVALID_CREDENTIALS) // la cuenta no existe o está deshabilitada
+            AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
+        } catch (e: Exception) {
+            Log.e("FirebaseAuthRepository", "Login exception: ${e.message}", e)
+            AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
         }
-        val uid = signIn.user?.uid ?: throw IllegalStateException("Usuario no encontrado")
-
-        // Recuperar el perfil desde Firestore. Si no existe, se cierra la sesión de Firebase para no
-        // quedar autenticado a medias
-        val user = users.document(uid).get().await().toUser()
-        if (user == null) {
-            auth.signOut()
-            return AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
-        }
-        if (requiredRole != null && user.role != requiredRole) {
-            auth.signOut()
-            return AuthResult.Failure(AuthError.ROLE_NOT_ALLOWED)
-        }
-        // Los moderadores están exentos: sus cuentas se crean a mano en la consola y no tienen el correo verificado
-        if (user.role != UserRole.MODERATOR && signIn.user?.isEmailVerified != true) {
-            auth.signOut()
-            return AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)
-        }
-
-        if (signIn.user?.isEmailVerified == true && !user.isVerified) {
-            try {
-                users.document(uid).update("verified", true).await()
-            } catch (_: Exception) {}
-        }
-
-        return AuthResult.Success(user.copy(isVerified = true))
     }
 
     override suspend fun register(

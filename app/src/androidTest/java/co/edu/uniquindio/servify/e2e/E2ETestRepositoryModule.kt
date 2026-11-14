@@ -81,4 +81,9 @@ object E2ETestRepositoryModule {
     @Provides
     @Singleton
     fun provideAiClassifierRepository(): AiClassifierRepository = InMemoryAiClassifierRepository()
+
+    @Provides
+    @Singleton
+    fun provideGeocodingRepository(): co.edu.uniquindio.servify.domain.repository.GeocodingRepository =
+        co.edu.uniquindio.servify.data.repository.memory.InMemoryGeocodingRepository()
 }

@@ -68,4 +68,9 @@ object NetworkModule {
         )
         .addConverterFactory(GsonConverterFactory.create())
         .build()
+
+    @Provides
+    @Singleton
+    fun provideMapboxGeocodingApi(@Named("mapbox") retrofit: Retrofit): co.edu.uniquindio.servify.data.remote.geocoding.MapboxGeocodingApi =
+        retrofit.create(co.edu.uniquindio.servify.data.remote.geocoding.MapboxGeocodingApi::class.java)
 }

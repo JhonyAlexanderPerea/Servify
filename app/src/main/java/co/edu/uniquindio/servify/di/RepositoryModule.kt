@@ -83,6 +83,12 @@ abstract class RepositoryModule {
         impl: OpenRouterClassifierRepository
     ): AiClassifierRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindGeocodingRepository(
+        impl: co.edu.uniquindio.servify.data.repository.remote.MapboxGeocodingRepository
+    ): co.edu.uniquindio.servify.domain.repository.GeocodingRepository
+
     companion object {
         @Provides
         @Singleton

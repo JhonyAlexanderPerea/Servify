@@ -188,5 +188,11 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // -----------------------------------------
+    // Red (Retrofit + Gson)
+    // -----------------------------------------
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
 
 }

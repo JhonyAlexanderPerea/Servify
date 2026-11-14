@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.di
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
 import co.edu.uniquindio.servify.data.repository.local.SessionRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.remote.CloudinaryImageRepository
+import co.edu.uniquindio.servify.data.repository.remote.OpenRouterClassifierRepository
 import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.remote.FirebaseAuthRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
@@ -10,6 +11,7 @@ import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryReposito
 import co.edu.uniquindio.servify.data.repository.memory.SampleData
 import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.remote.UserRemoteRepositoryImpl
+import co.edu.uniquindio.servify.domain.repository.AiClassifierRepository
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.repository.CategoryRepository
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
@@ -74,6 +76,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindImageRepository(impl: CloudinaryImageRepository): ImageRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAiClassifierRepository(
+        impl: OpenRouterClassifierRepository
+    ): AiClassifierRepository
 
     companion object {
         @Provides

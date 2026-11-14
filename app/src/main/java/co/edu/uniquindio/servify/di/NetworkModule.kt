@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.di
 
 import android.content.Context
 import co.edu.uniquindio.servify.R
+import co.edu.uniquindio.servify.data.remote.ai.OpenRouterApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,6 +49,11 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideOpenRouterApi(@Named("openrouter") retrofit: Retrofit): OpenRouterApi =
+        retrofit.create(OpenRouterApi::class.java)
 
     @Provides
     @Singleton

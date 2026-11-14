@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.domain.usecase.request
 
+import co.edu.uniquindio.servify.domain.model.RequestStatus
 import co.edu.uniquindio.servify.domain.model.ServiceRequest
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
@@ -40,6 +41,16 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         if (publication.belongsTo(currentUser.id, currentUser.email)) {
             throw CannotRequestOwnServiceException()
+        }
+
+        val existingRequests = serviceRequestRepository.observeRequests().first()
+        val hasConflict = existingRequests.any { req ->
+            req.publicationId == publicationId &&
+                req.scheduledDateTime == scheduledDateTime &&
+                (req.status == RequestStatus.PENDING || req.status == RequestStatus.ACCEPTED)
+        }
+        if (hasConflict) {
+            throw IllegalArgumentException("Ya existe una solicitud o reserva para este servicio en la misma fecha y hora")
         }
 
         val providerId = publication.authorId.ifBlank { publication.provider.id }

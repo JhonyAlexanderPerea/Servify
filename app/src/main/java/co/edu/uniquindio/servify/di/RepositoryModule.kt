@@ -9,7 +9,6 @@ import co.edu.uniquindio.servify.data.repository.remote.FirebaseAuthRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryRepository
 import co.edu.uniquindio.servify.data.repository.memory.SampleData
-import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.remote.UserRemoteRepositoryImpl
 import co.edu.uniquindio.servify.domain.repository.AiClassifierRepository
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
@@ -50,7 +49,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindServiceRequestRepository(
-        impl: ServiceRequestRepositoryImpl
+        impl: co.edu.uniquindio.servify.data.repository.firestore.ServiceRequestFirestoreRepositoryImpl
     ): ServiceRequestRepository
 
     @Binds

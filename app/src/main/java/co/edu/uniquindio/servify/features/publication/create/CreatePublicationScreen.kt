@@ -123,8 +123,7 @@ fun CreatePublicationScreen(
                 CircularProgressIndicator(color = ServifyPrimary)
             }
         } else if (state.isSuccess) {
-            // Al guardar se abre "Publicación enviada" (pendiente de verificación). Antes aquí se
-            // mostraba un texto que decía que ya estaba en el feed, lo cual ya no es cierto.
+            // Al guardar se abre "Publicación enviada" (pendiente de verificación)
             LaunchedEffect(state.savedPublicationId) {
                 state.savedPublicationId?.let(onPublishSuccess)
             }

@@ -13,7 +13,7 @@ import javax.inject.Singleton
 @Singleton
 class ServiceRequestRepositoryImpl @Inject constructor() : ServiceRequestRepository {
 
-    private val _requests = MutableStateFlow(SampleData.requestsList)
+    private val _requests = MutableStateFlow<List<ServiceRequest>>(emptyList())
 
     override fun observeRequests(): Flow<List<ServiceRequest>> = _requests.asStateFlow()
 

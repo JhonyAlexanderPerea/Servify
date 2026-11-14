@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Singleton
 class NotificationRepositoryImpl @Inject constructor() : NotificationRepository {
 
-    private val _notifications = MutableStateFlow(SampleData.notificationsList)
+    private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
 
     override fun observeNotifications(): Flow<List<Notification>> = _notifications.asStateFlow()
 

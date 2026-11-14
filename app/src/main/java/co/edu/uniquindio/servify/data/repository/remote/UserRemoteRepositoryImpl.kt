@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,9 +34,21 @@ class UserRemoteRepositoryImpl @Inject constructor(
     override fun observeCurrentUser(): Flow<User> =
         auth.authStateFlow().flatMapLatest { firebaseUser ->
             if (firebaseUser == null) {
-                emptyFlow<User>()
+                kotlinx.coroutines.flow.flowOf(
+                    User(
+                        id = "u_default",
+                        name = "Invitado",
+                        email = ""
+                    )
+                )
             } else {
-                collection.document(firebaseUser.uid).observeUser().filterNotNull()
+                collection.document(firebaseUser.uid).observeUser().map { userDto ->
+                    userDto ?: User(
+                        id = firebaseUser.uid,
+                        name = firebaseUser.displayName ?: "Usuario",
+                        email = firebaseUser.email ?: ""
+                    )
+                }
             }
         }
 

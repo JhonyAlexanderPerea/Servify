@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -556,6 +558,8 @@ fun PriceRangeFields(
     onMinPriceChange: (String) -> Unit,
     maxPrice: String,
     onMaxPriceChange: (String) -> Unit,
+    minPriceError: String? = null,
+    maxPriceError: String? = null,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -574,6 +578,10 @@ fun PriceRangeFields(
                 value = minPrice,
                 onValueChange = onMinPriceChange,
                 label = "Precio Mínimo",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                isError = minPriceError != null,
+                supportingText = minPriceError,
                 modifier = Modifier.weight(1f)
             )
 
@@ -581,6 +589,10 @@ fun PriceRangeFields(
                 value = maxPrice,
                 onValueChange = onMaxPriceChange,
                 label = "Precio Máximo",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                isError = maxPriceError != null,
+                supportingText = maxPriceError,
                 modifier = Modifier.weight(1f)
             )
         }

@@ -168,7 +168,8 @@ class PublicationFlowViewModelTest {
         viewModel.onTitleChanged("Título válido para el servicio")
         viewModel.onNextStep()
         viewModel.onDescriptionChanged("Descripción suficientemente larga para el servicio.")
-        viewModel.onPriceChanged("80000")
+        viewModel.onMinPriceChanged("80000")
+        viewModel.onMaxPriceChanged("150000")
 
         viewModel.onNextStep()
 

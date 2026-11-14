@@ -36,8 +36,10 @@ data class PublicationFormUiState(
     val categoryError: String? = null,
     val subcategoryId: String = "",
     val subcategoryError: String? = null,
-    val price: String = "",
-    val priceError: String? = null,
+    val minPrice: String = "",
+    val minPriceError: String? = null,
+    val maxPrice: String = "",
+    val maxPriceError: String? = null,
     val priceUnit: String = "por trabajo",
     val locationName: String = "Armenia, Quindío",
     val locationError: String? = null,
@@ -93,7 +95,8 @@ class PublicationFlowViewModel @Inject constructor(
                         description = existing.description,
                         categoryId = existing.categoryId.ifBlank { existing.category },
                         subcategoryId = existing.subcategoryId ?: existing.subcategory,
-                        price = initialPrice(existing).toString(),
+                        minPrice = initialMinPrice(existing).toString(),
+                        maxPrice = initialMaxPrice(existing).toString(),
                         priceUnit = existing.priceUnit,
                         locationName = existing.locationName.ifBlank { existing.city.ifBlank { "Armenia, Quindío" } },
                         images = existing.imageUrls,
@@ -146,17 +149,36 @@ class PublicationFlowViewModel @Inject constructor(
         }
     }
 
-    fun onPriceChanged(priceStr: String) {
-        val parsed = priceStr.toDoubleOrNull()
+    fun onMinPriceChanged(minStr: String) {
+        val clean = minStr.filter { it.isDigit() }
+        val parsed = clean.toDoubleOrNull()
         val error = when {
-            priceStr.isBlank() -> "Ingresa un precio"
-            parsed == null || parsed <= 0 -> "Ingresa un valor numérico válido"
+            clean.isBlank() -> "Ingresa el precio mínimo"
+            parsed == null || parsed <= 0 -> "Ingresa un valor válido"
             else -> null
         }
         _uiState.update {
             it.copy(
-                price = priceStr,
-                priceError = error
+                minPrice = clean,
+                minPriceError = error
+            )
+        }
+    }
+
+    fun onMaxPriceChanged(maxStr: String) {
+        val clean = maxStr.filter { it.isDigit() }
+        val parsed = clean.toDoubleOrNull()
+        val minParsed = _uiState.value.minPrice.toDoubleOrNull() ?: 0.0
+        val error = when {
+            clean.isBlank() -> "Ingresa el precio máximo"
+            parsed == null || parsed <= 0 -> "Ingresa un valor válido"
+            minParsed > 0 && parsed < minParsed -> "El máximo no puede ser menor al mínimo"
+            else -> null
+        }
+        _uiState.update {
+            it.copy(
+                maxPrice = clean,
+                maxPriceError = error
             )
         }
     }
@@ -236,10 +258,17 @@ class PublicationFlowViewModel @Inject constructor(
         val descErr = if (state.description.trim().length < 20) "La descripción debe tener al menos 20 caracteres" else null
         val catErr = if (state.categoryId.isBlank()) "Selecciona una categoría" else null
         val locErr = if (state.locationName.isBlank()) "La ubicación es obligatoria" else null
-        val priceVal = state.price.toDoubleOrNull()
-        val priceErr = if (priceVal == null || priceVal <= 0) "Ingresa un precio válido" else null
 
-        val isValid = titleErr == null && descErr == null && catErr == null && locErr == null && priceErr == null
+        val minVal = state.minPrice.toDoubleOrNull()
+        val maxVal = state.maxPrice.toDoubleOrNull()
+        val minErr = if (minVal == null || minVal <= 0) "Ingresa un precio mínimo válido" else null
+        val maxErr = when {
+            maxVal == null || maxVal <= 0 -> "Ingresa un precio máximo válido"
+            minVal != null && maxVal < minVal -> "El máximo no puede ser menor al mínimo"
+            else -> null
+        }
+
+        val isValid = titleErr == null && descErr == null && catErr == null && locErr == null && minErr == null && maxErr == null
 
         _uiState.update {
             it.copy(
@@ -247,7 +276,8 @@ class PublicationFlowViewModel @Inject constructor(
                 descriptionError = descErr,
                 categoryError = catErr,
                 locationError = locErr,
-                priceError = priceErr,
+                minPriceError = minErr,
+                maxPriceError = maxErr,
                 isFormValid = isValid
             )
         }
@@ -275,18 +305,27 @@ class PublicationFlowViewModel @Inject constructor(
             val descErr = if (state.description.trim().length < 20) "La descripción debe tener al menos 20 caracteres" else null
             val catErr = if (state.categoryId.isBlank()) "Selecciona una categoría" else null
             val subcatErr = if (state.subcategoryId.isBlank()) "Selecciona una subcategoría" else null
-            val priceVal = state.price.toDoubleOrNull()
-            val priceErr = if (priceVal == null || priceVal <= 0) "Ingresa un precio válido" else null
             val locErr = if (state.locationName.isBlank()) "La ubicación es obligatoria" else null
+
+            val minVal = state.minPrice.toDoubleOrNull()
+            val maxVal = state.maxPrice.toDoubleOrNull()
+            val minErr = if (minVal == null || minVal <= 0) "Ingresa un precio mínimo válido" else null
+            val maxErr = when {
+                maxVal == null || maxVal <= 0 -> "Ingresa un precio máximo válido"
+                minVal != null && maxVal < minVal -> "El máximo no puede ser menor al mínimo"
+                else -> null
+            }
+
             val isValid = descErr == null && catErr == null && subcatErr == null &&
-                priceErr == null && locErr == null
+                minErr == null && maxErr == null && locErr == null
 
             _uiState.update {
                 it.copy(
                     descriptionError = descErr,
                     categoryError = catErr,
                     subcategoryError = subcatErr,
-                    priceError = priceErr,
+                    minPriceError = minErr,
+                    maxPriceError = maxErr,
                     locationError = locErr,
                     isFormValid = isValid
                 )
@@ -322,7 +361,10 @@ class PublicationFlowViewModel @Inject constructor(
 
             val state = _uiState.value
             val currentUser = getCurrentUserUseCase()
-            val price = state.price.toDoubleOrNull() ?: 80000.0
+            val minVal = state.minPrice.toDoubleOrNull() ?: 80000.0
+            val maxVal = state.maxPrice.toDoubleOrNull() ?: (minVal * 1.5)
+            val avgPrice = (minVal + maxVal) / 2.0
+            val priceRangeStr = formatPriceRange(minVal, maxVal, state.priceUnit)
             val images = state.images.ifEmpty { listOf(DEFAULT_IMAGE) }
             val editingId = state.publicationId
 
@@ -337,8 +379,8 @@ class PublicationFlowViewModel @Inject constructor(
                     category = state.categoryId,
                     subcategoryId = state.subcategoryId.ifBlank { null },
                     subcategory = state.subcategoryId,
-                    price = price,
-                    priceRange = formatPrice(price, state.priceUnit),
+                    price = avgPrice,
+                    priceRange = priceRangeStr,
                     priceUnit = state.priceUnit,
                     imageUrls = images,
                     provider = currentUser,
@@ -370,8 +412,8 @@ class PublicationFlowViewModel @Inject constructor(
                         category = state.categoryId,
                         subcategoryId = state.subcategoryId.ifBlank { null },
                         subcategory = state.subcategoryId,
-                        price = price,
-                        priceRange = formatPrice(price, state.priceUnit),
+                        price = avgPrice,
+                        priceRange = priceRangeStr,
                         priceUnit = state.priceUnit,
                         imageUrls = images,
                         locationName = state.locationName,
@@ -391,13 +433,28 @@ class PublicationFlowViewModel @Inject constructor(
 
 private const val DEFAULT_IMAGE = "https://images.unsplash.com/photo-1504307651254-35680f356dfd"
 
-/** "$80.000 por trabajo" (la lista "Mis publicaciones" muestra este texto). */
-private fun formatPrice(price: Double, unit: String): String =
-    "$" + "%,d".format(price.toInt()).replace(',', '.') + " " + unit
+private fun formatPriceRange(min: Double, max: Double, unit: String): String {
+    val minF = "$" + "%,d".format(min.toInt()).replace(',', '.')
+    val maxF = "$" + "%,d".format(max.toInt()).replace(',', '.')
+    return "$minF – $maxF $unit"
+}
 
-/** Precio inicial al editar: el numérico o, si es 0 (datos semilla), el primer valor de priceRange. */
-private fun initialPrice(publication: Publication): Int {
-    if (publication.price > 0) return publication.price.toInt()
-    val firstSegment = publication.priceRange.substringBefore("–")
-    return firstSegment.filter { it.isDigit() }.toIntOrNull() ?: 0
+private fun initialMinPrice(publication: Publication): Int {
+    if (publication.price > 0 && publication.priceRange.isBlank()) return publication.price.toInt()
+    val parts = publication.priceRange.split("–", "-")
+    if (parts.isNotEmpty()) {
+        val minDigits = parts[0].replace(Regex("[^0-9]"), "").toIntOrNull()
+        if (minDigits != null && minDigits > 0) return minDigits
+    }
+    return if (publication.price > 0) publication.price.toInt() else 80000
+}
+
+private fun initialMaxPrice(publication: Publication): Int {
+    val parts = publication.priceRange.split("–", "-")
+    if (parts.size > 1) {
+        val maxDigits = parts[1].replace(Regex("[^0-9]"), "").toIntOrNull()
+        if (maxDigits != null && maxDigits > 0) return maxDigits
+    }
+    val min = initialMinPrice(publication)
+    return (min * 1.5).toInt().coerceAtLeast(120000)
 }

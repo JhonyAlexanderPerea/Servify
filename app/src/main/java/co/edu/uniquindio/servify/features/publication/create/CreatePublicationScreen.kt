@@ -94,7 +94,8 @@ fun CreatePublicationScreen(
                     canGoNext = when (state.currentStep) {
                         1 -> state.title.length >= 5
                         2 -> state.description.length >= 20 &&
-                            state.price.isNotBlank() &&
+                            state.minPrice.isNotBlank() &&
+                            state.maxPrice.isNotBlank() &&
                             state.categoryId.isNotBlank() &&
                             state.subcategoryId.isNotBlank()
                         else -> true
@@ -241,10 +242,12 @@ fun CreatePublicationScreen(
                                 }
 
                                 PriceRangeFields(
-                                    minPrice = state.price,
-                                    onMinPriceChange = viewModel::onPriceChanged,
-                                    maxPrice = state.price,
-                                    onMaxPriceChange = viewModel::onPriceChanged
+                                    minPrice = state.minPrice,
+                                    onMinPriceChange = viewModel::onMinPriceChanged,
+                                    maxPrice = state.maxPrice,
+                                    onMaxPriceChange = viewModel::onMaxPriceChanged,
+                                    minPriceError = state.minPriceError,
+                                    maxPriceError = state.maxPriceError
                                 )
 
                                 LocationPickerField(
@@ -271,8 +274,8 @@ fun CreatePublicationScreen(
                                     selectedCategory = state.categoryId,
                                     selectedSubcategory = state.subcategoryId,
                                     description = state.description,
-                                    minPrice = state.price,
-                                    maxPrice = state.price,
+                                    minPrice = state.minPrice,
+                                    maxPrice = state.maxPrice,
                                     cityZone = state.locationName
                                 )
 

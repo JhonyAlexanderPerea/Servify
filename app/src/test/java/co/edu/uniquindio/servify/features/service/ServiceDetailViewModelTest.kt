@@ -6,13 +6,11 @@ import co.edu.uniquindio.servify.data.repository.memory.CommentRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryGeocodingRepository
 import co.edu.uniquindio.servify.data.repository.memory.UserRepositoryImpl
 import co.edu.uniquindio.servify.data.seed.SeedPublications
-import co.edu.uniquindio.servify.domain.service.GamificationService
 import co.edu.uniquindio.servify.domain.usecase.comment.AddCommentUseCase
 import co.edu.uniquindio.servify.domain.usecase.comment.ObserveCommentsUseCase
 import co.edu.uniquindio.servify.domain.usecase.location.GetAddressFromLocationUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ObserveServicesUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ToggleInterestUseCase
-import co.edu.uniquindio.servify.domain.usecase.reputation.EvaluateAchievementsUseCase
 import co.edu.uniquindio.servify.features.service.detail.AddressState
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailViewModel
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
@@ -24,6 +22,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
+import co.edu.uniquindio.servify.domain.service.GamificationService
+import co.edu.uniquindio.servify.domain.usecase.reputation.EvaluateAchievementsUseCase
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ServiceDetailViewModelTest {

@@ -71,7 +71,14 @@ class FirebaseAuthRepository @Inject constructor(
             auth.signOut()
             return AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)
         }
-        return AuthResult.Success(user)
+
+        if (signIn.user?.isEmailVerified == true && !user.isVerified) {
+            try {
+                users.document(uid).update("verified", true).await()
+            } catch (_: Exception) {}
+        }
+
+        return AuthResult.Success(user.copy(isVerified = true))
     }
 
     override suspend fun register(

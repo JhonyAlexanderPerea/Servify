@@ -149,81 +149,25 @@ fun ExploreScreen(
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
 
-                // 2. CONTENEDOR PRINCIPAL DEL MAPA INTERACTIVO MOCK
+                // 2. CONTENEDOR PRINCIPAL DEL MAPA DE MAPBOX
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                         .padding(horizontal = 16.dp)
                         .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    MaterialTheme.colorScheme.surfaceContainerHighest
-                                )
-                            )
-                        )
                 ) {
-                    MapBackdrop(modifier = Modifier.matchParentSize())
-
-                    // Fondo estilizado de mapa urbano
-                    Box(
+                    co.edu.uniquindio.servify.core.component.MapBox(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clickable { viewModel.onDismissSelectedService() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.Map,
-                                contentDescription = "Mapa",
-                                tint = ServifyPrimary.copy(alpha = 0.35f),
-                                modifier = Modifier.size(72.dp)
-                            )
-                            Text(
-                                text = "Mapa de Servicios Cercanos",
-                                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                color = ServifyOnSurfaceVariant
-                            )
-                            Text(
-                                text = "${state.nearbyServices.size} servicios disponibles en la zona",
-                                style = ServifyTextStyle.Caption,
-                                color = ServifyOnSurfaceVariant
-                            )
+                            .fillMaxSize(),
+                        publications = state.nearbyServices,
+                        onMarkerClick = { pubId ->
+                            val pub = state.nearbyServices.find { it.id == pubId }
+                            if (pub != null) {
+                                viewModel.onMarkerSelected(pub)
+                            }
                         }
-                    }
-
-                    // Marcadores dinámicos e interactivos en el mapa
-                    state.nearbyServices.forEachIndexed { index, publication ->
-                        val isSelected = state.selectedService?.id == publication.id
-
-                        ServiceMapMarker(
-                            publication = publication,
-                            isSelected = isSelected,
-                            onClick = { viewModel.onMarkerSelected(publication) },
-                            modifier = Modifier.align(MapPinSlots[index % MapPinSlots.size])
-                        )
-                    }
-
-                    // Botón Mi Ubicación
-                    Box(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surface)
-                            .border(1.dp, ServifyOutlineVariant, CircleShape)
-                            .align(Alignment.TopEnd),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MyLocation,
-                            contentDescription = "Mi ubicación",
-                            tint = ServifyPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    )
 
                     // 3. TARJETA FLOTANTE DEL SERVICIO SELECCIONADO
                     if (state.selectedService != null) {

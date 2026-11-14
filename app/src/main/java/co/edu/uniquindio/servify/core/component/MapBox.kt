@@ -27,7 +27,8 @@ fun MapBox(
     center: Point = ARMENIA,
     zoom: Double = 12.0,
     publications: List<Publication> = emptyList(),
-    interactive: Boolean = true
+    interactive: Boolean = true,
+    onMarkerClick: (String) -> Unit = {}
 ) {
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -70,6 +71,13 @@ fun MapBox(
                     annotationConfig = clusterConfig
                 ) {
                     iconImage = marker
+                    interactionsState.onClicked { annotation ->
+                        val pubId = annotation.getData()?.asString
+                        if (pubId != null) {
+                            onMarkerClick(pubId)
+                        }
+                        true
+                    }
                 }
             }
         }

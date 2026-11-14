@@ -120,7 +120,7 @@ fun SplashScreen(
         }
 
         Text(
-            text = "v1.0.0",
+            text = "v1.5.0",
             style = ServifyTextStyle.Caption,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.50f),
             modifier = Modifier

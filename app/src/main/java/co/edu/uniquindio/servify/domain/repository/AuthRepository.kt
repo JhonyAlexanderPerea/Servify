@@ -29,6 +29,9 @@ interface AuthRepository {
         city: String
     ): AuthResult
 
+    /** Inicia sesión o registra usuario mediante Google ID Token. */
+    suspend fun loginWithGoogle(idToken: String): AuthResult
+
     /**
      * Solicita el enlace de recuperación. Si [requiredRole] no es null, solo las cuentas con ese rol
      * reciben el enlace (el flujo de moderador no puede usarse para recuperar una cuenta de usuario,

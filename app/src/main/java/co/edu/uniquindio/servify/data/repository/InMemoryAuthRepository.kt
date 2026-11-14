@@ -134,4 +134,22 @@ class InMemoryAuthRepository(
     override fun logout() {
         sessionUserId.value = null
     }
+
+    override suspend fun loginWithGoogle(idToken: String): AuthResult {
+        val email = "google_user@gmail.com"
+        val normalized = CredentialRules.normalizeEmail(email)
+        var user = userRepository.findByEmail(normalized)
+        if (user == null) {
+            user = User(
+                id = idGenerator(),
+                name = "Google User",
+                email = normalized,
+                role = UserRole.USER,
+                memberSinceMillis = clock()
+            )
+            userRepository.add(user)
+        }
+        sessionUserId.value = user.id
+        return AuthResult.Success(user)
+    }
 }

@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Singleton
 class NotificationRepositoryImpl @Inject constructor() : NotificationRepository {
 
-    private val _notifications = MutableStateFlow(SampleData.notificationsList)
+    private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
 
     override fun observeNotifications(): Flow<List<Notification>> = _notifications.asStateFlow()
 
@@ -29,6 +29,12 @@ class NotificationRepositoryImpl @Inject constructor() : NotificationRepository 
     override suspend fun markAllAsRead() {
         _notifications.update { list ->
             list.map { it.copy(isRead = true) }
+        }
+    }
+
+    override suspend fun markAllAsReadForUser(userId: String) {
+        _notifications.update { list ->
+            list.map { if (it.userId == userId) it.copy(isRead = true) else it }
         }
     }
 }

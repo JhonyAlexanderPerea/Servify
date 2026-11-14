@@ -1,11 +1,11 @@
 package co.edu.uniquindio.servify.data.repository.firestore
 
+import android.util.Log
 import co.edu.uniquindio.servify.data.model.dto.ServiceRequestDto
 import co.edu.uniquindio.servify.domain.model.RequestStatus
 import co.edu.uniquindio.servify.domain.model.ServiceRequest
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -30,10 +30,10 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
      */
     override fun observeRequests(): Flow<List<ServiceRequest>> = callbackFlow {
         val subscription = collection
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.w("ServiceRequestFirestoreRepo", "Error observando solicitudes: ${error.message}")
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
@@ -43,7 +43,7 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
                         } catch (_: Exception) {
                             null
                         }
-                    }
+                    }.sortedByDescending { it.createdAt }
                     trySend(list)
                 }
             }
@@ -64,7 +64,8 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
             .whereEqualTo(field, userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.w("ServiceRequestFirestoreRepo", "Error observando solicitudes por usuario: ${error.message}")
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
@@ -96,10 +97,10 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
 
         val subscription = collection
             .whereEqualTo("clientId", userId)
-            .whereIn("status", statusNames)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.w("ServiceRequestFirestoreRepo", "Error observando solicitudes por estado: ${error.message}")
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
@@ -109,11 +110,29 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
                         } catch (_: Exception) {
                             null
                         }
+                    }.filter { req ->
+                        req.status.name in statusNames
                     }.sortedByDescending { it.createdAt }
                     trySend(list)
                 }
             }
         awaitClose { subscription.remove() }
+    }
+
+    /**
+     * Obtiene una solicitud de servicio por su ID desde Firestore.
+     */
+    override suspend fun getById(id: String): ServiceRequest? {
+        return try {
+            val doc = collection.document(id).get().await()
+            if (doc.exists()) {
+                doc.toObject(ServiceRequestDto::class.java)?.copy(id = doc.id)?.toDomain()
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     /**
@@ -145,26 +164,30 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
         changedByUserId: String?,
         reason: String?
     ) {
-        val requestRef = collection.document(requestId)
-        val historyRef = requestRef.collection("status_history").document()
-        val now = System.currentTimeMillis()
+        try {
+            val requestRef = collection.document(requestId)
+            val historyRef = requestRef.collection("status_history").document()
+            val now = System.currentTimeMillis()
 
-        firestore.runTransaction { transaction ->
-            transaction.update(
-                requestRef,
-                mapOf(
-                    "status" to newStatus.name,
-                    "updatedAt" to now
+            firestore.runTransaction { transaction ->
+                transaction.update(
+                    requestRef,
+                    mapOf(
+                        "status" to newStatus.name,
+                        "updatedAt" to now
+                    )
                 )
-            )
-            val historyData = mapOf(
-                "id" to historyRef.id,
-                "status" to newStatus.name,
-                "changedByUserId" to (changedByUserId ?: ""),
-                "timestamp" to now,
-                "reason" to reason
-            )
-            transaction.set(historyRef, historyData)
-        }.await()
+                val historyData = mapOf(
+                    "id" to historyRef.id,
+                    "status" to newStatus.name,
+                    "changedByUserId" to (changedByUserId ?: ""),
+                    "timestamp" to now,
+                    "reason" to reason
+                )
+                transaction.set(historyRef, historyData)
+            }.await()
+        } catch (e: Exception) {
+            Log.w("ServiceRequestFirestoreRepo", "Error al actualizar estado de solicitud: ${e.message}")
+        }
     }
 }

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,14 +27,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
@@ -45,16 +46,37 @@ import co.edu.uniquindio.servify.ui.theme.ServifyPrimaryContainer
 import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
-import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
 @Composable
 fun PublicationPublishedScreen(
     publicationId: String,
     onGoToMyPublications: () -> Unit,
     onGoToHome: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: PublicationPublishedViewModel = hiltViewModel()
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val pub = state.publication
+
+    val titleText = pub?.title?.ifBlank { null } ?: "Servicio registrado"
+    val categorySubcategoryLocation = buildString {
+        if (pub != null) {
+            append(pub.category)
+            if (pub.subcategory.isNotBlank()) append(" • ").append(pub.subcategory)
+            val cityStr = pub.city.ifBlank { pub.locationName }
+            if (cityStr.isNotBlank()) append(" • ").append(cityStr)
+        } else {
+            append("Servicio • Armenia, Quindío")
+        }
+    }
+    val priceText = pub?.let { p ->
+        p.priceRange.ifBlank {
+            if (p.price > 0) "$${"%,d".format(p.price.toInt()).replace(',', '.')} COP / ${p.priceUnit}" else ""
+        }
+    } ?: ""
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -132,7 +154,7 @@ fun PublicationPublishedScreen(
                         }
 
                         Text(
-                            text = "ID: #$publicationId",
+                            text = "ID: #${pub?.id ?: publicationId}",
                             style = ServifyTextStyle.Caption,
                             color = ServifyOnSurfaceVariant
                         )
@@ -141,7 +163,7 @@ fun PublicationPublishedScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Plomería Residencial y Comercial de Emergencias",
+                        text = titleText,
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                         color = ServifyOnSurface
                     )
@@ -149,20 +171,22 @@ fun PublicationPublishedScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Hogar • Plomería • Armenia, Quindío",
+                        text = categorySubcategoryLocation,
                         style = ServifyTextStyle.Caption,
                         color = ServifyOnSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    if (priceText.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text = "$80.000 COP / trabajo",
-                        style = ServifyTextStyle.SmallMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = ServifyPrimary
+                        Text(
+                            text = priceText,
+                            style = ServifyTextStyle.SmallMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = ServifyPrimary
+                            )
                         )
-                    )
+                    }
                 }
             }
 
@@ -184,29 +208,5 @@ fun PublicationPublishedScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    }
-}
-
-@Preview(name = "Publication Published Light", showBackground = true)
-@Composable
-fun PublicationPublishedPreviewLight() {
-    ServifyTheme(darkTheme = false) {
-        PublicationPublishedScreen(
-            publicationId = "pub_101",
-            onGoToMyPublications = {},
-            onGoToHome = {}
-        )
-    }
-}
-
-@Preview(name = "Publication Published Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun PublicationPublishedPreviewDark() {
-    ServifyTheme(darkTheme = true) {
-        PublicationPublishedScreen(
-            publicationId = "pub_101",
-            onGoToMyPublications = {},
-            onGoToHome = {}
-        )
     }
 }

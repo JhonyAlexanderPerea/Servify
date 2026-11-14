@@ -28,8 +28,7 @@ class UpdateRequestStatusUseCase @Inject constructor(
         serviceRequestRepository.updateRequestStatus(requestId, newStatus)
 
         if (newStatus == RequestStatus.ACCEPTED) {
-            val requests = serviceRequestRepository.observeRequests().first()
-            val request = requests.find { it.id == requestId }
+            val request = serviceRequestRepository.getById(requestId)
             if (request != null) {
                 val publication = publicationRepository.getPublicationById(request.publicationId)
                 val provider = userRepository.observeCurrentUser().first()

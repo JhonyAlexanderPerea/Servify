@@ -1,12 +1,16 @@
 package co.edu.uniquindio.servify.data.model.dto
 
+import androidx.annotation.Keep
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.model.User
+import com.google.firebase.firestore.PropertyName
 
 /**
  * Data Transfer Object (DTO) para la colección "publications" en Firebase Firestore.
  */
+@Keep
 data class PublicationDto(
     val id: String = "",
     val title: String = "",
@@ -25,13 +29,17 @@ data class PublicationDto(
     val providerAvatar: String = "",
     val providerEmail: String = "",
     val authorId: String = "",
-    val status: String = "APPROVED",
+    val status: String = "PENDIENTE",
     val ratingAverage: Double = 0.0,
     val reviewsCount: Int = 0,
     val locationName: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val zone: String = "",
     val city: String = "",
-    val isFavorite: Boolean = false,
+    @set:PropertyName("isFavorite")
+    @get:PropertyName("isFavorite")
+    var isFavorite: Boolean = false,
     val interestedCount: Int = 0,
     val interestedUserIds: List<String> = emptyList(),
     val rejectionReason: String? = null,
@@ -40,11 +48,31 @@ data class PublicationDto(
     val verifiedAtMillis: Long? = null,
     val finalizedAtMillis: Long? = null
 ) {
-    fun toDomain(): Publication {
+    fun toDomain(currentUserId: String? = null): Publication {
         val finalImages = images.ifEmpty { imageUrls }
         val provId = providerId.ifBlank { authorId.ifBlank { "u_default" } }
         val authId = authorId.ifBlank { provId }
-        val pubStatus = runCatching { PublicationStatus.valueOf(status) }.getOrDefault(PublicationStatus.APPROVED)
+        val pubStatus = when (status.uppercase()) {
+            "PENDIENTE", "PENDING", "PENDING_REVIEW" -> PublicationStatus.PENDIENTE
+            "VERIFICADA" -> PublicationStatus.VERIFICADA
+            "APPROVED" -> PublicationStatus.APPROVED
+            "RECHAZADA", "REJECTED" -> PublicationStatus.RECHAZADA
+            "FINALIZADA", "COMPLETED" -> PublicationStatus.FINALIZADA
+            "DRAFT" -> PublicationStatus.DRAFT
+            "PAUSED" -> PublicationStatus.PAUSED
+            else -> PublicationStatus.PENDIENTE
+        }
+
+        val resolvedLocation = if (latitude != null && longitude != null) {
+            Location(latitude, longitude)
+        } else if (locationName.isNotBlank() || city.isNotBlank()) {
+            val clean = (locationName + " " + city).lowercase()
+            when {
+                clean.contains("pereira") || clean.contains("dosquebradas") -> Location(4.81333, -75.69611)
+                clean.contains("manizales") || clean.contains("caldas") -> Location(5.06889, -75.51738)
+                else -> Location(4.53389, -75.68111)
+            }
+        } else null
 
         return Publication(
             id = id,
@@ -69,9 +97,10 @@ data class PublicationDto(
             ratingAverage = ratingAverage,
             reviewsCount = reviewsCount,
             locationName = locationName,
+            location = resolvedLocation,
             zone = zone,
             city = city,
-            isFavorite = isFavorite,
+            isFavorite = currentUserId?.let { it in interestedUserIds } ?: isFavorite,
             interestedCount = interestedCount,
             interestedUserIds = interestedUserIds.toSet(),
             rejectionReason = rejectionReason,
@@ -104,6 +133,8 @@ data class PublicationDto(
         "ratingAverage" to ratingAverage,
         "reviewsCount" to reviewsCount,
         "locationName" to locationName,
+        "latitude" to latitude,
+        "longitude" to longitude,
         "zone" to zone,
         "city" to city,
         "isFavorite" to isFavorite,
@@ -139,6 +170,8 @@ data class PublicationDto(
             ratingAverage = pub.ratingAverage,
             reviewsCount = pub.reviewsCount,
             locationName = pub.locationName,
+            latitude = pub.location?.latitude,
+            longitude = pub.location?.longitude,
             zone = pub.zone,
             city = pub.city,
             isFavorite = pub.isFavorite,

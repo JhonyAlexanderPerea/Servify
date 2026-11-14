@@ -27,8 +27,8 @@ android {
         minSdk = 28
         targetSdk = 37
 
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner =
             "co.edu.uniquindio.servify.HiltTestRunner"
@@ -36,6 +36,7 @@ android {
         // Tokens y claves: se definen en local.properties y se exponen como recursos string.
         resValue("string", "mapbox_access_token", localProperties.getProperty("MAPBOX_ACCESS_TOKEN", ""))
         resValue("string", "openrouter_api_key", localProperties.getProperty("OPENROUTER_API_KEY", ""))
+        resValue("string", "openrouter_model", localProperties.getProperty("OPENROUTER_MODEL", ""))
         // Dominio de los enlaces de Firebase Auth: <project-id>.firebaseapp.com (definirlo en local.properties)
         resValue("string", "firebase_auth_host", localProperties.getProperty("FIREBASE_AUTH_HOST", "localhost.invalid"))
         // Cloudinary (almacenamiento de imágenes): se definen en local.properties; NUNCA el API Secret
@@ -188,5 +189,25 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // -----------------------------------------
+    // Red (Retrofit + Gson)
+    // -----------------------------------------
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
+    // -----------------------------------------
+    // Mapas (Mapbox)
+    // -----------------------------------------
+
+    implementation(libs.mapbox.android)
+    implementation(libs.mapbox.compose)
+
+    // -----------------------------------------
+    // Credential Manager (Google Sign-In)
+    // -----------------------------------------
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.Notification
 import co.edu.uniquindio.servify.domain.model.NotificationType
+import co.edu.uniquindio.servify.domain.repository.UserRepository
 import co.edu.uniquindio.servify.domain.usecase.notification.MarkAllNotificationsReadUseCase
 import co.edu.uniquindio.servify.domain.usecase.notification.MarkNotificationReadUseCase
 import co.edu.uniquindio.servify.domain.usecase.notification.ObserveNotificationsUseCase
@@ -11,7 +12,8 @@ import co.edu.uniquindio.servify.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,16 +29,21 @@ data class NotificationsUiState(
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     observeNotificationsUseCase: ObserveNotificationsUseCase,
+    private val userRepository: UserRepository,
     private val markNotificationReadUseCase: MarkNotificationReadUseCase,
     private val markAllNotificationsReadUseCase: MarkAllNotificationsReadUseCase
 ) : ViewModel() {
 
-    val uiState: StateFlow<NotificationsUiState> = observeNotificationsUseCase().map { list ->
+    val uiState: StateFlow<NotificationsUiState> = combine(
+        observeNotificationsUseCase(),
+        userRepository.observeCurrentUser()
+    ) { list, currentUser ->
+        val userNotifications = list.filter { it.userId == currentUser.id }
         val now = System.currentTimeMillis()
         val oneDayMillis = 86_400_000L
 
-        val (today, earlier) = list.partition { (now - it.createdAt) <= oneDayMillis }
-        val unread = list.count { !it.isRead }
+        val (today, earlier) = userNotifications.partition { (now - it.createdAt) <= oneDayMillis }
+        val unread = userNotifications.count { !it.isRead }
 
         NotificationsUiState(
             todayNotifications = today,
@@ -59,11 +66,6 @@ class NotificationsViewModel @Inject constructor(
                 markNotificationReadUseCase(notification.id)
             }
 
-            // Destino de cada tipo (MainScreen traduce la ruta a la pantalla real):
-            //  - solicitudes y recordatorios -> Mis solicitudes
-            //  - verificación/rechazo de una publicación propia -> Mis publicaciones
-            //  - comentarios -> detalle del servicio comentado
-            //  - logros -> Mis logros
             val route = when (notification.type) {
                 NotificationType.REQUEST_RECEIVED,
                 NotificationType.REQUEST_ACCEPTED,
@@ -83,7 +85,8 @@ class NotificationsViewModel @Inject constructor(
 
     fun onMarkAllAsRead() {
         viewModelScope.launch {
-            markAllNotificationsReadUseCase()
+            val currentUser = userRepository.observeCurrentUser().firstOrNull()
+            markAllNotificationsReadUseCase(currentUser?.id)
         }
     }
 }

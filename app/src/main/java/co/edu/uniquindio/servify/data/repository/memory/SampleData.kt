@@ -1,6 +1,7 @@
 package co.edu.uniquindio.servify.data.repository.memory
 
 import co.edu.uniquindio.servify.domain.model.Comment
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Notification
 import co.edu.uniquindio.servify.domain.model.NotificationType
 import co.edu.uniquindio.servify.domain.model.Publication
@@ -116,6 +117,7 @@ object SampleData {
             ratingAverage = 4.9,
             reviewsCount = 127,
             locationName = "Armenia y alrededores, Quindío",
+            location = Location(4.5339, -75.6811),
             isFavorite = true,
             interestedCount = 34,
             createdAt = System.currentTimeMillis() - 86400000L * 10
@@ -135,6 +137,7 @@ object SampleData {
             ratingAverage = 4.8,
             reviewsCount = 89,
             locationName = "Pereira y Dosquebradas, Risaralda",
+            location = Location(4.8133, -75.6961),
             isFavorite = false,
             interestedCount = 21,
             createdAt = System.currentTimeMillis() - 86400000L * 15
@@ -154,6 +157,7 @@ object SampleData {
             ratingAverage = 5.0,
             reviewsCount = 203,
             locationName = "Manizales, Caldas",
+            location = Location(4.5421, -75.6702),
             isFavorite = true,
             interestedCount = 57,
             createdAt = System.currentTimeMillis() - 86400000L * 20

@@ -19,6 +19,9 @@ class ThrowingAuthRepository : AuthRepository {
     override suspend fun login(email: String, password: String, requiredRole: UserRole?): AuthResult =
         throw IOException("sin red")
 
+    override suspend fun loginWithGoogle(idToken: String): AuthResult =
+        throw IOException("sin red")
+
     override suspend fun register(
         name: String,
         lastName: String,

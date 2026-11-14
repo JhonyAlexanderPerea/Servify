@@ -11,6 +11,7 @@ interface ServiceRequestRepository {
     fun observeRequests(): Flow<List<ServiceRequest>>
     fun observeRequestsForUser(userId: String, isProvider: Boolean = false): Flow<List<ServiceRequest>> = observeRequests()
     fun observeRequestsByStatus(userId: String, statuses: List<RequestStatus>): Flow<List<ServiceRequest>> = observeRequests()
+    suspend fun getById(id: String): ServiceRequest? = null
     suspend fun createRequest(request: ServiceRequest)
     suspend fun updateRequestStatus(requestId: String, newStatus: RequestStatus)
     suspend fun updateRequestStatus(

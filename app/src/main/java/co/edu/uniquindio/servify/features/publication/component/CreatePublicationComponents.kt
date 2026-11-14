@@ -20,6 +20,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -28,7 +32,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.RocketLaunch
@@ -52,12 +55,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.uniquindio.servify.domain.model.AiClassification
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationUiState
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
+import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
@@ -225,7 +229,8 @@ fun CustomDropdownField(
     options: List<String>,
     onOptionSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Seleccionar opción"
+    placeholder: String = "Seleccionar opción",
+    error: String? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -298,6 +303,15 @@ fun CustomDropdownField(
                 }
             }
         }
+
+        if (error != null) {
+            Text(
+                text = error,
+                style = ServifyTextStyle.Caption,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+            )
+        }
     }
 }
 
@@ -368,29 +382,20 @@ fun PhotoPickerGrid(
                 }
             }
 
-            // Fotos añadidas (simuladas con placeholders con estilo)
-            itemsIndexed(photoUrls) { index, _ ->
+            // Fotos añadidas con la imagen real dentro del preview
+            itemsIndexed(photoUrls) { index, photoUrl ->
                 Box(
                     modifier = Modifier
                         .size(90.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
-                            )
-                        )
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.HomeRepairService,
-                            contentDescription = null,
-                            tint = ServifyExtra.onHero,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
+                    AsyncImage(
+                        model = photoUrl,
+                        contentDescription = "Foto del servicio",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
 
                     // Botón para eliminar foto
                     Box(
@@ -423,15 +428,13 @@ fun PhotoPickerGrid(
 @Composable
 fun AiSuggestionCard(
     isAnalyzing: Boolean,
-    showSuggestion: Boolean,
-    suggestedTitle: String,
-    suggestedDescription: String,
-    suggestedCategory: String,
-    suggestedPrice: String,
-    onGenerateAiClick: () -> Unit,
-    onApplyAiClick: () -> Unit,
+    suggestion: AiClassification?,
+    onUseCategory: () -> Unit,
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    if (!isAnalyzing && suggestion == null) return
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -441,62 +444,31 @@ fun AiSuggestionCard(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.tertiary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = "IA Servify",
-                            tint = MaterialTheme.colorScheme.onTertiary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column {
-                        Text(
-                            text = "Asistente IA de Publicación",
-                            style = ServifyTextStyle.SmallMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.tertiary
-                            )
-                        )
-                        Text(
-                            text = "Optimiza título, descripción y precio",
-                            style = ServifyTextStyle.Caption,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.tertiary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = "IA Servify", // TODO(i18n)
+                        tint = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
 
-                if (!isAnalyzing && !showSuggestion) {
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.tertiary)
-                            .clickable(onClick = onGenerateAiClick)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "Optimizar con IA",
-                            style = ServifyTextStyle.Caption.copy(
-                                color = MaterialTheme.colorScheme.onTertiary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Text(
+                    text = "✨ Sugerencia de IA", // TODO(i18n)
+                    style = ServifyTextStyle.SmallMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                )
             }
 
             AnimatedVisibility(visible = isAnalyzing) {
@@ -514,93 +486,53 @@ fun AiSuggestionCard(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Analizando tu oferta con IA Servify...",
+                        text = "Analizando publicación…", // TODO(i18n)
                         style = ServifyTextStyle.Small,
                         color = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }
 
-            AnimatedVisibility(visible = showSuggestion && !isAnalyzing) {
+            AnimatedVisibility(visible = suggestion != null && !isAnalyzing) {
+                val current = suggestion ?: return@AnimatedVisibility
                 Column(modifier = Modifier.padding(top = 12.dp)) {
-                    Text(
-                        text = "💡 Sugerencia generada:",
-                        style = ServifyTextStyle.Caption.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(
-                                text = suggestedTitle,
-                                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = suggestedDescription,
-                                style = ServifyTextStyle.Caption,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Categoría: $suggestedCategory",
-                                    style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
-                                    color = MaterialTheme.colorScheme.tertiary
-                                )
-                                Text(
-                                    text = "Precio: $suggestedPrice",
-                                    style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
+                    val categoryText = if (current.subcategory.isNullOrBlank()) {
+                        current.category
+                    } else {
+                        "${current.category} > ${current.subcategory}"
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = categoryText,
+                        style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Confianza: ${current.confidence}%", // TODO(i18n)
+                        style = ServifyTextStyle.Caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.tertiary)
-                                .clickable(onClick = onApplyAiClick)
-                                .padding(horizontal = 14.dp, vertical = 8.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onTertiary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Aplicar Sugerencia de IA",
-                                    style = ServifyTextStyle.Caption.copy(
-                                        color = MaterialTheme.colorScheme.onTertiary,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
-                            }
-                        }
+                        ServifyFilledButton(
+                            text = "Usar categoría", // TODO(i18n)
+                            onClick = onUseCategory,
+                            icon = Icons.Default.Check,
+                            modifier = Modifier.weight(1f)
+                        )
+                        ServifyTextButton(
+                            text = "Elegir otra", // TODO(i18n)
+                            onClick = onDismiss
+                        )
                     }
                 }
             }
@@ -618,6 +550,8 @@ fun PriceRangeFields(
     onMinPriceChange: (String) -> Unit,
     maxPrice: String,
     onMaxPriceChange: (String) -> Unit,
+    minPriceError: String? = null,
+    maxPriceError: String? = null,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -636,6 +570,10 @@ fun PriceRangeFields(
                 value = minPrice,
                 onValueChange = onMinPriceChange,
                 label = "Precio Mínimo",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                isError = minPriceError != null,
+                supportingText = minPriceError,
                 modifier = Modifier.weight(1f)
             )
 
@@ -643,6 +581,10 @@ fun PriceRangeFields(
                 value = maxPrice,
                 onValueChange = onMaxPriceChange,
                 label = "Precio Máximo",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                isError = maxPriceError != null,
+                supportingText = maxPriceError,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -803,7 +745,7 @@ fun CreatePublicationBottomBar(
             }
 
             ServifyFilledButton(
-                text = if (currentStep == 3) "Publicar Anuncio" else "Siguiente",
+                text = if (currentStep == 3) "Publicar" else "Siguiente",
                 icon = if (currentStep == 3) Icons.Default.RocketLaunch else Icons.Default.ArrowForward,
                 onClick = onNextClick,
                 enabled = canGoNext,

@@ -5,6 +5,7 @@ import co.edu.uniquindio.servify.data.seed.SeedUsers.JUAN_ID
 import co.edu.uniquindio.servify.data.seed.SeedUsers.LUIS_ID
 import co.edu.uniquindio.servify.data.seed.SeedUsers.MARIA_ID
 import co.edu.uniquindio.servify.data.seed.SeedUsers.VALENTINA_ID
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
 
@@ -27,6 +28,7 @@ object SeedPublications {
             title = "Plomero residencial", category = "Hogar", subcategory = "Plomería",
             description = "Reparaciones, instalaciones y mantenimiento de redes hidráulicas en casas y apartamentos.",
             priceRange = "$80.000 – $150.000", zone = "Armenia y alrededores", city = "Armenia, Quindío",
+            location = Location(4.5339, -75.6811),
             status = PublicationStatus.VERIFICADA,
             interestedUserIds = setOf(JUAN_ID, LUIS_ID, MARIA_ID, VALENTINA_ID),
             createdAtMillis = T0 - 30 * DAY, verifiedAtMillis = T0 - 29 * DAY
@@ -36,6 +38,7 @@ object SeedPublications {
             title = "Instalaciones eléctricas certificadas", category = "Hogar", subcategory = "Electricidad",
             description = "Cambio de tableros, cableado, tomas y revisión de cortos circuitos con garantía.",
             priceRange = "$100.000 – $250.000", zone = "Armenia, Calarcá y Montenegro", city = "Armenia, Quindío",
+            location = Location(4.5421, -75.6702),
             status = PublicationStatus.VERIFICADA,
             interestedUserIds = setOf(JUAN_ID, MARIA_ID),
             createdAtMillis = T0 - 20 * DAY, verifiedAtMillis = T0 - 19 * DAY
@@ -45,6 +48,7 @@ object SeedPublications {
             title = "Tutorías de programación en Kotlin", category = "Educación", subcategory = "Tutorías",
             description = "Clases personalizadas de fundamentos de programación y desarrollo Android para estudiantes universitarios.",
             priceRange = "$30.000 – $50.000 por hora", zone = "Armenia (virtual y presencial)", city = "Armenia, Quindío",
+            location = Location(4.5256, -75.6893),
             status = PublicationStatus.PENDIENTE,
             createdAtMillis = T0 - 1 * DAY
         ),
@@ -53,6 +57,7 @@ object SeedPublications {
             title = "Reparación de computadores y laptops", category = "Tecnología", subcategory = "Reparación de equipos",
             description = "Formateo, mantenimiento, instalación de programas y reparación de equipos.",
             priceRange = "$50.000 – $120.000", zone = "Armenia y alrededores", city = "Armenia, Quindío",
+            location = Location(4.5120, -75.6950),
             status = PublicationStatus.FINALIZADA,
             interestedUserIds = setOf(LUIS_ID),
             createdAtMillis = T0 - 60 * DAY, verifiedAtMillis = T0 - 59 * DAY, finalizedAtMillis = T0 - 10 * DAY
@@ -62,6 +67,7 @@ object SeedPublications {
             title = "Paseo de mascotas", category = "Mascotas", subcategory = "Paseo de mascotas",
             description = "Paseos diarios.",
             priceRange = "$15.000 – $25.000", zone = "Armenia", city = "Armenia, Quindío",
+            location = Location(4.5380, -75.6750),
             status = PublicationStatus.RECHAZADA, rejectionReason = REJECTION_REASON,
             createdAtMillis = T0 - 5 * DAY
         ),
@@ -72,6 +78,7 @@ object SeedPublications {
             title = "Mudanzas locales con camión", category = "Transporte", subcategory = "Mudanzas",
             description = "Traslado de enseres dentro del Eje Cafetero con cargadores incluidos.",
             priceRange = "$250.000 – $600.000", zone = "Armenia, Pereira y Manizales", city = "Armenia, Quindío",
+            location = Location(4.5450, -75.6620),
             status = PublicationStatus.VERIFICADA,
             interestedUserIds = setOf(JHONY_ID, MARIA_ID, LUIS_ID),
             createdAtMillis = T0 - 40 * DAY, verifiedAtMillis = T0 - 39 * DAY
@@ -81,6 +88,7 @@ object SeedPublications {
             title = "Limpieza profunda de apartamentos", category = "Hogar", subcategory = "Limpieza",
             description = "Limpieza de cocina, baños, vidrios y pisos. Productos incluidos.",
             priceRange = "$90.000 – $180.000", zone = "Pereira y Dosquebradas", city = "Pereira, Risaralda",
+            location = Location(4.8133, -75.6961),
             status = PublicationStatus.VERIFICADA,
             interestedUserIds = setOf(JHONY_ID),
             createdAtMillis = T0 - 25 * DAY, verifiedAtMillis = T0 - 24 * DAY
@@ -90,6 +98,7 @@ object SeedPublications {
             title = "Veterinaria a domicilio", category = "Mascotas", subcategory = "Veterinaria",
             description = "Consulta general, vacunación y desparasitación para perros y gatos en tu casa.",
             priceRange = "$60.000 – $140.000", zone = "Manizales", city = "Manizales, Caldas",
+            location = Location(5.0689, -75.5174),
             status = PublicationStatus.VERIFICADA,
             interestedUserIds = setOf(JHONY_ID, JUAN_ID, LUIS_ID, VALENTINA_ID),
             createdAtMillis = T0 - 50 * DAY, verifiedAtMillis = T0 - 49 * DAY
@@ -99,6 +108,7 @@ object SeedPublications {
             title = "Soporte técnico para pymes", category = "Tecnología", subcategory = "Soporte técnico",
             description = "Configuración de redes, impresoras y copias de seguridad para pequeños negocios.",
             priceRange = "$70.000 – $200.000", zone = "Armenia", city = "Armenia, Quindío",
+            location = Location(4.5300, -75.6850),
             status = PublicationStatus.PENDIENTE,
             createdAtMillis = T0 - 2 * DAY
         )

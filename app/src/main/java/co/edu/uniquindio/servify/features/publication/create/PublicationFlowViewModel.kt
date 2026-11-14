@@ -3,16 +3,22 @@ package co.edu.uniquindio.servify.features.publication.create
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.domain.model.AiClassification
+import co.edu.uniquindio.servify.domain.model.CatalogCategory
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.rules.PointEvent
 import co.edu.uniquindio.servify.domain.rules.PublicationRules
+import co.edu.uniquindio.servify.domain.usecase.publication.ClassifyServiceWithAiUseCase
 import co.edu.uniquindio.servify.domain.usecase.reputation.AwardPointsUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.CreatePublicationUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.GetPublicationByIdUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.UpdatePublicationUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.GetCurrentUserUseCase
+import co.edu.uniquindio.servify.features.publication.model.CreatePublicationMockData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +35,7 @@ data class PublicationFormUiState(
     val categoryId: String = "",
     val categoryError: String? = null,
     val subcategoryId: String = "",
+    val subcategoryError: String? = null,
     val price: String = "",
     val priceError: String? = null,
     val priceUnit: String = "por trabajo",
@@ -42,11 +49,7 @@ data class PublicationFormUiState(
     /** Id de la publicación que se acaba de crear o reenviar (para abrir "Publicación enviada"). */
     val savedPublicationId: String? = null,
     val isAiAnalyzing: Boolean = false,
-    val showAiSuggestion: Boolean = false,
-    val aiSuggestedTitle: String = "",
-    val aiSuggestedDescription: String = "",
-    val aiSuggestedCategory: String = "",
-    val aiSuggestedPrice: String = "",
+    val aiSuggestion: AiClassification? = null,
     val userMessage: String? = null
 )
 
@@ -57,11 +60,19 @@ class PublicationFlowViewModel @Inject constructor(
     private val createPublicationUseCase: CreatePublicationUseCase,
     private val updatePublicationUseCase: UpdatePublicationUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val awardPointsUseCase: AwardPointsUseCase
+    private val awardPointsUseCase: AwardPointsUseCase,
+    private val classifyServiceWithAiUseCase: ClassifyServiceWithAiUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PublicationFormUiState())
     val uiState: StateFlow<PublicationFormUiState> = _uiState.asStateFlow()
+
+    private val catalog = CreatePublicationMockData.categoriesList.map {
+        CatalogCategory(it.name, it.subcategories)
+    }
+
+    private var classifyJob: Job? = null
+    private var lastClassifiedKey: String? = null
 
     init {
         val editingId: String? = savedStateHandle.get<String>("publicationId")
@@ -102,6 +113,7 @@ class PublicationFlowViewModel @Inject constructor(
                 titleError = if (newTitle.length < 5) "El título debe tener al menos 5 caracteres" else null
             )
         }
+        scheduleClassification()
     }
 
     fun onDescriptionChanged(newDescription: String) {
@@ -111,6 +123,7 @@ class PublicationFlowViewModel @Inject constructor(
                 descriptionError = if (newDescription.length < 20) "La descripción debe tener al menos 20 caracteres" else null
             )
         }
+        scheduleClassification()
     }
 
     fun onCategoryChanged(category: String) {
@@ -118,13 +131,19 @@ class PublicationFlowViewModel @Inject constructor(
             it.copy(
                 categoryId = category,
                 categoryError = if (category.isBlank()) "Selecciona una categoría" else null,
-                subcategoryId = ""
+                subcategoryId = "",
+                subcategoryError = null
             )
         }
     }
 
     fun onSubcategoryChanged(subcategory: String) {
-        _uiState.update { it.copy(subcategoryId = subcategory) }
+        _uiState.update {
+            it.copy(
+                subcategoryId = subcategory,
+                subcategoryError = if (subcategory.isBlank()) "Selecciona una subcategoría" else null
+            )
+        }
     }
 
     fun onPriceChanged(priceStr: String) {
@@ -172,18 +191,42 @@ class PublicationFlowViewModel @Inject constructor(
         }
     }
 
-    fun onApplyAiSuggestion(title: String, desc: String, category: String, price: String) {
+    fun onUseAiCategory() {
+        val suggestion = _uiState.value.aiSuggestion ?: return
         _uiState.update {
             it.copy(
-                title = title,
-                description = desc,
-                categoryId = category,
-                price = price.replace(Regex("[^0-9]"), "").ifBlank { "80000" },
-                titleError = null,
-                descriptionError = null,
+                categoryId = suggestion.category,
+                subcategoryId = suggestion.subcategory.orEmpty(),
                 categoryError = null,
-                priceError = null
+                subcategoryError = null,
+                aiSuggestion = null
             )
+        }
+    }
+
+    fun onDismissAiSuggestion() {
+        _uiState.update { it.copy(aiSuggestion = null) }
+    }
+
+    private fun scheduleClassification() {
+        classifyJob?.cancel()
+        val state = _uiState.value
+        val title = state.title.trim()
+        val description = state.description.trim()
+        if (title.length < 5 || description.length < 20) {
+            _uiState.update { it.copy(isAiAnalyzing = false, aiSuggestion = null) }
+            return
+        }
+        val key = "$title|$description"
+        if (key == lastClassifiedKey) return
+        classifyJob = viewModelScope.launch {
+            delay(800)
+            _uiState.update { it.copy(isAiAnalyzing = true, aiSuggestion = null) }
+            val suggestion = runCatching {
+                classifyServiceWithAiUseCase(title, description, catalog)
+            }.getOrNull()
+            lastClassifiedKey = key
+            _uiState.update { it.copy(isAiAnalyzing = false, aiSuggestion = suggestion) }
         }
     }
 
@@ -216,13 +259,11 @@ class PublicationFlowViewModel @Inject constructor(
         val state = _uiState.value
         if (state.currentStep == 1) {
             val titleErr = if (state.title.trim().length < 5) "El título debe tener al menos 5 caracteres" else null
-            val catErr = if (state.categoryId.isBlank()) "Selecciona una categoría" else null
-            val isValid = titleErr == null && catErr == null
+            val isValid = titleErr == null
 
             _uiState.update {
                 it.copy(
                     titleError = titleErr,
-                    categoryError = catErr,
                     isFormValid = isValid
                 )
             }
@@ -232,14 +273,19 @@ class PublicationFlowViewModel @Inject constructor(
             }
         } else if (state.currentStep == 2) {
             val descErr = if (state.description.trim().length < 20) "La descripción debe tener al menos 20 caracteres" else null
+            val catErr = if (state.categoryId.isBlank()) "Selecciona una categoría" else null
+            val subcatErr = if (state.subcategoryId.isBlank()) "Selecciona una subcategoría" else null
             val priceVal = state.price.toDoubleOrNull()
             val priceErr = if (priceVal == null || priceVal <= 0) "Ingresa un precio válido" else null
             val locErr = if (state.locationName.isBlank()) "La ubicación es obligatoria" else null
-            val isValid = descErr == null && priceErr == null && locErr == null
+            val isValid = descErr == null && catErr == null && subcatErr == null &&
+                priceErr == null && locErr == null
 
             _uiState.update {
                 it.copy(
                     descriptionError = descErr,
+                    categoryError = catErr,
+                    subcategoryError = subcatErr,
                     priceError = priceErr,
                     locationError = locErr,
                     isFormValid = isValid

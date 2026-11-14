@@ -1,5 +1,7 @@
 package co.edu.uniquindio.servify.features.publication.model
 
+import co.edu.uniquindio.servify.domain.model.AiClassification
+
 data class CategoryOption(
     val id: String,
     val name: String,
@@ -19,18 +21,18 @@ data class CreatePublicationUiState(
     val cityZone: String = "Armenia, Quindío",
     val photoUrls: List<String> = emptyList(),
     val isAiAnalyzing: Boolean = false,
-    val showAiSuggestion: Boolean = false,
-    val aiSuggestedTitle: String = "",
-    val aiSuggestedDescription: String = "",
-    val aiSuggestedCategory: String = "",
-    val aiSuggestedPrice: String = "",
+    val aiSuggestion: AiClassification? = null,
     val isPublishedSuccess: Boolean = false
 ) {
     val isStep1Valid: Boolean
-        get() = title.isNotBlank() && selectedCategory.isNotBlank() && selectedSubcategory.isNotBlank()
+        get() = title.isNotBlank()
 
     val isStep2Valid: Boolean
-        get() = description.isNotBlank() && minPrice.isNotBlank() && cityZone.isNotBlank()
+        get() = description.isNotBlank() &&
+            selectedCategory.isNotBlank() &&
+            selectedSubcategory.isNotBlank() &&
+            minPrice.isNotBlank() &&
+            cityZone.isNotBlank()
 }
 
 object CreatePublicationMockData {
@@ -84,10 +86,10 @@ object CreatePublicationMockData {
         maxPrice = "150000",
         cityZone = "Armenia y alrededores, Quindío",
         photoUrls = samplePhotos,
-        showAiSuggestion = true,
-        aiSuggestedTitle = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-        aiSuggestedDescription = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses.",
-        aiSuggestedCategory = "Hogar • Plomería",
-        aiSuggestedPrice = "$80.000 – $150.000 COP"
+        aiSuggestion = AiClassification(
+            category = "Hogar",
+            subcategory = "Plomería",
+            confidence = 85
+        )
     )
 }

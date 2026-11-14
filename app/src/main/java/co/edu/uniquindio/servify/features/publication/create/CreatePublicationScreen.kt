@@ -92,8 +92,11 @@ fun CreatePublicationScreen(
                 CreatePublicationBottomBar(
                     currentStep = state.currentStep,
                     canGoNext = when (state.currentStep) {
-                        1 -> state.title.length >= 5 && state.categoryId.isNotBlank()
-                        2 -> state.description.length >= 20 && state.price.isNotBlank()
+                        1 -> state.title.length >= 5
+                        2 -> state.description.length >= 20 &&
+                            state.price.isNotBlank() &&
+                            state.categoryId.isNotBlank() &&
+                            state.subcategoryId.isNotBlank()
                         else -> true
                     },
                     onPreviousClick = viewModel::onPreviousStep,
@@ -168,7 +171,7 @@ fun CreatePublicationScreen(
                                 )
 
                                 Text(
-                                    text = "Escribe un título claro y selecciona la categoría que mejor describa tu servicio.",
+                                    text = "Escribe un título claro para tu servicio.",
                                     style = ServifyTextStyle.Small,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -181,24 +184,6 @@ fun CreatePublicationScreen(
                                     isError = state.titleError != null,
                                     supportingText = state.titleError ?: "Ej: Plomero residencial con atención de emergencias"
                                 )
-
-                                CustomDropdownField(
-                                    label = "Categoría Principal",
-                                    selectedValue = state.categoryId,
-                                    options = categories,
-                                    onOptionSelected = viewModel::onCategoryChanged,
-                                    placeholder = "Selecciona una categoría"
-                                )
-
-                                if (subcategories.isNotEmpty()) {
-                                    CustomDropdownField(
-                                        label = "Subcategoría Especializada",
-                                        selectedValue = state.subcategoryId,
-                                        options = subcategories,
-                                        onOptionSelected = viewModel::onSubcategoryChanged,
-                                        placeholder = "Selecciona subcategoría"
-                                    )
-                                }
 
                                 PhotoPickerGrid(
                                     photoUrls = state.images,
@@ -219,31 +204,6 @@ fun CreatePublicationScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
 
-                                AiSuggestionCard(
-                                    isAnalyzing = state.isAiAnalyzing,
-                                    showSuggestion = state.showAiSuggestion,
-                                    suggestedTitle = state.aiSuggestedTitle,
-                                    suggestedDescription = state.aiSuggestedDescription,
-                                    suggestedCategory = state.aiSuggestedCategory,
-                                    suggestedPrice = state.aiSuggestedPrice,
-                                    onGenerateAiClick = {
-                                        viewModel.onApplyAiSuggestion(
-                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
-                                            category = "Hogar",
-                                            price = "80000"
-                                        )
-                                    },
-                                    onApplyAiClick = {
-                                        viewModel.onApplyAiSuggestion(
-                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
-                                            category = "Hogar",
-                                            price = "80000"
-                                        )
-                                    }
-                                )
-
                                 ServifyTextField(
                                     value = state.description,
                                     onValueChange = viewModel::onDescriptionChanged,
@@ -252,6 +212,33 @@ fun CreatePublicationScreen(
                                     isError = state.descriptionError != null,
                                     supportingText = state.descriptionError ?: "Describe tu experiencia, herramientas, horario y garantías."
                                 )
+
+                                AiSuggestionCard(
+                                    isAnalyzing = state.isAiAnalyzing,
+                                    suggestion = state.aiSuggestion,
+                                    onUseCategory = viewModel::onUseAiCategory,
+                                    onDismiss = viewModel::onDismissAiSuggestion
+                                )
+
+                                CustomDropdownField(
+                                    label = "Categoría Principal",
+                                    selectedValue = state.categoryId,
+                                    options = categories,
+                                    onOptionSelected = viewModel::onCategoryChanged,
+                                    placeholder = "Selecciona una categoría",
+                                    error = state.categoryError
+                                )
+
+                                if (subcategories.isNotEmpty()) {
+                                    CustomDropdownField(
+                                        label = "Subcategoría Especializada",
+                                        selectedValue = state.subcategoryId,
+                                        options = subcategories,
+                                        onOptionSelected = viewModel::onSubcategoryChanged,
+                                        placeholder = "Selecciona subcategoría",
+                                        error = state.subcategoryError
+                                    )
+                                }
 
                                 PriceRangeFields(
                                     minPrice = state.price,

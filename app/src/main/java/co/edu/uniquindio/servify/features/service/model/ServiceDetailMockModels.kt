@@ -2,6 +2,7 @@ package co.edu.uniquindio.servify.features.service.model
 
 import androidx.compose.ui.graphics.Color
 import co.edu.uniquindio.servify.domain.model.Comment
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.TrustFactor
 import co.edu.uniquindio.servify.ui.format.formatCop
@@ -26,6 +27,7 @@ data class ServiceDetailData(
     val hourlyPrice: String,
     val zone: String,
     val city: String,
+    val location: Location? = null,
     val images: List<String>,
     val providerId: String = "",
     val providerName: String,
@@ -83,6 +85,7 @@ fun Publication.toServiceDetailData(): ServiceDetailData {
         hourlyPrice = "${formatCop(price)} COP / $priceUnit",
         zone = locationName,
         city = locationName,
+        location = location,
         images = if (imageUrls.isNotEmpty()) imageUrls else listOf("https://images.unsplash.com/photo-1504307651254-35680f356dfd"),
         providerId = provider.id,
         providerName = provider.name,
@@ -114,6 +117,7 @@ object ServiceDetailMockData {
         hourlyPrice = "$45.000 / hora",
         zone = "Armenia y municipios del Quindío",
         city = "Armenia, Quindío",
+        location = Location(4.5339, -75.6811),
         images = listOf(
             "https://images.unsplash.com/photo-1504307651254-35680f356dfd",
             "https://images.unsplash.com/photo-1581092160607-ee22621dd758",

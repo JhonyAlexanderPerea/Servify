@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.data.model.dto
 
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.model.User
@@ -29,6 +30,8 @@ data class PublicationDto(
     val ratingAverage: Double = 0.0,
     val reviewsCount: Int = 0,
     val locationName: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val zone: String = "",
     val city: String = "",
     val isFavorite: Boolean = false,
@@ -69,6 +72,7 @@ data class PublicationDto(
             ratingAverage = ratingAverage,
             reviewsCount = reviewsCount,
             locationName = locationName,
+            location = if (latitude != null && longitude != null) Location(latitude, longitude) else null,
             zone = zone,
             city = city,
             isFavorite = isFavorite,
@@ -104,6 +108,8 @@ data class PublicationDto(
         "ratingAverage" to ratingAverage,
         "reviewsCount" to reviewsCount,
         "locationName" to locationName,
+        "latitude" to latitude,
+        "longitude" to longitude,
         "zone" to zone,
         "city" to city,
         "isFavorite" to isFavorite,
@@ -139,6 +145,8 @@ data class PublicationDto(
             ratingAverage = pub.ratingAverage,
             reviewsCount = pub.reviewsCount,
             locationName = pub.locationName,
+            latitude = pub.location?.latitude,
+            longitude = pub.location?.longitude,
             zone = pub.zone,
             city = pub.city,
             isFavorite = pub.isFavorite,

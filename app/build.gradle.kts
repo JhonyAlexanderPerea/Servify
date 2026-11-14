@@ -196,4 +196,11 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
 
+    // -----------------------------------------
+    // Mapas (Mapbox)
+    // -----------------------------------------
+
+    implementation(libs.mapbox.android)
+    implementation(libs.mapbox.compose)
+
 }

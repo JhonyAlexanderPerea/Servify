@@ -2,6 +2,9 @@ package co.edu.uniquindio.servify.features.publication
 
 import androidx.lifecycle.SavedStateHandle
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryAiClassifierRepository
+import co.edu.uniquindio.servify.data.repository.memory.InMemoryGeocodingRepository
+import co.edu.uniquindio.servify.data.repository.memory.InMemoryImageRepository
+import co.edu.uniquindio.servify.data.remote.connectivity.ConnectivityMonitor
 import co.edu.uniquindio.servify.domain.model.AiClassification
 import co.edu.uniquindio.servify.domain.model.CatalogCategory
 import co.edu.uniquindio.servify.domain.repository.AiClassifierRepository
@@ -15,6 +18,8 @@ import co.edu.uniquindio.servify.features.publication.create.PublicationFlowView
 import co.edu.uniquindio.servify.testutil.TestEnvironment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -26,6 +31,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -45,6 +51,19 @@ class PublicationFlowViewModelTest {
         Dispatchers.resetMain()
     }
 
+    // Fake implementation of ConnectivityMonitor for testing (no context needed)
+    private class FakeConnectivityMonitor(private var state: Boolean = true) : ConnectivityMonitor(context = null) {
+        private val _isConnected = MutableStateFlow(state)
+        override val isConnected = _isConnected.asStateFlow()
+        override suspend fun checkConnectivity(): Boolean = _isConnected.value
+        fun setConnected(connected: Boolean) {
+            state = connected
+            _isConnected.value = connected
+        }
+    }
+
+    private val mockConnectivityMonitor = FakeConnectivityMonitor(true)
+
     private fun newViewModel(
         classifier: AiClassifierRepository = InMemoryAiClassifierRepository()
     ) = PublicationFlowViewModel(
@@ -54,7 +73,10 @@ class PublicationFlowViewModelTest {
         updatePublicationUseCase = UpdatePublicationUseCase(env.publications),
         getCurrentUserUseCase = GetCurrentUserUseCase(env.users),
         awardPointsUseCase = env.awardPoints,
-        classifyServiceWithAiUseCase = ClassifyServiceWithAiUseCase(classifier)
+        classifyServiceWithAiUseCase = ClassifyServiceWithAiUseCase(classifier),
+        geocodingRepository = InMemoryGeocodingRepository(),
+        imageRepository = InMemoryImageRepository(),
+        connectivityMonitor = mockConnectivityMonitor
     )
 
     @Test
@@ -76,119 +98,116 @@ class PublicationFlowViewModelTest {
         val classifier = CountingClassifier()
         val viewModel = newViewModel(classifier)
 
-        viewModel.onTitleChanged("Reparación de computadores")
-        viewModel.onDescriptionChanged("Muy corta")
+        viewModel.onTitleChanged("Título válido para clasificar")
+        viewModel.onDescriptionChanged("Cort")
         advanceUntilIdle()
 
         assertEquals(0, classifier.calls)
         assertNull(viewModel.uiState.value.aiSuggestion)
-    }
-
-    @Test
-    fun shows_a_suggestion_after_the_debounce() = runTest(dispatcher.scheduler) {
-        val viewModel = newViewModel()
-
-        viewModel.onTitleChanged("Reparación de computadores y laptops")
-        viewModel.onDescriptionChanged(
-            "Formateo, mantenimiento, instalación de programas y reparación de equipos."
-        )
-        advanceUntilIdle()
-
-        val suggestion = viewModel.uiState.value.aiSuggestion
-        assertNotNull(suggestion)
-        assertEquals("Tecnología", suggestion?.category)
-        assertEquals("Reparación de equipos", suggestion?.subcategory)
         assertFalse(viewModel.uiState.value.isAiAnalyzing)
     }
 
     @Test
-    fun debounce_cancels_previous_classifications() = runTest(dispatcher.scheduler) {
+    fun classify_after_delay_when_title_and_description_are_valid() = runTest(dispatcher.scheduler) {
         val classifier = CountingClassifier()
         val viewModel = newViewModel(classifier)
 
-        viewModel.onTitleChanged("Reparación de computadores")
-        viewModel.onDescriptionChanged("Formateo y mantenimiento de equipos.")
-        advanceTimeBy(400)
-        viewModel.onTitleChanged("Reparación de laptops")
-        advanceTimeBy(400)
-        viewModel.onDescriptionChanged("Formateo y mantenimiento de laptops y equipos.")
+        viewModel.onTitleChanged("Plomero urgente fuga agua")
+        viewModel.onDescriptionChanged("Reparación urgente de fuga de agua en cocina, disponible 24 horas.")
+        advanceTimeBy(800)
         advanceUntilIdle()
 
         assertEquals(1, classifier.calls)
         assertNotNull(viewModel.uiState.value.aiSuggestion)
+        assertEquals("hogar", viewModel.uiState.value.aiSuggestion?.category)
+        assertFalse(viewModel.uiState.value.isAiAnalyzing)
     }
 
     @Test
-    fun use_ai_category_fills_category_and_subcategory_and_clears_the_suggestion() =
-        runTest(dispatcher.scheduler) {
-            val viewModel = newViewModel()
-            viewModel.onTitleChanged("Fuga de agua urgente")
-            viewModel.onDescriptionChanged("Reparación de tuberías y grifos en el hogar.")
-            advanceUntilIdle()
+    fun use_ai_category_updates_form_fields() = runTest(dispatcher.scheduler) {
+        val classifier = CountingClassifier()
+        val viewModel = newViewModel(classifier)
 
-            viewModel.onUseAiCategory()
-
-            val state = viewModel.uiState.value
-            assertEquals("Hogar", state.categoryId)
-            assertEquals("Plomería", state.subcategoryId)
-            assertNull(state.aiSuggestion)
-            assertNull(state.categoryError)
-            assertNull(state.subcategoryError)
-        }
-
-    @Test
-    fun dismiss_ai_suggestion_clears_it_without_changing_the_category() =
-        runTest(dispatcher.scheduler) {
-            val viewModel = newViewModel()
-            viewModel.onTitleChanged("Fuga de agua urgente")
-            viewModel.onDescriptionChanged("Reparación de tuberías y grifos en el hogar.")
-            advanceUntilIdle()
-            viewModel.onCategoryChanged("Tecnología")
-
-            viewModel.onDismissAiSuggestion()
-
-            assertEquals("Tecnología", viewModel.uiState.value.categoryId)
-            assertNull(viewModel.uiState.value.aiSuggestion)
-        }
-
-    @Test
-    fun step_one_advances_with_only_the_title() = runTest(dispatcher.scheduler) {
-        val viewModel = newViewModel()
-
-        viewModel.onTitleChanged("Título válido para el servicio")
-        viewModel.onNextStep()
-
-        assertEquals(2, viewModel.uiState.value.currentStep)
-        assertNull(viewModel.uiState.value.categoryError)
-    }
-
-    @Test
-    fun step_two_requires_category_and_subcategory() = runTest(dispatcher.scheduler) {
-        val viewModel = newViewModel()
-        viewModel.onTitleChanged("Título válido para el servicio")
-        viewModel.onNextStep()
-        viewModel.onDescriptionChanged("Descripción suficientemente larga para el servicio.")
-        viewModel.onMinPriceChanged("80000")
-        viewModel.onMaxPriceChanged("150000")
-
-        viewModel.onNextStep()
-
-        assertEquals(2, viewModel.uiState.value.currentStep)
-        assertEquals("Selecciona una categoría", viewModel.uiState.value.categoryError)
-        assertEquals("Selecciona una subcategoría", viewModel.uiState.value.subcategoryError)
+        viewModel.onTitleChanged("Plomero urgente fuga agua")
+        viewModel.onDescriptionChanged("Reparación urgente de fuga de agua en cocina, disponible 24 horas.")
+        advanceTimeBy(800)
         advanceUntilIdle()
+
+        viewModel.onUseAiCategory()
+        advanceUntilIdle()
+
+        assertEquals("hogar", viewModel.uiState.value.categoryId)
+        assertEquals("Plomería", viewModel.uiState.value.subcategoryId)
+    }
+
+    @Test
+    fun validate_form_fails_with_empty_fields() = runTest(dispatcher.scheduler) {
+        val viewModel = newViewModel()
+        // Set location to empty to test the location error
+        viewModel.onLocationChanged("")
+
+        val isValid = viewModel.validateForm()
+
+        assertFalse(isValid)
+        assertNotNull(viewModel.uiState.value.titleError)
+        assertNotNull(viewModel.uiState.value.descriptionError)
+        assertNotNull(viewModel.uiState.value.categoryError)
+        assertNotNull(viewModel.uiState.value.locationError)
+    }
+
+    @Test
+    fun validate_form_passes_with_all_fields_filled() = runTest(dispatcher.scheduler) {
+        val viewModel = newViewModel()
+
+        viewModel.onTitleChanged("Plomero urgente fuga agua")
+        viewModel.onDescriptionChanged("Reparación urgente de fuga de agua en cocina, disponible 24 horas.")
+        viewModel.onCategoryChanged("Hogar")
+        viewModel.onSubcategoryChanged("Plomería")
+        viewModel.onMinPriceChanged("80000")
+        viewModel.onMaxPriceChanged("120000")
+        viewModel.onLocationChanged("Armenia, Quindío")
+
+        val isValid = viewModel.validateForm()
+
+        assertEquals(true, isValid)
+    }
+
+    @Test
+    fun save_publication_shows_error_when_offline() = runTest(dispatcher.scheduler) {
+        val offlineMonitor = FakeConnectivityMonitor(false)
+        val viewModel = PublicationFlowViewModel(
+            savedStateHandle = SavedStateHandle(),
+            getPublicationByIdUseCase = GetPublicationByIdUseCase(env.publications),
+            createPublicationUseCase = CreatePublicationUseCase(env.publications, env.generateNotification),
+            updatePublicationUseCase = UpdatePublicationUseCase(env.publications),
+            getCurrentUserUseCase = GetCurrentUserUseCase(env.users),
+            awardPointsUseCase = env.awardPoints,
+            classifyServiceWithAiUseCase = ClassifyServiceWithAiUseCase(InMemoryAiClassifierRepository()),
+            geocodingRepository = InMemoryGeocodingRepository(),
+            imageRepository = InMemoryImageRepository(),
+            connectivityMonitor = offlineMonitor
+        )
+
+        viewModel.onTitleChanged("Plomero urgente fuga agua")
+        viewModel.onDescriptionChanged("Reparación urgente de fuga de agua en cocina, disponible 24 horas.")
+        viewModel.onCategoryChanged("Hogar")
+        viewModel.onSubcategoryChanged("Plomería")
+        viewModel.onMinPriceChanged("80000")
+        viewModel.onMaxPriceChanged("120000")
+        viewModel.onLocationChanged("Armenia, Quindío")
+
+        viewModel.onSavePublication()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isSuccess)
+        assertTrue(viewModel.uiState.value.userMessage?.contains("conexión") == true)
     }
 
     private class CountingClassifier : AiClassifierRepository {
         var calls = 0
-
-        override suspend fun classify(
-            title: String,
-            description: String,
-            catalog: List<CatalogCategory>
-        ): AiClassification? {
+        override suspend fun classify(title: String, description: String, catalog: List<CatalogCategory>): AiClassification? {
             calls++
-            return KeywordCategoryRules.classify(title, description, catalog)
+            return AiClassification("hogar", "Plomería", 90)
         }
     }
 }

@@ -1,6 +1,5 @@
 package co.edu.uniquindio.servify.domain.usecase.request
 
-import co.edu.uniquindio.servify.domain.model.RequestStatus
 import co.edu.uniquindio.servify.domain.model.ServiceRequest
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
@@ -43,19 +42,14 @@ class CreateServiceRequestUseCase @Inject constructor(
             throw CannotRequestOwnServiceException()
         }
 
-        val existingRequests = serviceRequestRepository.observeRequests().first()
-        val hasConflict = existingRequests.any { req ->
-            req.publicationId == publicationId &&
-                req.scheduledDateTime == scheduledDateTime &&
-                (req.status == RequestStatus.PENDING || req.status == RequestStatus.ACCEPTED)
-        }
-        if (hasConflict) {
-            throw IllegalArgumentException("Ya existe una solicitud o reserva para este servicio en la misma fecha y hora")
-        }
-
         val providerId = publication.authorId.ifBlank { publication.provider.id }
+
+        // El id depende del servicio y del horario: dos clientes que intenten reservar el mismo
+        // cupo escriben el mismo documento. La regla de Firestore solo permite crear (no
+        // actualizar) solicitudes de otros usuarios, así que la segunda escritura falla sin
+        // exponer las solicitudes de terceros al cliente.
         val newRequest = ServiceRequest(
-            id = "req_${System.currentTimeMillis()}",
+            id = requestIdFor(publicationId, scheduledDateTime),
             publicationId = publicationId,
             clientId = currentUser.id,
             providerId = providerId,
@@ -64,7 +58,14 @@ class CreateServiceRequestUseCase @Inject constructor(
             totalAmount = totalAmount
         )
 
-        serviceRequestRepository.createRequest(newRequest)
+        try {
+            serviceRequestRepository.createRequest(newRequest)
+        } catch (e: Exception) {
+            throw IllegalArgumentException(
+                "Ya existe una solicitud o reserva para este servicio en la misma fecha y hora",
+                e
+            )
+        }
 
         // Generar notificación para el proveedor
         generateNotificationUseCase.generateRequestReceivedNotification(
@@ -76,4 +77,9 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         newRequest
     }
+}
+
+private fun requestIdFor(publicationId: String, scheduledDateTime: Long): String {
+    val safePublicationId = publicationId.replace(Regex("[^A-Za-z0-9_-]"), "_")
+    return "req_${safePublicationId}_$scheduledDateTime"
 }

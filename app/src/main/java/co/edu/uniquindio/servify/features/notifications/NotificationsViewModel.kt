@@ -13,7 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,7 +29,7 @@ data class NotificationsUiState(
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     observeNotificationsUseCase: ObserveNotificationsUseCase,
-    userRepository: UserRepository,
+    private val userRepository: UserRepository,
     private val markNotificationReadUseCase: MarkNotificationReadUseCase,
     private val markAllNotificationsReadUseCase: MarkAllNotificationsReadUseCase
 ) : ViewModel() {
@@ -66,11 +66,6 @@ class NotificationsViewModel @Inject constructor(
                 markNotificationReadUseCase(notification.id)
             }
 
-            // Destino de cada tipo (MainScreen traduce la ruta a la pantalla real):
-            //  - solicitudes y recordatorios -> Mis solicitudes
-            //  - verificación/rechazo de una publicación propia -> Mis publicaciones
-            //  - comentarios -> detalle del servicio comentado
-            //  - logros -> Mis logros
             val route = when (notification.type) {
                 NotificationType.REQUEST_RECEIVED,
                 NotificationType.REQUEST_ACCEPTED,
@@ -90,7 +85,8 @@ class NotificationsViewModel @Inject constructor(
 
     fun onMarkAllAsRead() {
         viewModelScope.launch {
-            markAllNotificationsReadUseCase()
+            val currentUser = userRepository.observeCurrentUser().firstOrNull()
+            markAllNotificationsReadUseCase(currentUser?.id)
         }
     }
 }

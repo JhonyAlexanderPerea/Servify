@@ -24,6 +24,9 @@ class ScriptedAuthRepository(
     override suspend fun login(email: String, password: String, requiredRole: UserRole?): AuthResult =
         loginResult
 
+    override suspend fun loginWithGoogle(idToken: String): AuthResult =
+        loginResult
+
     override suspend fun register(
         name: String,
         lastName: String,

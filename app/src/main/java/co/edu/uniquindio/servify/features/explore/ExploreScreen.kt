@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.features.home.component.AnimatedFavoriteIcon
 import co.edu.uniquindio.servify.features.home.component.CategoryChipsRow
 import co.edu.uniquindio.servify.features.home.component.HomeSearchBar
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
@@ -346,10 +347,9 @@ private fun NearbyServiceFloatingCard(
                             .clickable(onClick = onFavoriteToggle),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = if (publication.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorito",
-                            tint = if (publication.isFavorite) ServifyExtra.favorite else ServifyOnSurfaceVariant,
+                        AnimatedFavoriteIcon(
+                            isFavorite = publication.isFavorite,
+                            unselectedTint = ServifyOnSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                     }

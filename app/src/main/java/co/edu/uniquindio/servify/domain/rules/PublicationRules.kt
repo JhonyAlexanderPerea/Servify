@@ -30,16 +30,20 @@ enum class PublicationAction { VER, EDITAR, ELIMINAR, FINALIZAR }
  * poder probarlas con JUnit local; los casos de uso y la UI usan estas mismas reglas.
  *
  * Transiciones del autor:
- *  - PENDIENTE / RECHAZADA -> editable (una rechazada se corrige y vuelve a enviarse).
- *  - VERIFICADA            -> puede finalizarse. Editarla cambiaría lo que ya fue verificado,
- *                             así que no se permite.
+ *  - PENDIENTE / RECHAZADA / VERIFICADA / APPROVED -> editable; al guardar vuelve a PENDIENTE
+ *    para que el cambio pase otra vez por moderación.
+ *  - VERIFICADA            -> además puede finalizarse.
  *  - FINALIZADA            -> estado terminal.
  *  - Eliminar              -> siempre permitido al autor (borra su propia publicación).
  */
 object PublicationRules {
 
-    fun matches(tab: PublicationTab, publication: Publication): Boolean =
-        tab.status == null || publication.status == tab.status
+    fun matches(tab: PublicationTab, publication: Publication): Boolean = when (tab) {
+        PublicationTab.TODAS -> true
+        PublicationTab.ACTIVAS -> publication.status == PublicationStatus.VERIFICADA ||
+            publication.status == PublicationStatus.APPROVED
+        else -> publication.status == tab.status
+    }
 
     fun filter(tab: PublicationTab, publications: List<Publication>): List<Publication> =
         publications.filter { matches(tab, it) }
@@ -48,8 +52,12 @@ object PublicationRules {
     fun counts(publications: List<Publication>): Map<PublicationTab, Int> =
         PublicationTab.entries.associateWith { tab -> publications.count { matches(tab, it) } }
 
-    fun canEdit(status: PublicationStatus): Boolean =
-        status == PublicationStatus.PENDIENTE || status == PublicationStatus.RECHAZADA
+    fun canEdit(status: PublicationStatus): Boolean = status in setOf(
+        PublicationStatus.PENDIENTE,
+        PublicationStatus.RECHAZADA,
+        PublicationStatus.VERIFICADA,
+        PublicationStatus.APPROVED
+    )
 
     fun canFinalize(status: PublicationStatus): Boolean = status == PublicationStatus.VERIFICADA
 
@@ -61,5 +69,37 @@ object PublicationRules {
         if (canEdit(status)) add(PublicationAction.EDITAR)
         if (canFinalize(status)) add(PublicationAction.FINALIZAR)
         if (canDelete(status)) add(PublicationAction.ELIMINAR)
+    }
+}
+
+fun String.normalizeCategory(): String =
+    this.lowercase()
+        .replace('á', 'a')
+        .replace('é', 'e')
+        .replace('í', 'i')
+        .replace('ó', 'o')
+        .replace('ú', 'u')
+        .replace('ñ', 'n')
+        .replace(Regex("[^a-z0-9]"), "")
+
+
+/**
+ * Compara la categoría de la publicación con el id o el nombre visible de la categoría.
+ * Tolera datos heredados que guardaron el nombre en [categoryId] y catálogos cuyos
+ * documentos usan un id distinto al slug de la categoría.
+ */
+fun Publication.matchesCategory(categoryId: String?, categoryLabel: String? = null): Boolean {
+    if (categoryId.isNullOrBlank()) return true
+    val selected = listOf(categoryId, categoryLabel.orEmpty())
+        .map { it.normalizeCategory() }
+        .filter { it.isNotBlank() }
+    if (selected.isEmpty()) return true
+
+    val own = listOf(this.categoryId, category, subcategoryId.orEmpty(), subcategory)
+        .map { it.normalizeCategory() }
+        .filter { it.isNotBlank() }
+
+    return selected.any { candidate ->
+        own.any { value -> value == candidate || value.contains(candidate) || candidate.contains(value) }
     }
 }

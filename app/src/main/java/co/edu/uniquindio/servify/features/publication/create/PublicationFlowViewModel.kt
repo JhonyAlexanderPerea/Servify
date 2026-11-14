@@ -3,17 +3,20 @@ package co.edu.uniquindio.servify.features.publication.create
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.data.remote.connectivity.ConnectivityMonitor
 import co.edu.uniquindio.servify.domain.model.AiClassification
 import co.edu.uniquindio.servify.domain.model.CatalogCategory
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
+import co.edu.uniquindio.servify.domain.repository.GeocodingRepository
+import co.edu.uniquindio.servify.domain.repository.ImageRepository
 import co.edu.uniquindio.servify.domain.rules.PointEvent
 import co.edu.uniquindio.servify.domain.rules.PublicationRules
 import co.edu.uniquindio.servify.domain.usecase.publication.ClassifyServiceWithAiUseCase
-import co.edu.uniquindio.servify.domain.usecase.reputation.AwardPointsUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.CreatePublicationUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.GetPublicationByIdUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.UpdatePublicationUseCase
+import co.edu.uniquindio.servify.domain.usecase.reputation.AwardPointsUseCase
 import co.edu.uniquindio.servify.domain.usecase.user.GetCurrentUserUseCase
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationMockData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,8 +25,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 data class PublicationFormUiState(
@@ -33,6 +40,7 @@ data class PublicationFormUiState(
     val description: String = "",
     val descriptionError: String? = null,
     val categoryId: String = "",
+    val categoryName: String = "",
     val categoryError: String? = null,
     val subcategoryId: String = "",
     val subcategoryError: String? = null,
@@ -52,7 +60,9 @@ data class PublicationFormUiState(
     val savedPublicationId: String? = null,
     val isAiAnalyzing: Boolean = false,
     val aiSuggestion: AiClassification? = null,
-    val userMessage: String? = null
+    val userMessage: String? = null,
+    /** Indica si hay conexión a internet en este momento. */
+    val isOnline: Boolean = true
 )
 
 @HiltViewModel
@@ -63,13 +73,32 @@ class PublicationFlowViewModel @Inject constructor(
     private val updatePublicationUseCase: UpdatePublicationUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val awardPointsUseCase: AwardPointsUseCase,
-    private val classifyServiceWithAiUseCase: ClassifyServiceWithAiUseCase
+    private val classifyServiceWithAiUseCase: ClassifyServiceWithAiUseCase,
+    private val geocodingRepository: GeocodingRepository,
+    private val imageRepository: ImageRepository,
+    private val connectivityMonitor: ConnectivityMonitor
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PublicationFormUiState())
     val uiState: StateFlow<PublicationFormUiState> = _uiState.asStateFlow()
 
-    private val catalog = CreatePublicationMockData.categoriesList.map {
+    // Observa el estado de conectividad y actualiza el UI
+    init {
+        viewModelScope.launch {
+            connectivityMonitor.isConnected
+                .collect { isOnline ->
+                    _uiState.update { it.copy(isOnline = isOnline) }
+                    if (isOnline) {
+                        _uiState.update { it.copy(userMessage = null) }
+                    } else {
+                        _uiState.update { it.copy(userMessage = "Sin conexión a internet. La publicación se guardará cuando se recupere la conexión.") }
+                    }
+                }
+        }
+    }
+
+    private val categoryOptions = CreatePublicationMockData.categoriesList
+    private val catalog = categoryOptions.map {
         CatalogCategory(it.name, it.subcategories)
     }
 
@@ -88,12 +117,18 @@ class PublicationFlowViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             val existing = getPublicationByIdUseCase(id)
             if (existing != null) {
+                val categoryOption = categoryOptions.find { option ->
+                    option.id.equals(existing.categoryId, ignoreCase = true) ||
+                        option.name.equals(existing.category, ignoreCase = true) ||
+                        option.name.equals(existing.categoryId, ignoreCase = true)
+                }
                 _uiState.update {
                     it.copy(
                         publicationId = existing.id,
                         title = existing.title,
                         description = existing.description,
-                        categoryId = existing.categoryId.ifBlank { existing.category },
+                        categoryId = categoryOption?.id ?: existing.categoryId.ifBlank { existing.category },
+                        categoryName = categoryOption?.name ?: existing.category.ifBlank { existing.categoryId },
                         subcategoryId = existing.subcategoryId ?: existing.subcategory,
                         minPrice = initialMinPrice(existing).toString(),
                         maxPrice = initialMaxPrice(existing).toString(),
@@ -129,11 +164,13 @@ class PublicationFlowViewModel @Inject constructor(
         scheduleClassification()
     }
 
-    fun onCategoryChanged(category: String) {
+    fun onCategoryChanged(categoryName: String) {
+        val option = categoryOptions.find { it.name.equals(categoryName, ignoreCase = true) }
         _uiState.update {
             it.copy(
-                categoryId = category,
-                categoryError = if (category.isBlank()) "Selecciona una categoría" else null,
+                categoryId = option?.id ?: categoryName,
+                categoryName = option?.name ?: categoryName,
+                categoryError = if (categoryName.isBlank()) "Selecciona una categoría" else null,
                 subcategoryId = "",
                 subcategoryError = null
             )
@@ -204,6 +241,33 @@ class PublicationFlowViewModel @Inject constructor(
         }
     }
 
+    fun onUploadImage(localUri: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, userMessage = "Subiendo imagen a Cloudinary...") }
+            val uploadedUrl = runCatching {
+                imageRepository.uploadImage(
+                    localUri,
+                    "servify/publications/${System.currentTimeMillis()}/${UUID.randomUUID()}"
+                )
+            }.getOrNull()
+
+            _uiState.update { state ->
+                if (uploadedUrl != null && state.images.size < 5) {
+                    state.copy(
+                        images = state.images + uploadedUrl,
+                        isLoading = false,
+                        userMessage = "¡Imagen subida con éxito!"
+                    )
+                } else {
+                    state.copy(
+                        isLoading = false,
+                        userMessage = if (uploadedUrl == null) "Error al subir la imagen a Cloudinary" else null
+                    )
+                }
+            }
+        }
+    }
+
     fun onRemoveImage(index: Int) {
         _uiState.update { state ->
             val updated = state.images.toMutableList().apply {
@@ -215,9 +279,11 @@ class PublicationFlowViewModel @Inject constructor(
 
     fun onUseAiCategory() {
         val suggestion = _uiState.value.aiSuggestion ?: return
+        val option = categoryOptions.find { it.name.equals(suggestion.category, ignoreCase = true) }
         _uiState.update {
             it.copy(
-                categoryId = suggestion.category,
+                categoryId = option?.id ?: suggestion.category,
+                categoryName = option?.name ?: suggestion.category,
                 subcategoryId = suggestion.subcategory.orEmpty(),
                 categoryError = null,
                 subcategoryError = null,
@@ -350,16 +416,29 @@ class PublicationFlowViewModel @Inject constructor(
     /**
      * Crear: la publicación nace PENDIENTE (toda publicación debe pasar por moderación) con el
      * usuario en sesión como autor, y se le suman los puntos de crear.
-     * Editar: solo si es del autor y está PENDIENTE o RECHAZADA; al guardar vuelve a PENDIENTE,
+     * Editar: solo si es del autor y está PENDIENTE, RECHAZADA, VERIFICADA o APPROVED; al guardar vuelve a PENDIENTE,
      * se limpia el motivo de rechazo y queda otra vez en la cola del moderador.
      */
     fun onSavePublication() {
         if (!validateForm()) return
 
         viewModelScope.launch {
+            val state = _uiState.value
+
+            // Verificar conectividad antes de intentar guardar
+            val isOnline = connectivityMonitor.checkConnectivity()
+            if (!isOnline) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        userMessage = "No hay conexión a internet. Por favor, verifica tu conexión e inténtalo de nuevo."
+                    )
+                }
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true) }
 
-            val state = _uiState.value
             val currentUser = getCurrentUserUseCase()
             val minVal = state.minPrice.toDoubleOrNull() ?: 80000.0
             val maxVal = state.maxPrice.toDoubleOrNull() ?: (minVal * 1.5)
@@ -367,6 +446,9 @@ class PublicationFlowViewModel @Inject constructor(
             val priceRangeStr = formatPriceRange(minVal, maxVal, state.priceUnit)
             val images = state.images.ifEmpty { listOf(DEFAULT_IMAGE) }
             val editingId = state.publicationId
+
+            // Geocodificación directa con Mapbox a partir del texto de ubicación
+            val resolvedLocation = geocodingRepository.forward(state.locationName)
 
             val savedId: String
             if (editingId.isNullOrBlank()) {
@@ -376,7 +458,7 @@ class PublicationFlowViewModel @Inject constructor(
                     title = state.title.trim(),
                     description = state.description.trim(),
                     categoryId = state.categoryId,
-                    category = state.categoryId,
+                    category = state.categoryName.ifBlank { state.categoryId },
                     subcategoryId = state.subcategoryId.ifBlank { null },
                     subcategory = state.subcategoryId,
                     price = avgPrice,
@@ -386,9 +468,10 @@ class PublicationFlowViewModel @Inject constructor(
                     provider = currentUser,
                     authorId = currentUser.id,
                     status = PublicationStatus.PENDIENTE,
-                    ratingAverage = 5.0,
-                    reviewsCount = 1,
+                    ratingAverage = 0.0,
+                    reviewsCount = 0,
                     locationName = state.locationName,
+                    location = resolvedLocation,
                     city = state.locationName
                 )
                 createPublicationUseCase(publication)
@@ -396,8 +479,7 @@ class PublicationFlowViewModel @Inject constructor(
             } else {
                 savedId = editingId
                 val existing = getPublicationByIdUseCase(editingId)
-                val isOwner = existing != null &&
-                    (existing.authorId.isBlank() || existing.authorId == currentUser.id)
+                val isOwner = existing?.belongsTo(currentUser.id, currentUser.email) == true
                 if (existing == null || !isOwner || !PublicationRules.canEdit(existing.status)) {
                     _uiState.update {
                         it.copy(isLoading = false, userMessage = "Esta publicación ya no se puede editar")
@@ -409,7 +491,7 @@ class PublicationFlowViewModel @Inject constructor(
                         title = state.title.trim(),
                         description = state.description.trim(),
                         categoryId = state.categoryId,
-                        category = state.categoryId,
+                        category = state.categoryName.ifBlank { state.categoryId },
                         subcategoryId = state.subcategoryId.ifBlank { null },
                         subcategory = state.subcategoryId,
                         price = avgPrice,
@@ -417,9 +499,11 @@ class PublicationFlowViewModel @Inject constructor(
                         priceUnit = state.priceUnit,
                         imageUrls = images,
                         locationName = state.locationName,
+                        location = resolvedLocation,
                         city = state.locationName,
                         status = PublicationStatus.PENDIENTE,
-                        rejectionReason = null
+                        rejectionReason = null,
+                        verifiedAtMillis = null
                     )
                 )
             }
@@ -449,12 +533,12 @@ private fun initialMinPrice(publication: Publication): Int {
     return if (publication.price > 0) publication.price.toInt() else 80000
 }
 
-private fun initialMaxPrice(publication: Publication): Int {
+val initialMaxPrice: (Publication) -> Int = { publication ->
     val parts = publication.priceRange.split("–", "-")
     if (parts.size > 1) {
         val maxDigits = parts[1].replace(Regex("[^0-9]"), "").toIntOrNull()
-        if (maxDigits != null && maxDigits > 0) return maxDigits
+        if (maxDigits != null && maxDigits > 0) maxDigits else (initialMinPrice(publication) * 1.5).toInt().coerceAtLeast(120000)
+    } else {
+        (initialMinPrice(publication) * 1.5).toInt().coerceAtLeast(120000)
     }
-    val min = initialMinPrice(publication)
-    return (min * 1.5).toInt().coerceAtLeast(120000)
 }

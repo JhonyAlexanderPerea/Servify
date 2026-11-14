@@ -851,3 +851,37 @@ fun InterestButton(
         )
     }
 }
+
+/** Corazón de favorito con rebote al activarse y transición de color. */
+@Composable
+fun AnimatedFavoriteIcon(
+    isFavorite: Boolean,
+    modifier: Modifier = Modifier,
+    selectedTint: Color = ServifyExtra.favorite,
+    unselectedTint: Color = MaterialTheme.colorScheme.onSurfaceVariant
+) {
+    val scale = remember { Animatable(1f) }
+    var first by remember { mutableStateOf(true) }
+    LaunchedEffect(isFavorite) {
+        if (first) {
+            first = false
+        } else if (isFavorite) {
+            scale.animateTo(1.3f, tween(90))
+            scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+        }
+    }
+    val tint by animateColorAsState(
+        targetValue = if (isFavorite) selectedTint else unselectedTint,
+        animationSpec = tween(200),
+        label = "favoriteTint"
+    )
+    Icon(
+        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+        contentDescription = "Favorito",
+        tint = tint,
+        modifier = modifier.graphicsLayer {
+            scaleX = scale.value
+            scaleY = scale.value
+        }
+    )
+}

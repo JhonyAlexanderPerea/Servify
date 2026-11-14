@@ -12,4 +12,12 @@ interface MapboxGeocodingApi {
         @Query("language") language: String = "es",
         @Query("limit") limit: Int = 1
     ): GeocodingResponseDto
+
+    @GET("search/geocode/v6/forward")
+    suspend fun forward(
+        @Query("q") query: String,
+        @Query("access_token") accessToken: String,
+        @Query("language") language: String = "es",
+        @Query("limit") limit: Int = 1
+    ): GeocodingResponseDto
 }

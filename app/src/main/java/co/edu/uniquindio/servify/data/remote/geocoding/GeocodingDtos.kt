@@ -10,7 +10,13 @@ data class GeocodingResponseDto(
 
 @Keep
 data class GeocodingFeatureDto(
+    val geometry: GeocodingGeometryDto? = null,
     val properties: GeocodingPropertiesDto? = null
+)
+
+@Keep
+data class GeocodingGeometryDto(
+    val coordinates: List<Double>? = null
 )
 
 @Keep

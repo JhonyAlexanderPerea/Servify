@@ -15,6 +15,7 @@
     <string name="login_signing_in">Ingresando…</string>
     <string name="login_continue_with">o continúa con</string>
     <string name="google_continue">Continuar con Google</string>
+    <string name="default_web_client_id">CLIENT_ID_PLACEHOLDER</string>
     <string name="login_create_account">Crear cuenta</string>
 
     <!-- Register -->

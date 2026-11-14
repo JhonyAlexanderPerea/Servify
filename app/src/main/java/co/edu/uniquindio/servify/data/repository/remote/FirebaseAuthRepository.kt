@@ -16,6 +16,7 @@ import co.edu.uniquindio.servify.domain.repository.AuthRepository
 import co.edu.uniquindio.servify.domain.rules.CredentialRules
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -186,5 +187,31 @@ class FirebaseAuthRepository @Inject constructor(
 
     override fun logout() {
         auth.signOut()
+    }
+
+    override suspend fun loginWithGoogle(idToken: String): AuthResult {
+        return try {
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val authResult = auth.signInWithCredential(credential).await()
+            val firebaseUser = authResult.user ?: return AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
+            val uid = firebaseUser.uid
+
+            var user = users.document(uid).get().await().toUser()
+            if (user == null) {
+                user = User(
+                    id = uid,
+                    name = firebaseUser.displayName ?: "Usuario Google",
+                    email = firebaseUser.email ?: "",
+                    role = UserRole.USER,
+                    isVerified = true,
+                    memberSinceMillis = System.currentTimeMillis()
+                )
+                runCatching { users.document(uid).set(UserDto.fromDomain(user)).await() }
+            }
+            AuthResult.Success(user)
+        } catch (e: Exception) {
+            Log.e("FirebaseAuthRepository", "Google login exception: ${e.message}", e)
+            AuthResult.Failure(AuthError.INVALID_CREDENTIALS)
+        }
     }
 }

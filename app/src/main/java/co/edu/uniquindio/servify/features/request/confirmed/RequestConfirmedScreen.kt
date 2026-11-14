@@ -28,14 +28,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
@@ -45,16 +47,24 @@ import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifySurface
 import co.edu.uniquindio.servify.ui.theme.ServifySurfaceVariant
 import co.edu.uniquindio.servify.ui.theme.ServifyTertiary
-import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
 @Composable
 fun RequestConfirmedScreen(
     requestId: String,
     onGoToMyRequests: () -> Unit,
     onGoToFeed: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: RequestConfirmedViewModel = hiltViewModel()
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val pub = state.publication
+    val req = state.request
+
+    val serviceTitle = pub?.title ?: "Solicitud de servicio"
+    val providerName = pub?.provider?.name ?: "Proveedor Servify"
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -97,7 +107,7 @@ fun RequestConfirmedScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "El proveedor Juan Carlos Mejía ha recibido tu solicitud. Te notificaremos tan pronto acepte la cita o si propone un cambio de horario.",
+                text = "El proveedor $providerName ha recibido tu solicitud. Te notificaremos tan pronto acepte la cita o si propone un cambio de horario.",
                 style = ServifyTextStyle.SmallRelaxed,
                 color = ServifyOnSurfaceVariant
             )
@@ -126,7 +136,7 @@ fun RequestConfirmedScreen(
                         )
 
                         Text(
-                            text = "Ref: #$requestId",
+                            text = "Ref: #${req?.id ?: requestId}",
                             style = ServifyTextStyle.Caption,
                             color = ServifyOnSurfaceVariant
                         )
@@ -135,7 +145,7 @@ fun RequestConfirmedScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "Plomería residencial y comercial",
+                        text = serviceTitle,
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                         color = ServifyOnSurface
                     )
@@ -143,7 +153,7 @@ fun RequestConfirmedScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Proveedor: Juan Carlos Mejía",
+                        text = "Proveedor: $providerName",
                         style = ServifyTextStyle.Small,
                         color = ServifyOnSurfaceVariant
                     )
@@ -160,12 +170,12 @@ fun RequestConfirmedScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Horario programado:",
+                            text = "Estado de cita:",
                             style = ServifyTextStyle.Caption,
                             color = ServifyOnSurfaceVariant
                         )
                         Text(
-                            text = "Mañana a las 2:00 PM",
+                            text = "Pendiente de confirmación",
                             style = ServifyTextStyle.Caption.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = ServifyTertiary
@@ -193,29 +203,5 @@ fun RequestConfirmedScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    }
-}
-
-@Preview(name = "Request Confirmed Light", showBackground = true)
-@Composable
-fun RequestConfirmedPreviewLight() {
-    ServifyTheme(darkTheme = false) {
-        RequestConfirmedScreen(
-            requestId = "req_101",
-            onGoToMyRequests = {},
-            onGoToFeed = {}
-        )
-    }
-}
-
-@Preview(name = "Request Confirmed Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun RequestConfirmedPreviewDark() {
-    ServifyTheme(darkTheme = true) {
-        RequestConfirmedScreen(
-            requestId = "req_101",
-            onGoToMyRequests = {},
-            onGoToFeed = {}
-        )
     }
 }

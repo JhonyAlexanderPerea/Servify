@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
+import co.edu.uniquindio.servify.domain.usecase.auth.LoginWithGoogleUseCase
 import co.edu.uniquindio.servify.domain.rules.CredentialRules
 import co.edu.uniquindio.servify.features.auth.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUserUseCase: LoginUserUseCase
+    private val loginUserUseCase: LoginUserUseCase,
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase? = null
 ) : ViewModel() {
 
     private val _uiState =
@@ -99,9 +101,7 @@ class LoginViewModel @Inject constructor(
                                 it.copy(isLoading = false, loginError = result.error.toMessage())
                             }
 
-                            // El login nunca devuelve VerificationRequired: se trata como error genérico.
                             is AuthResult.VerificationRequired -> _uiState.update {
-                                // TODO(i18n): mover a strings.xml
                                 it.copy(
                                     isLoading = false,
                                     loginError = "No se pudo iniciar sesión. Inténtalo de nuevo."
@@ -110,7 +110,6 @@ class LoginViewModel @Inject constructor(
                         }
                     },
                     onFailure = {
-                        // TODO(i18n): mover a strings.xml
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -122,10 +121,48 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    /** El acceso con Google llega con Firebase Auth (fase 3). Por ahora se informa en pantalla. */
+    fun loginWithGoogle(idToken: String) {
+        val useCase = loginWithGoogleUseCase ?: return
+        val state = _uiState.value
+        if (state.isLoading) return
+
+        _uiState.update { it.copy(isLoading = true, loginError = null) }
+
+        viewModelScope.launch {
+            runCatching { useCase(idToken) }
+                .fold(
+                    onSuccess = { result ->
+                        when (result) {
+                            is AuthResult.Success -> _uiState.update {
+                                it.copy(isLoading = false)
+                            }
+                            is AuthResult.Failure -> _uiState.update {
+                                it.copy(isLoading = false, loginError = result.error.toMessage())
+                            }
+                            is AuthResult.VerificationRequired -> _uiState.update {
+                                it.copy(isLoading = false, loginError = "Verificación requerida")
+                            }
+                        }
+                    },
+                    onFailure = {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                loginError = "No se pudo iniciar sesión con Google."
+                            )
+                        }
+                    }
+                )
+        }
+    }
+
     fun onGoogleClick() {
+        // Se maneja en LoginScreen con Credential Manager
+    }
+
+    fun onGoogleClickFallback(error: String) {
         _uiState.update {
-            it.copy(loginError = "El acceso con Google estará disponible próximamente")
+            it.copy(loginError = error)
         }
     }
 }

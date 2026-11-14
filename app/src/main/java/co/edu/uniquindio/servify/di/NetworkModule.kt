@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.di
 import android.content.Context
 import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.data.remote.ai.OpenRouterApi
+import co.edu.uniquindio.servify.data.remote.connectivity.ConnectivityMonitor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
 
-/** Clientes HTTP de la aplicación: OpenRouter y Mapbox. */
+/** Clientes HTTP de la aplicación: OpenRouter, Mapbox y monitor de conectividad. */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -73,4 +74,9 @@ object NetworkModule {
     @Singleton
     fun provideMapboxGeocodingApi(@Named("mapbox") retrofit: Retrofit): co.edu.uniquindio.servify.data.remote.geocoding.MapboxGeocodingApi =
         retrofit.create(co.edu.uniquindio.servify.data.remote.geocoding.MapboxGeocodingApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideConnectivityMonitor(@ApplicationContext context: Context): ConnectivityMonitor =
+        ConnectivityMonitor(context)
 }

@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.uniquindio.servify.features.home.component.AnimatedFavoriteIcon
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.component.StarRatingRow
 import co.edu.uniquindio.servify.features.service.model.CommentItemData
@@ -112,10 +113,9 @@ fun ServiceDetailTopBar(
                     .clickable(onClick = onFavoriteToggle),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorito",
-                    tint = if (isFavorite) ServifyExtra.favorite else MaterialTheme.colorScheme.onSurface,
+                AnimatedFavoriteIcon(
+                    isFavorite = isFavorite,
+                    unselectedTint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp)
                 )
             }

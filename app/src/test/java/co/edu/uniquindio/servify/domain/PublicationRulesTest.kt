@@ -6,6 +6,7 @@ import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.rules.PublicationAction
 import co.edu.uniquindio.servify.domain.rules.PublicationRules
 import co.edu.uniquindio.servify.domain.rules.PublicationTab
+import co.edu.uniquindio.servify.domain.rules.matchesCategory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -58,10 +59,11 @@ class PublicationRulesTest {
     // ----- Transiciones de estado -----
 
     @Test
-    fun only_pending_and_rejected_can_be_edited() {
+    fun published_services_can_be_edited_to_send_them_back_to_review() {
         assertTrue(PublicationRules.canEdit(PublicationStatus.PENDIENTE))
         assertTrue(PublicationRules.canEdit(PublicationStatus.RECHAZADA))
-        assertFalse(PublicationRules.canEdit(PublicationStatus.VERIFICADA))
+        assertTrue(PublicationRules.canEdit(PublicationStatus.VERIFICADA))
+        assertTrue(PublicationRules.canEdit(PublicationStatus.APPROVED))
         assertFalse(PublicationRules.canEdit(PublicationStatus.FINALIZADA))
     }
 
@@ -89,12 +91,29 @@ class PublicationRulesTest {
             PublicationRules.actionsFor(PublicationStatus.RECHAZADA)
         )
         assertEquals(
-            listOf(PublicationAction.VER, PublicationAction.FINALIZAR, PublicationAction.ELIMINAR),
+            listOf(
+                PublicationAction.VER,
+                PublicationAction.EDITAR,
+                PublicationAction.FINALIZAR,
+                PublicationAction.ELIMINAR
+            ),
             PublicationRules.actionsFor(PublicationStatus.VERIFICADA)
         )
         assertEquals(
             listOf(PublicationAction.VER, PublicationAction.ELIMINAR),
             PublicationRules.actionsFor(PublicationStatus.FINALIZADA)
         )
+    }
+
+    // ----- Filtro por categoría -----
+
+    @Test
+    fun category_filter_accepts_id_or_visible_name() {
+        val publication = SeedPublications.publications.first()
+
+        assertTrue(publication.matchesCategory(publication.categoryId, publication.category))
+        assertTrue(publication.matchesCategory(publication.category))
+        assertTrue(publication.matchesCategory(null))
+        assertFalse(publication.matchesCategory("categoria-que-no-existe"))
     }
 }

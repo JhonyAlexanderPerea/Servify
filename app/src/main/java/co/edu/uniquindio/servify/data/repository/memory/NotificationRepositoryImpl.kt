@@ -31,4 +31,10 @@ class NotificationRepositoryImpl @Inject constructor() : NotificationRepository 
             list.map { it.copy(isRead = true) }
         }
     }
+
+    override suspend fun markAllAsReadForUser(userId: String) {
+        _notifications.update { list ->
+            list.map { if (it.userId == userId) it.copy(isRead = true) else it }
+        }
+    }
 }

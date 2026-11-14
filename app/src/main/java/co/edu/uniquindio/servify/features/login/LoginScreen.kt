@@ -32,6 +32,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +66,38 @@ fun LoginScreen(
 ) {
 
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val webClientId = stringResource(R.string.default_web_client_id)
+
+    val onGoogleClick: () -> Unit = {
+        coroutineScope.launch {
+            try {
+                val credentialManager = androidx.credentials.CredentialManager.create(context)
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(webClientId)
+                    .build()
+
+                val request = androidx.credentials.GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val result = credentialManager.getCredential(context, request)
+                val credential = result.credential
+                if (credential is androidx.credentials.CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    viewModel.loginWithGoogle(googleIdTokenCredential.idToken)
+                } else {
+                    viewModel.onGoogleClickFallback("Credencial de Google no válida")
+                }
+            } catch (e: Exception) {
+                if (e !is androidx.credentials.exceptions.GetCredentialCancellationException) {
+                    viewModel.onGoogleClickFallback(e.localizedMessage ?: "Error al iniciar sesión con Google")
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -231,7 +268,7 @@ fun LoginScreen(
             }
 
             GoogleButton(
-                onClick = viewModel::onGoogleClick
+                onClick = onGoogleClick
             )
 
             Row(

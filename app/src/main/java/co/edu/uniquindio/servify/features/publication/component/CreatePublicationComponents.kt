@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
@@ -30,7 +32,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.RocketLaunch
@@ -381,29 +382,20 @@ fun PhotoPickerGrid(
                 }
             }
 
-            // Fotos añadidas (simuladas con placeholders con estilo)
-            itemsIndexed(photoUrls) { index, _ ->
+            // Fotos añadidas con la imagen real dentro del preview
+            itemsIndexed(photoUrls) { index, photoUrl ->
                 Box(
                     modifier = Modifier
                         .size(90.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
-                            )
-                        )
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.HomeRepairService,
-                            contentDescription = null,
-                            tint = ServifyExtra.onHero,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
+                    AsyncImage(
+                        model = photoUrl,
+                        contentDescription = "Foto del servicio",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
 
                     // Botón para eliminar foto
                     Box(
@@ -753,7 +745,7 @@ fun CreatePublicationBottomBar(
             }
 
             ServifyFilledButton(
-                text = if (currentStep == 3) "Publicar Anuncio" else "Siguiente",
+                text = if (currentStep == 3) "Publicar" else "Siguiente",
                 icon = if (currentStep == 3) Icons.Default.RocketLaunch else Icons.Default.ArrowForward,
                 onClick = onNextClick,
                 enabled = canGoNext,

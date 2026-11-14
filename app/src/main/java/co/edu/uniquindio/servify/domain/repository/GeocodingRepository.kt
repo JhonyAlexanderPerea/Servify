@@ -11,4 +11,10 @@ interface GeocodingRepository {
      * Devuelve null si no hay resultado o no fue posible geocodificar.
      */
     suspend fun reverse(location: Location): String?
+
+    /**
+     * Convierte un nombre de ubicación o dirección en coordenadas geográficas [Location].
+     * Devuelve null o coordenadas por defecto si no fue posible resolver la dirección.
+     */
+    suspend fun forward(address: String): Location?
 }

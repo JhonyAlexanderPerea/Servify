@@ -28,4 +28,33 @@ class MapboxGeocodingRepository @Inject constructor(
         val properties = response.features?.firstOrNull()?.properties ?: return null
         return properties.fullAddress ?: properties.placeFormatted ?: properties.name
     }
+
+    override suspend fun forward(address: String): Location? {
+        val accessToken = context.getString(R.string.mapbox_access_token)
+        if (accessToken.isBlank() || address.isBlank()) return defaultLocationFor(address)
+
+        return try {
+            val response = api.forward(
+                query = address,
+                accessToken = accessToken
+            )
+            val coords = response.features?.firstOrNull()?.geometry?.coordinates
+            if (coords != null && coords.size >= 2) {
+                Location(latitude = coords[1], longitude = coords[0])
+            } else {
+                defaultLocationFor(address)
+            }
+        } catch (_: Exception) {
+            defaultLocationFor(address)
+        }
+    }
+
+    private fun defaultLocationFor(address: String): Location {
+        val clean = address.lowercase()
+        return when {
+            clean.contains("pereira") || clean.contains("dosquebradas") -> Location(4.81333, -75.69611)
+            clean.contains("manizales") || clean.contains("caldas") -> Location(5.06889, -75.51738)
+            else -> Location(4.53389, -75.68111) // Armenia, Quindío
+        }
+    }
 }

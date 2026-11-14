@@ -21,12 +21,11 @@ class ObserveMyRequestsUseCase @Inject constructor(
 ) {
     operator fun invoke(clientId: String): Flow<List<MyRequest>> =
         combine(
-            serviceRequestRepository.observeRequests(),
+            serviceRequestRepository.observeRequestsForUser(clientId, isProvider = false),
             publicationRepository.observePublications()
         ) { requests, publications ->
             val byId = publications.associateBy { it.id }
             requests
-                .filter { it.clientId == clientId }
                 .sortedByDescending { it.createdAt }
                 .map { request ->
                     val publication = byId[request.publicationId]

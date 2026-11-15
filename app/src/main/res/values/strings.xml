@@ -2,6 +2,13 @@
     <!-- App Name -->
     <string name="app_name">Servify</string>
 
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_explore">Explorar</string>
+    <string name="nav_create">Publicar</string>
+    <string name="nav_notifications">Alertas</string>
+    <string name="nav_profile">Perfil</string>
+
     <!-- Common UI & Dialogs -->
     <string name="common_cancel">Cancelar</string>
     <string name="common_confirm">Confirmar</string>

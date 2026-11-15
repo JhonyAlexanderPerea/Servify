@@ -233,10 +233,10 @@ class PublicationFlowViewModel @Inject constructor(
         }
     }
 
-    fun onAddImage(imageUrl: String) {
+    fun onAddImage(imageUri: String) {
         _uiState.update { state ->
-            if (state.images.size < 5) {
-                state.copy(images = state.images + imageUrl)
+            if (state.images.size < 5 && !state.images.contains(imageUri)) {
+                state.copy(images = state.images + imageUri)
             } else state
         }
     }
@@ -268,10 +268,10 @@ class PublicationFlowViewModel @Inject constructor(
         }
     }
 
-    fun onRemoveImage(index: Int) {
+    fun onImageRemoved(imageUri: String) {
         _uiState.update { state ->
             val updated = state.images.toMutableList().apply {
-                if (index in indices) removeAt(index)
+                removeIf { it == imageUri }
             }
             state.copy(images = updated)
         }
@@ -334,7 +334,14 @@ class PublicationFlowViewModel @Inject constructor(
             else -> null
         }
 
-        val isValid = titleErr == null && descErr == null && catErr == null && locErr == null && minErr == null && maxErr == null
+        // Validación de imágenes: mínimo 1, máximo 5
+        val imagesErr = when {
+            state.images.isEmpty() -> "Debes adjuntar al menos 1 fotografía"
+            state.images.size > 5 -> "No puedes adjuntar más de 5 fotografías"
+            else -> null
+        }
+
+        val isValid = titleErr == null && descErr == null && catErr == null && locErr == null && minErr == null && maxErr == null && imagesErr == null
 
         _uiState.update {
             it.copy(

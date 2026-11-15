@@ -105,6 +105,10 @@
     <string name="publication_price_unit_label">Unidad de precio</string>
     <string name="publication_location_label">Ubicación</string>
     <string name="publication_images_label">Imágenes del servicio</string>
+    <string name="publication_photos_label">Fotos del servicio (%1$d/5)</string>
+    <string name="publication_photos_add">Agregar foto</string>
+    <string name="publication_photos_error_min">Debes adjuntar al menos 1 fotografía</string>
+    <string name="publication_photos_remove_cd">Eliminar fotografía</string>
     <string name="publication_submit_button">Publicar servicio</string>
     <string name="publication_published_success_title">¡Publicación enviada!</string>
     <string name="publication_published_success_desc">Tu servicio pasará por revisión de moderación antes de ser visible.</string>

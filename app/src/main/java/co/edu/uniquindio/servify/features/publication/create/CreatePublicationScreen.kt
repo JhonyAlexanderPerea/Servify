@@ -80,65 +80,6 @@ fun CreatePublicationScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showPhotoDialog by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap ->
-        if (bitmap != null) {
-            try {
-                val file = java.io.File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
-                java.io.FileOutputStream(file).use { out ->
-                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
-                }
-                viewModel.onUploadImage(android.net.Uri.fromFile(file).toString())
-            } catch (_: Exception) { }
-        }
-    }
-
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            cameraLauncher.launch(null)
-        }
-    }
-
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: android.net.Uri? ->
-        if (uri != null) {
-            viewModel.onUploadImage(uri.toString())
-        }
-    }
-
-    if (showPhotoDialog) {
-        AlertDialog(
-            onDismissRequest = { showPhotoDialog = false },
-            title = { Text("Agregar foto") },
-            text = { Text("Selecciona el origen de la imagen para tu servicio.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showPhotoDialog = false
-                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
-                    }
-                ) {
-                    Text("Cámara")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showPhotoDialog = false
-                        galleryLauncher.launch("image/*")
-                    }
-                ) {
-                    Text("Galería")
-                }
-            }
-        )
-    }
 
     val categories = CreatePublicationMockData.categoriesList.map { it.name }
     val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == state.categoryName }
@@ -261,7 +202,7 @@ fun CreatePublicationScreen(
                                             showPhotoDialog = true
                                         }
                                     },
-                                    onRemovePhotoClick = viewModel::onRemoveImage
+                                    onRemovePhotoClick = viewModel::onImageRemoved
                                 )
                             }
 
@@ -379,10 +320,10 @@ fun CreatePublicationScreen(
     }
 
     ImagePickerBottomSheet(
-        isVisible = showImagePicker,
-        onDismiss = { showImagePicker = false },
+        isVisible = showPhotoDialog,
+        onDismiss = { showPhotoDialog = false },
         onImageSelected = { uri ->
-            viewModel.onAddImage(uri.toString())
+            viewModel.onUploadImage(uri.toString())
         }
     )
 }

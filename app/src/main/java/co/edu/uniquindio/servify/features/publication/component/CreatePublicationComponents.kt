@@ -324,7 +324,7 @@ fun CustomDropdownField(
 fun PhotoPickerGrid(
     photoUrls: List<String>,
     onAddPhotoClick: () -> Unit,
-    onRemovePhotoClick: (Int) -> Unit,
+    onRemovePhotoClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -349,36 +349,48 @@ fun PhotoPickerGrid(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Mensaje de error si existe
+        if (photoUrls.isEmpty()) {
+            Text(
+                text = "Debes adjuntar al menos 1 fotografía",
+                style = ServifyTextStyle.Caption,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Botón para simular agregar foto
-            item {
-                Box(
-                    modifier = Modifier
-                        .size(90.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
-                        .clickable(onClick = onAddPhotoClick),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Agregar foto",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Agregar",
-                            style = ServifyTextStyle.Caption.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+            // Botón para agregar foto (solo muestra si hay menos de 5 fotos)
+            if (photoUrls.size < 5) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                            .clickable(onClick = onAddPhotoClick),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Agregar foto",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
                             )
-                        )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Agregar",
+                                style = ServifyTextStyle.Caption.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -405,7 +417,7 @@ fun PhotoPickerGrid(
                             .size(22.dp)
                             .clip(CircleShape)
                             .background(Color.Black.copy(alpha = 0.6f))
-                            .clickable { onRemovePhotoClick(index) }
+                            .clickable { onRemovePhotoClick(photoUrl) }
                             .align(Alignment.TopEnd),
                         contentAlignment = Alignment.Center
                     ) {

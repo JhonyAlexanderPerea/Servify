@@ -65,6 +65,7 @@ import co.edu.uniquindio.servify.features.publication.component.StepIndicatorRow
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationMockData
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationUiState
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.dialog.ImagePickerBottomSheet
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -376,6 +377,14 @@ fun CreatePublicationScreen(
             }
         }
     }
+
+    ImagePickerBottomSheet(
+        isVisible = showImagePicker,
+        onDismiss = { showImagePicker = false },
+        onImageSelected = { uri ->
+            viewModel.onAddImage(uri.toString())
+        }
+    )
 }
 
 // -----------------------------------------------------------------------------

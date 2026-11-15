@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
@@ -57,6 +58,7 @@ import co.edu.uniquindio.servify.features.service.model.CommentItemData
 import co.edu.uniquindio.servify.features.service.model.ServiceDetailData
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.TrustFactor
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
@@ -157,28 +159,37 @@ fun ImageGalleryBanner(
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
+        val currentImageUrl = detail.images.getOrNull(activeImageIndex) ?: detail.images.firstOrNull()
+        if (!currentImageUrl.isNullOrBlank()) {
+            ServifyAsyncImage(
+                imageUrl = currentImageUrl,
+                contentDescription = detail.title,
+                modifier = Modifier.matchParentSize()
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.HomeRepairService,
+                        contentDescription = null,
+                        tint = ServifyExtra.onHero,
+                        modifier = Modifier.size(64.dp)
                     )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.HomeRepairService,
-                    contentDescription = null,
-                    tint = ServifyExtra.onHero,
-                    modifier = Modifier.size(64.dp)
-                )
-                Text(
-                    text = detail.subcategory,
-                    style = ServifyTextStyle.BodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = ServifyExtra.onHero
-                )
+                    Text(
+                        text = detail.subcategory,
+                        style = ServifyTextStyle.BodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = ServifyExtra.onHero
+                    )
+                }
             }
         }
 
@@ -242,20 +253,31 @@ fun ProviderCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(detail.providerColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = detail.providerInitials,
-                            style = ServifyTextStyle.TitleTight.copy(
-                                color = contentColorOn(detail.providerColor),
-                                fontSize = 20.sp
-                            )
+                    if (!detail.providerAvatarUrl.isNullOrBlank()) {
+                        ServifyAsyncImage(
+                            imageUrl = detail.providerAvatarUrl,
+                            contentDescription = detail.providerName,
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape),
+                            fallbackIcon = Icons.Default.Person
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(detail.providerColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = detail.providerInitials,
+                                style = ServifyTextStyle.TitleTight.copy(
+                                    color = contentColorOn(detail.providerColor),
+                                    fontSize = 20.sp
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -668,20 +690,31 @@ fun CommentItem(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(comment.authorAvatarColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = comment.authorInitials,
-                            style = ServifyTextStyle.Caption.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
+                    if (!comment.authorAvatarUrl.isNullOrBlank()) {
+                        ServifyAsyncImage(
+                            imageUrl = comment.authorAvatarUrl,
+                            contentDescription = comment.authorName,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                            fallbackIcon = Icons.Default.Person
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(comment.authorAvatarColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = comment.authorInitials,
+                                style = ServifyTextStyle.Caption.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))

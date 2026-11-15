@@ -20,19 +20,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
 @Composable
 fun ErrorState(
     modifier: Modifier = Modifier,
-    title: String = "Algo salió mal",
-    description: String = "Ocurrió un error inesperado. Por favor intenta de nuevo.",
-    actionText: String = "Reintentar",
+    title: String = stringResource(R.string.error_state_title),
+    description: String = stringResource(R.string.error_state_description),
+    actionText: String = stringResource(R.string.common_retry),
     onActionClick: () -> Unit
 ) {
     Column(

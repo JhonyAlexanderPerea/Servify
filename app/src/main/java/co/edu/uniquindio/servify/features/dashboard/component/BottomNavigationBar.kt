@@ -1,9 +1,10 @@
 package co.edu.uniquindio.servify.features.dashboard.component
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Badge
@@ -14,24 +15,23 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.graphicsLayer
-import co.edu.uniquindio.servify.navigation.Screen
-import co.edu.uniquindio.servify.ui.motion.ServifyMotion
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.uniquindio.servify.navigation.BottomNavDestination
-import co.edu.uniquindio.servify.ui.theme.ServifyTheme
+import co.edu.uniquindio.servify.navigation.Screen
+import co.edu.uniquindio.servify.ui.motion.ServifyMotion
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
+import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
 @Composable
 fun BottomNavigationBar(
@@ -48,6 +48,7 @@ fun BottomNavigationBar(
     ) {
         BottomNavDestination.items.forEach { destination ->
             val isSelected = currentRoute == destination.route
+            val labelText = stringResource(id = destination.labelResId)
 
             if (destination.isCentralAction) {
                 // PESTAÑA CENTRAL DESTACADA (BOTÓN "+ PUBLICAR")
@@ -64,7 +65,7 @@ fun BottomNavigationBar(
                         ) {
                             Icon(
                                 imageVector = if (isSelected) destination.selectedIcon else destination.icon,
-                                contentDescription = destination.label,
+                                contentDescription = labelText,
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -72,7 +73,7 @@ fun BottomNavigationBar(
                     },
                     label = {
                         Text(
-                            text = destination.label,
+                            text = labelText,
                             style = ServifyTextStyle.Caption.copy(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
@@ -120,21 +121,21 @@ fun BottomNavigationBar(
                             ) {
                                 Icon(
                                     imageVector = if (isSelected) destination.selectedIcon else destination.icon,
-                                    contentDescription = destination.label,
+                                    contentDescription = labelText,
                                     modifier = iconModifier
                                 )
                             }
                         } else {
                             Icon(
                                 imageVector = if (isSelected) destination.selectedIcon else destination.icon,
-                                contentDescription = destination.label,
+                                contentDescription = labelText,
                                 modifier = iconModifier
                             )
                         }
                     },
                     label = {
                         Text(
-                            text = destination.label,
+                            text = labelText,
                             style = ServifyTextStyle.Caption.copy(
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium

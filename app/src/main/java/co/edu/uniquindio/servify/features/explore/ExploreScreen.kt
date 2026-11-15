@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -74,6 +75,7 @@ import co.edu.uniquindio.servify.features.home.component.HomeSearchBar
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.component.TrustIndexBadge
 import co.edu.uniquindio.servify.features.home.model.toServiceItem
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
@@ -299,20 +301,31 @@ private fun NearbyServiceFloatingCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(ServifyPrimary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = publication.provider.name.take(2).uppercase(),
-                            style = ServifyTextStyle.Caption.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
+                    if (!publication.provider.avatarUrl.isNullOrBlank()) {
+                        ServifyAsyncImage(
+                            imageUrl = publication.provider.avatarUrl,
+                            contentDescription = publication.provider.name,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape),
+                            fallbackIcon = Icons.Default.Person
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(ServifyPrimary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = publication.provider.name.take(2).uppercase(),
+                                style = ServifyTextStyle.Caption.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(10.dp))

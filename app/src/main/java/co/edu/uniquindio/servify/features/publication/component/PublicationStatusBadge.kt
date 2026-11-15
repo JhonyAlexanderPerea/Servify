@@ -15,18 +15,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 /** Texto del estado. El color nunca va solo: siempre acompaña a una etiqueta (accesibilidad). */
+@Composable
 fun PublicationStatus.label(): String = when (this) {
-    PublicationStatus.PENDIENTE, PublicationStatus.PENDING, PublicationStatus.PENDING_REVIEW, PublicationStatus.DRAFT -> "Pendiente de verificación"
-    PublicationStatus.VERIFICADA, PublicationStatus.APPROVED -> "Verificada"
-    PublicationStatus.RECHAZADA, PublicationStatus.REJECTED -> "Rechazada"
-    PublicationStatus.FINALIZADA, PublicationStatus.COMPLETED, PublicationStatus.PAUSED -> "Finalizada"
+    PublicationStatus.PENDIENTE, PublicationStatus.PENDING, PublicationStatus.PENDING_REVIEW, PublicationStatus.DRAFT -> stringResource(R.string.publication_status_pending)
+    PublicationStatus.VERIFICADA, PublicationStatus.APPROVED -> stringResource(R.string.publication_status_approved)
+    PublicationStatus.RECHAZADA, PublicationStatus.REJECTED -> stringResource(R.string.publication_status_rejected)
+    PublicationStatus.FINALIZADA, PublicationStatus.COMPLETED, PublicationStatus.PAUSED -> stringResource(R.string.publication_status_completed)
 }
 
 /** 🟡 pendiente · 🟢 verificada · 🔴 rechazada · 🔵 finalizada (misma codificación del mockup). */

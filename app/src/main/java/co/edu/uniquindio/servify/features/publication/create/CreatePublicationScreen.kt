@@ -36,6 +36,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +60,7 @@ import co.edu.uniquindio.servify.features.publication.component.StepIndicatorRow
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationMockData
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationUiState
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.dialog.ImagePickerBottomSheet
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -70,6 +74,7 @@ fun CreatePublicationScreen(
     viewModel: PublicationFlowViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var showImagePicker by remember { mutableStateOf(false) }
 
     val categories = CreatePublicationMockData.categoriesList.map { it.name }
     val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == state.categoryId }
@@ -204,8 +209,7 @@ fun CreatePublicationScreen(
                                     photoUrls = state.images,
                                     onAddPhotoClick = {
                                         if (state.images.size < 5) {
-                                            val nextMockPhoto = CreatePublicationMockData.samplePhotos[state.images.size % CreatePublicationMockData.samplePhotos.size]
-                                            viewModel.onAddImage(nextMockPhoto)
+                                            showImagePicker = true
                                         }
                                     },
                                     onRemovePhotoClick = viewModel::onRemoveImage
@@ -320,6 +324,14 @@ fun CreatePublicationScreen(
             }
         }
     }
+
+    ImagePickerBottomSheet(
+        isVisible = showImagePicker,
+        onDismiss = { showImagePicker = false },
+        onImageSelected = { uri ->
+            viewModel.onAddImage(uri.toString())
+        }
+    )
 }
 
 // -----------------------------------------------------------------------------

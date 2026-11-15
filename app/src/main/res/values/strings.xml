@@ -36,6 +36,13 @@
     <string name="confirm_dialog_delete_publication_title">Eliminar publicación</string>
     <string name="confirm_dialog_delete_publication_message">Esta acción no se puede deshacer. ¿Deseas eliminarla?</string>
 
+    <!-- Image Picker -->
+    <string name="image_picker_title">Seleccionar imagen</string>
+    <string name="image_picker_camera">Tomar foto</string>
+    <string name="image_picker_gallery">Elegir de la galería</string>
+    <string name="image_picker_cancel">Cancelar</string>
+    <string name="image_picker_camera_permission_denied">Se requiere permiso de cámara para tomar fotografías</string>
+
     <!-- Home Screen -->
     <string name="home_search_placeholder">¿Qué servicio necesitas hoy?</string>
     <string name="home_feed_header">Servicios cerca de ti (%1$d)</string>

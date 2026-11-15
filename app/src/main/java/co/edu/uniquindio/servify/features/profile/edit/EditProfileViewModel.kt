@@ -52,6 +52,10 @@ class EditProfileViewModel @Inject constructor(
         _uiState.update { it.copy(phone = phone) }
     }
 
+    fun onAvatarChanged(avatarUrl: String?) {
+        _uiState.update { it.copy(avatarUrl = avatarUrl) }
+    }
+
     fun onSaveProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
@@ -60,7 +64,8 @@ class EditProfileViewModel @Inject constructor(
                 observeCurrentUserUseCase().collect { user ->
                     val updatedUser = user.copy(
                         name = currentState.name,
-                        phone = currentState.phone
+                        phone = currentState.phone,
+                        avatarUrl = currentState.avatarUrl
                     )
                     updateUserProfileUseCase(updatedUser)
                     _uiState.update {

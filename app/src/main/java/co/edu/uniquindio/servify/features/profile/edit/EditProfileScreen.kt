@@ -51,6 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
+import co.edu.uniquindio.servify.ui.components.dialog.ImagePickerBottomSheet
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
@@ -63,6 +64,7 @@ fun EditProfileScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSaveConfirmationDialog by remember { mutableStateOf(false) }
+    var showImagePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { message ->
@@ -132,7 +134,7 @@ fun EditProfileScreen(
             // Avatar editable
             AvatarPicker(
                 avatarUrl = uiState.avatarUrl,
-                onPickImage = { /* Image picker logic */ }
+                onPickImage = { showImagePicker = true }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -196,6 +198,14 @@ fun EditProfileScreen(
             }
         }
     }
+
+    ImagePickerBottomSheet(
+        isVisible = showImagePicker,
+        onDismiss = { showImagePicker = false },
+        onImageSelected = { uri ->
+            viewModel.onAvatarChanged(uri.toString())
+        }
+    )
 }
 
 @Composable

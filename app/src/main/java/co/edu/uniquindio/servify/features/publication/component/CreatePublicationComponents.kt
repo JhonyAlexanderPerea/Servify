@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationUiState
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
@@ -368,8 +369,8 @@ fun PhotoPickerGrid(
                 }
             }
 
-            // Fotos añadidas (simuladas con placeholders con estilo)
-            itemsIndexed(photoUrls) { index, _ ->
+            // Fotos añadidas
+            itemsIndexed(photoUrls) { index, photoUrl ->
                 Box(
                     modifier = Modifier
                         .size(90.dp)
@@ -380,16 +381,24 @@ fun PhotoPickerGrid(
                             )
                         )
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.HomeRepairService,
-                            contentDescription = null,
-                            tint = ServifyExtra.onHero,
-                            modifier = Modifier.size(32.dp)
+                    if (photoUrl.isNotBlank()) {
+                        ServifyAsyncImage(
+                            imageUrl = photoUrl,
+                            contentDescription = "Foto $index",
+                            modifier = Modifier.fillMaxSize()
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.HomeRepairService,
+                                contentDescription = null,
+                                tint = ServifyExtra.onHero,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
 
                     // Botón para eliminar foto

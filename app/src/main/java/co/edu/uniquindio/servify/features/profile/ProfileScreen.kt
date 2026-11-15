@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ListAlt
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.RequestQuote
 import androidx.compose.material.icons.filled.Settings
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import co.edu.uniquindio.servify.domain.model.Badge
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -175,20 +177,31 @@ private fun ProfileHeaderCard(state: ProfileUiState) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = state.initials,
-                        style = ServifyTextStyle.Title.copy(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 22.sp
-                        )
+                if (!state.avatarUrl.isNullOrBlank()) {
+                    ServifyAsyncImage(
+                        imageUrl = state.avatarUrl,
+                        contentDescription = state.fullName,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape),
+                        fallbackIcon = Icons.Default.Person
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = state.initials,
+                            style = ServifyTextStyle.Title.copy(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 22.sp
+                            )
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(14.dp))

@@ -21,7 +21,8 @@ data class ProfileUiState(
     val publishedCount: Int = 0,
     val finalizedCount: Int = 0,
     val unlockedBadges: List<Badge> = emptyList(),
-    val totalBadges: Int = Badge.entries.size
+    val totalBadges: Int = Badge.entries.size,
+    val avatarUrl: String? = null
 )
 
 /** Convierte el progreso del dominio y las publicaciones del usuario en estado de pantalla. */
@@ -39,5 +40,6 @@ internal fun toProfileUiState(progress: UserProgress, publications: List<Publica
         publishedCount = publications.count { it.wasVerified },
         finalizedCount = publications.count { it.status == PublicationStatus.FINALIZADA },
         unlockedBadges = progress.badges.filter { it.unlocked }.map { it.badge },
-        totalBadges = progress.totalCount
+        totalBadges = progress.totalCount,
+        avatarUrl = progress.user.avatarUrl
     )

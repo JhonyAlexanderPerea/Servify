@@ -176,5 +176,12 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // -----------------------------------------
+    // Coil (Image Loading)
+    // -----------------------------------------
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
 
 }

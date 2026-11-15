@@ -13,7 +13,8 @@ data class CommentItemData(
     val authorAvatarColor: Color,
     val rating: Double,
     val date: String,
-    val commentText: String
+    val commentText: String,
+    val authorAvatarUrl: String? = null
 )
 
 data class ServiceDetailData(
@@ -41,7 +42,8 @@ data class ServiceDetailData(
     val interestedCount: Int,
     val isFavorite: Boolean,
     val trustFactors: List<TrustFactor>,
-    val comments: List<CommentItemData>
+    val comments: List<CommentItemData>,
+    val providerAvatarUrl: String? = null
 )
 
 fun Comment.toCommentItemData(): CommentItemData {
@@ -57,7 +59,8 @@ fun Comment.toCommentItemData(): CommentItemData {
         authorAvatarColor = Color(0xFF1A55E3),
         rating = rating.toDouble(),
         date = "Hace poco",
-        commentText = text
+        commentText = text,
+        authorAvatarUrl = author.avatarUrl
     )
 }
 
@@ -98,7 +101,8 @@ fun Publication.toServiceDetailData(): ServiceDetailData {
         interestedCount = interestedCount,
         isFavorite = isFavorite,
         trustFactors = ServiceDetailMockData.sampleDetail.trustFactors,
-        comments = emptyList()
+        comments = emptyList(),
+        providerAvatarUrl = provider.avatarUrl
     )
 }
 

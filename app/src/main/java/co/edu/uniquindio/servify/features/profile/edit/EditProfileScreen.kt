@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -214,12 +215,23 @@ fun AvatarPicker(
                 .clickable { onPickImage() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Avatar",
-                modifier = Modifier.size(60.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            if (!avatarUrl.isNullOrBlank()) {
+                ServifyAsyncImage(
+                    imageUrl = avatarUrl,
+                    contentDescription = "Avatar",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    fallbackIcon = Icons.Default.Person
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Avatar",
+                    modifier = Modifier.size(60.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         }
         Box(
             modifier = Modifier

@@ -1,0 +1,256 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function currentUid() {
+      return request.auth.uid;
+    }
+
+    function currentUserDoc() {
+      return get(/databases/$(database)/documents/users/$(currentUid())).data;
+    }
+
+    function isModerator() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(currentUid()))
+        && currentUserDoc().role == 'MODERATOR';
+    }
+
+    function isPublicationOwner(data) {
+      return signedIn() && data.authorId == currentUid();
+    }
+
+    function isRequestParticipant(data) {
+      return signedIn()
+        && (data.clientId == currentUid() || data.providerId == currentUid());
+    }
+
+    function unchanged(field) {
+      return request.resource.data[field] == resource.data[field];
+    }
+
+    function onlyChanged(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    function validPublicationStatus(status) {
+      return status in [
+        'PENDIENTE',
+        'VERIFICADA',
+        'RECHAZADA',
+        'FINALIZADA',
+        'APPROVED',
+        'PENDING',
+        'REJECTED',
+        'DRAFT',
+        'PENDING_REVIEW',
+        'COMPLETED',
+        'PAUSED'
+      ];
+    }
+
+    // -------------------------------------------------------------------------
+    // Usuarios
+    // El rol y la verificación son campos sensibles: el cliente nunca puede
+    // ascender su propio rol. Los moderadores se asignan desde la consola.
+    // -------------------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && userId == currentUid()
+        && request.resource.data.id == userId
+        && request.resource.data.role in ['USER', 'CLIENT', 'PROVIDER']
+        && (
+          request.resource.data.verified == false
+          || (
+            request.resource.data.verified == true
+            && request.auth.token.email_verified == true
+          )
+        );
+
+      // El perfil propio se puede editar; rol, id, correo y antigüedad son inmutables.
+      // Los puntos/insignias se actualizan también desde la cuenta de quien vota o comenta,
+      // por eso cualquier usuario autenticado puede tocar SOLO esos campos de gamificación.
+      allow update: if signedIn() && (
+        (
+          userId == currentUid()
+          && request.resource.data.id == resource.data.id
+          && unchanged('role')
+          && unchanged('email')
+          && unchanged('memberSinceMillis')
+          && (
+            request.resource.data.verified == resource.data.verified
+            || (
+              request.resource.data.verified == true
+              && request.auth.token.email_verified == true
+            )
+          )
+        )
+        ||
+        onlyChanged([
+          'points',
+          'reputationLevel',
+          'badges',
+          'trustIndexScore',
+          'completedJobsCount'
+        ])
+      );
+
+      allow delete: if signedIn() && userId == currentUid();
+    }
+
+    // -------------------------------------------------------------------------
+    // Publicaciones
+    // Lectura pública (marketplace). El autor edita y finaliza; el moderador
+    // aprueba/rechaza; cualquier usuario autenticado puede actualizar solo
+    // los campos de "Me interesa" o de calificación agregada.
+    // -------------------------------------------------------------------------
+    match /publications/{publicationId} {
+      allow read: if true;
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == currentUid()
+        && request.resource.data.providerId == currentUid()
+        && request.resource.data.status in ['PENDIENTE', 'DRAFT']
+        && validPublicationStatus(request.resource.data.status);
+
+      allow update: if signedIn() && (
+        // Autor: editar/reenviar (vuelve a PENDIENTE) o finalizar una verificada.
+        (
+          isPublicationOwner(resource.data)
+          && unchanged('authorId')
+          && unchanged('providerId')
+          && request.resource.data.status in ['PENDIENTE', 'FINALIZADA']
+          && (
+            request.resource.data.status != 'FINALIZADA'
+            || resource.data.status == 'VERIFICADA'
+          )
+        )
+        ||
+        // Moderador: aprobar o rechazar.
+        (
+          isModerator()
+          && unchanged('authorId')
+          && unchanged('providerId')
+          && request.resource.data.status in ['VERIFICADA', 'RECHAZADA']
+          && validPublicationStatus(request.resource.data.status)
+        )
+        ||
+        // Cualquier usuario autenticado: actualizar solo el promedio de reseñas.
+        onlyChanged(['ratingAverage', 'reviewsCount'])
+        ||
+        // Cualquier usuario autenticado: dar o retirar "Me interesa".
+        (
+          onlyChanged(['interestedUserIds', 'interestedCount', 'isFavorite'])
+          && request.resource.data.interestedUserIds is list
+          && request.resource.data.interestedCount
+            == request.resource.data.interestedUserIds.size()
+        )
+      );
+
+      allow delete: if signedIn() && isPublicationOwner(resource.data);
+    }
+
+    // -------------------------------------------------------------------------
+    // Solicitudes de servicio
+    // Solo cliente, proveedor y moderador pueden leer. El cliente crea y
+    // cancela; el proveedor acepta, rechaza, completa o cancela. El historial
+    // de estados hereda la autorización del documento padre.
+    // -------------------------------------------------------------------------
+    match /service_requests/{requestId} {
+      allow read: if isRequestParticipant(resource.data) || isModerator();
+
+      allow create: if signedIn()
+        && request.resource.data.clientId == currentUid()
+        && request.resource.data.providerId != currentUid()
+        && request.resource.data.status == 'PENDING';
+
+      allow update: if signedIn()
+        && isRequestParticipant(resource.data)
+        && onlyChanged(['status', 'updatedAt'])
+        && (
+          (
+            resource.data.clientId == currentUid()
+            && request.resource.data.status == 'CANCELLED'
+          )
+          ||
+          (
+            resource.data.providerId == currentUid()
+            && request.resource.data.status in [
+              'ACCEPTED',
+              'REJECTED',
+              'COMPLETED',
+              'CANCELLED'
+            ]
+          )
+        );
+
+      allow delete: if false;
+
+      match /status_history/{historyId} {
+        allow read: if isRequestParticipant(
+          get(/databases/$(database)/documents/service_requests/$(requestId)).data
+        ) || isModerator();
+
+        allow create: if signedIn()
+          && isRequestParticipant(
+            get(/databases/$(database)/documents/service_requests/$(requestId)).data
+          );
+
+        allow update, delete: if false;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Notificaciones
+    // Cada usuario ve y marca solo las suyas. Cualquier usuario autenticado
+    // puede crear una notificación para otro (eventos de solicitudes/moderación).
+    // -------------------------------------------------------------------------
+    match /notifications/{notificationId} {
+      allow read: if signedIn() && resource.data.userId == currentUid();
+
+      allow create: if signedIn()
+        && request.resource.data.userId is string
+        && request.resource.data.userId != '';
+
+      allow update: if signedIn()
+        && resource.data.userId == currentUid()
+        && onlyChanged(['isRead', 'read']);
+
+      allow delete: if signedIn() && resource.data.userId == currentUid();
+    }
+
+    // -------------------------------------------------------------------------
+    // Comentarios y reseñas
+    // Lectura pública. El autor crea/edita/elimina los suyos; el moderador
+    // puede retirar contenido inapropiado.
+    // -------------------------------------------------------------------------
+    match /comments/{commentId} {
+      allow read: if true;
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == currentUid();
+
+      allow update, delete: if signedIn()
+        && (
+          resource.data.authorId == currentUid()
+          || isModerator()
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Catálogo de categorías
+    // Lectura pública; solo moderación puede modificarlo.
+    // -------------------------------------------------------------------------
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isModerator();
+    }
+  }
+}

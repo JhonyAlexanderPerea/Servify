@@ -15,13 +15,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UserRemoteRepositoryImpl @Inject constructor(
-    firestore: FirebaseFirestore,
+    private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth
 ) : UserRepository {
 
@@ -32,9 +34,21 @@ class UserRemoteRepositoryImpl @Inject constructor(
     override fun observeCurrentUser(): Flow<User> =
         auth.authStateFlow().flatMapLatest { firebaseUser ->
             if (firebaseUser == null) {
-                emptyFlow<User>()
+                kotlinx.coroutines.flow.flowOf(
+                    User(
+                        id = "u_default",
+                        name = "Invitado",
+                        email = ""
+                    )
+                )
             } else {
-                collection.document(firebaseUser.uid).observeUser().filterNotNull()
+                collection.document(firebaseUser.uid).observeUser().map { userDto ->
+                    userDto ?: User(
+                        id = firebaseUser.uid,
+                        name = firebaseUser.displayName ?: "Usuario",
+                        email = firebaseUser.email ?: ""
+                    )
+                }
             }
         }
 
@@ -52,11 +66,15 @@ class UserRemoteRepositoryImpl @Inject constructor(
     }
 
     override suspend fun update(id: String, transform: (User) -> User): User? {
-        val current = getById(id) ?: return null
-        val updated = transform(current).copy(id = id)
-        // set() reemplaza el documento completo con los datos nuevos
-        collection.document(id).set(UserDto.fromDomain(updated)).await()
-        return updated
+        val reference = collection.document(id)
+        // Transacción: lectura y escritura atómicas, para no perder puntos ni insignias por concurrencia.
+        // El bloque puede reintentarse, por eso transform debe ser una función pura.
+        return firestore.runTransaction { transaction ->
+            val current = transaction.get(reference).toUser() ?: return@runTransaction null
+            val updated = transform(current).copy(id = id)
+            transaction.set(reference, UserDto.fromDomain(updated))
+            updated
+        }.await()
     }
 
     override suspend fun updatePoints(pointsToAdd: Int) {

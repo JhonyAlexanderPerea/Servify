@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.testutil
 import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryPublicationRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryUserRepository
+import co.edu.uniquindio.servify.data.repository.memory.InMemoryImageRepository
 import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
 import co.edu.uniquindio.servify.data.repository.memory.NotificationRepositoryImpl
 import co.edu.uniquindio.servify.data.repository.memory.ServiceRequestRepositoryImpl
@@ -15,6 +16,11 @@ import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.LogoutUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveUserSessionUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.DeleteUserAccountUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.ObserveCurrentUserUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.RemoveProfilePhotoUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.UpdateUserProfileUseCase
+import co.edu.uniquindio.servify.domain.usecase.user.UploadProfilePhotoUseCase
 import co.edu.uniquindio.servify.domain.usecase.auth.SendPasswordResetUseCase
 import co.edu.uniquindio.servify.domain.usecase.moderation.ApprovePublicationUseCase
 import co.edu.uniquindio.servify.domain.usecase.moderation.FinalizePublicationByModeratorUseCase
@@ -47,6 +53,7 @@ class TestEnvironment(var nowMillis: Long = 2_000_000_000_000L) {
     val publications = InMemoryPublicationRepository(SeedPublications.publications)
     val serviceRequests = ServiceRequestRepositoryImpl()
     val notifications = NotificationRepositoryImpl()
+    val images = InMemoryImageRepository()
     val session = InMemorySessionRepository()
     val auth = InMemoryAuthRepository(
         userRepository = users,
@@ -66,6 +73,11 @@ class TestEnvironment(var nowMillis: Long = 2_000_000_000_000L) {
     val logout = LogoutUseCase(auth, session)
     val observeSession = ObserveSessionUseCase(auth)
     val observeUserSession = ObserveUserSessionUseCase(session)
+    val observeCurrentUser = ObserveCurrentUserUseCase(users)
+    val updateUserProfile = UpdateUserProfileUseCase(users)
+    val deleteAccount = DeleteUserAccountUseCase(auth, session)
+    val uploadProfilePhoto = UploadProfilePhotoUseCase(images, users)
+    val removeProfilePhoto = RemoveProfilePhotoUseCase(users)
     val sendPasswordReset = SendPasswordResetUseCase(auth)
     val observeMyPublications = ObserveMyPublicationsUseCase(publications)
     val observeServices = ObserveServicesUseCase(publications)

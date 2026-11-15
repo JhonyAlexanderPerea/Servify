@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import co.edu.uniquindio.servify.domain.rules.FeedRules
+import co.edu.uniquindio.servify.domain.rules.matchesCategory
 import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.notification.ObserveNotificationsUseCase
 import co.edu.uniquindio.servify.features.home.model.HomeMockData
@@ -35,6 +36,7 @@ data class HomeUiState(
     val userMessage: String? = null,
     val userName: String = "",
     val userInitials: String = "",
+    val userAvatarUrl: String? = null,
     val unreadCount: Int = 0
 )
 
@@ -42,7 +44,12 @@ data class HomeUiState(
 val HomeQuickFilters = listOf("Cerca de mí", "Ciudad", "Precio", "Mejor valorados", "Verificados")
 
 private data class HomeFilters(val query: String, val categoryId: String?, val chip: String)
-private data class HomeUserInfo(val name: String, val initials: String, val unread: Int)
+private data class HomeUserInfo(
+    val name: String,
+    val initials: String,
+    val avatarUrl: String?,
+    val unread: Int
+)
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -65,11 +72,13 @@ class HomeViewModel @Inject constructor(
     // Saludo, iniciales y contador de notificaciones salen de la sesión real (antes eran datos fijos).
     private val userInfo = combine(observeSessionUseCase(), observeNotificationsUseCase()) { user, notifications ->
         val fullName = user?.name.orEmpty()
+        val userId = user?.id.orEmpty()
         HomeUserInfo(
             name = fullName.substringBefore(' '),
             initials = fullName.split(' ').filter { it.isNotBlank() }.take(2)
                 .joinToString("") { it.first().uppercase() },
-            unread = notifications.count { !it.isRead }
+            avatarUrl = user?.avatarUrl,
+            unread = notifications.count { it.userId == userId && !it.isRead }
         )
     }
 
@@ -83,10 +92,15 @@ class HomeViewModel @Inject constructor(
         // El feed público solo muestra publicaciones verificadas (las pendientes esperan al moderador).
         val services = FeedRules.publicFeed(allServices)
 
+        val selectedCategoryLabel = categories
+            .find { it.id == filters.categoryId }
+            ?.label
+
         val filtered = filterPublications(
             services = services,
             query = filters.query,
             categoryId = filters.categoryId,
+            categoryLabel = selectedCategoryLabel,
             filterChip = filters.chip
         )
 
@@ -101,6 +115,7 @@ class HomeViewModel @Inject constructor(
             isLoading = false,
             userName = user.name,
             userInitials = user.initials,
+            userAvatarUrl = user.avatarUrl,
             unreadCount = user.unread
         )
     }.stateIn(
@@ -142,15 +157,14 @@ class HomeViewModel @Inject constructor(
         services: List<Publication>,
         query: String,
         categoryId: String?,
+        categoryLabel: String?,
         filterChip: String
     ): List<Publication> {
         var result = services
 
-        // 1. Filtrado por categoría
-        if (!categoryId.isNullOrBlank()) {
-            result = result.filter { pub ->
-                pub.categoryId.equals(categoryId, ignoreCase = true)
-            }
+        // 1. Filtrado por categoría (id del catálogo o nombre visible)
+        result = result.filter { pub ->
+            pub.matchesCategory(categoryId, categoryLabel)
         }
 
         // 2. Filtrado por texto de búsqueda

@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.Comment
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import co.edu.uniquindio.servify.domain.usecase.comment.AddCommentUseCase
 import co.edu.uniquindio.servify.domain.usecase.comment.ObserveCommentsUseCase
+import co.edu.uniquindio.servify.domain.usecase.location.GetAddressFromLocationUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.GetServiceDetailUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ObserveServicesUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ToggleInterestUseCase
@@ -21,6 +23,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+sealed interface AddressState {
+    object Hidden : AddressState
+    object Loading : AddressState
+    data class Success(val address: String) : AddressState
+    object Error : AddressState
+}
+
 data class ServiceDetailUiState(
     val service: Publication? = null,
     val comments: List<Comment> = emptyList(),
@@ -29,6 +38,7 @@ data class ServiceDetailUiState(
     val isLoading: Boolean = false,
     val isSubmittingComment: Boolean = false,
     val isOwnService: Boolean = false,
+    val addressState: AddressState = AddressState.Hidden,
     val userMessage: String? = null
 )
 
@@ -45,7 +55,8 @@ class ServiceDetailViewModel @Inject constructor(
     observeCommentsUseCase: ObserveCommentsUseCase,
     private val addCommentUseCase: AddCommentUseCase,
     private val toggleInterestUseCase: ToggleInterestUseCase,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val getAddressFromLocationUseCase: GetAddressFromLocationUseCase
 ) : ViewModel() {
 
     val serviceId: String = savedStateHandle.get<String>("serviceId") ?: "pub_1"
@@ -53,6 +64,29 @@ class ServiceDetailViewModel @Inject constructor(
     private val _newCommentText = MutableStateFlow("")
     private val _newCommentRating = MutableStateFlow(5)
     private val _isSubmittingComment = MutableStateFlow(false)
+    private val _addressState = MutableStateFlow<AddressState>(AddressState.Hidden)
+    private var lastFetchedLocation: Location? = null
+
+    init {
+        viewModelScope.launch {
+            observeServicesUseCase().collect { services ->
+                val service = services.find { it.id == serviceId }
+                val location = service?.location
+                if (location != null && location != lastFetchedLocation) {
+                    lastFetchedLocation = location
+                    _addressState.value = AddressState.Loading
+                    val address = getAddressFromLocationUseCase(location)
+                    _addressState.value = if (address != null) {
+                        AddressState.Success(address)
+                    } else {
+                        AddressState.Error
+                    }
+                } else if (location == null) {
+                    _addressState.value = AddressState.Hidden
+                }
+            }
+        }
+    }
 
     private val _commentFormFlow = combine(
         _newCommentText,
@@ -66,8 +100,9 @@ class ServiceDetailViewModel @Inject constructor(
         observeServicesUseCase(),
         observeCommentsUseCase(serviceId),
         userRepository.observeCurrentUser(),
-        _commentFormFlow
-    ) { services, comments, currentUser, formData ->
+        _commentFormFlow,
+        _addressState
+    ) { services, comments, currentUser, formData, addressState ->
 
         val foundService = services.find { it.id == serviceId }
         val isOwn = foundService?.belongsTo(currentUser.id, currentUser.email) == true
@@ -79,7 +114,8 @@ class ServiceDetailViewModel @Inject constructor(
             newCommentRating = formData.rating,
             isLoading = false,
             isSubmittingComment = formData.isSubmitting,
-            isOwnService = isOwn
+            isOwnService = isOwn,
+            addressState = addressState
         )
     }.stateIn(
         scope = viewModelScope,

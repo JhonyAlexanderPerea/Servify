@@ -1,6 +1,12 @@
 package co.edu.uniquindio.servify.features.publication.create
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -27,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,11 +41,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,10 +79,69 @@ fun CreatePublicationScreen(
     viewModel: PublicationFlowViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var showImagePicker by remember { mutableStateOf(false) }
+    var showPhotoDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            try {
+                val file = java.io.File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
+                java.io.FileOutputStream(file).use { out ->
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                viewModel.onUploadImage(android.net.Uri.fromFile(file).toString())
+            } catch (_: Exception) { }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            cameraLauncher.launch(null)
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        if (uri != null) {
+            viewModel.onUploadImage(uri.toString())
+        }
+    }
+
+    if (showPhotoDialog) {
+        AlertDialog(
+            onDismissRequest = { showPhotoDialog = false },
+            title = { Text("Agregar foto") },
+            text = { Text("Selecciona el origen de la imagen para tu servicio.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPhotoDialog = false
+                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                    }
+                ) {
+                    Text("Cámara")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showPhotoDialog = false
+                        galleryLauncher.launch("image/*")
+                    }
+                ) {
+                    Text("Galería")
+                }
+            }
+        )
+    }
 
     val categories = CreatePublicationMockData.categoriesList.map { it.name }
-    val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == state.categoryId }
+    val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == state.categoryName }
     val subcategories = selectedCategoryObj?.subcategories ?: emptyList()
 
     Scaffold(
@@ -97,8 +161,12 @@ fun CreatePublicationScreen(
                 CreatePublicationBottomBar(
                     currentStep = state.currentStep,
                     canGoNext = when (state.currentStep) {
-                        1 -> state.title.length >= 5 && state.categoryId.isNotBlank()
-                        2 -> state.description.length >= 20 && state.price.isNotBlank()
+                        1 -> state.title.length >= 5
+                        2 -> state.description.length >= 20 &&
+                            state.minPrice.isNotBlank() &&
+                            state.maxPrice.isNotBlank() &&
+                            state.categoryId.isNotBlank() &&
+                            state.subcategoryId.isNotBlank()
                         else -> true
                     },
                     onPreviousClick = viewModel::onPreviousStep,
@@ -124,8 +192,7 @@ fun CreatePublicationScreen(
                 CircularProgressIndicator(color = ServifyPrimary)
             }
         } else if (state.isSuccess) {
-            // Al guardar se abre "Publicación enviada" (pendiente de verificación). Antes aquí se
-            // mostraba un texto que decía que ya estaba en el feed, lo cual ya no es cierto.
+            // Al guardar se abre "Publicación enviada" (pendiente de verificación)
             LaunchedEffect(state.savedPublicationId) {
                 state.savedPublicationId?.let(onPublishSuccess)
             }
@@ -173,7 +240,7 @@ fun CreatePublicationScreen(
                                 )
 
                                 Text(
-                                    text = "Escribe un título claro y selecciona la categoría que mejor describa tu servicio.",
+                                    text = "Escribe un título claro para tu servicio.",
                                     style = ServifyTextStyle.Small,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -187,29 +254,11 @@ fun CreatePublicationScreen(
                                     supportingText = state.titleError ?: "Ej: Plomero residencial con atención de emergencias"
                                 )
 
-                                CustomDropdownField(
-                                    label = "Categoría Principal",
-                                    selectedValue = state.categoryId,
-                                    options = categories,
-                                    onOptionSelected = viewModel::onCategoryChanged,
-                                    placeholder = "Selecciona una categoría"
-                                )
-
-                                if (subcategories.isNotEmpty()) {
-                                    CustomDropdownField(
-                                        label = "Subcategoría Especializada",
-                                        selectedValue = state.subcategoryId,
-                                        options = subcategories,
-                                        onOptionSelected = viewModel::onSubcategoryChanged,
-                                        placeholder = "Selecciona subcategoría"
-                                    )
-                                }
-
                                 PhotoPickerGrid(
                                     photoUrls = state.images,
                                     onAddPhotoClick = {
                                         if (state.images.size < 5) {
-                                            showImagePicker = true
+                                            showPhotoDialog = true
                                         }
                                     },
                                     onRemovePhotoClick = viewModel::onRemoveImage
@@ -223,31 +272,6 @@ fun CreatePublicationScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
 
-                                AiSuggestionCard(
-                                    isAnalyzing = state.isAiAnalyzing,
-                                    showSuggestion = state.showAiSuggestion,
-                                    suggestedTitle = state.aiSuggestedTitle,
-                                    suggestedDescription = state.aiSuggestedDescription,
-                                    suggestedCategory = state.aiSuggestedCategory,
-                                    suggestedPrice = state.aiSuggestedPrice,
-                                    onGenerateAiClick = {
-                                        viewModel.onApplyAiSuggestion(
-                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
-                                            category = "Hogar",
-                                            price = "80000"
-                                        )
-                                    },
-                                    onApplyAiClick = {
-                                        viewModel.onApplyAiSuggestion(
-                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
-                                            category = "Hogar",
-                                            price = "80000"
-                                        )
-                                    }
-                                )
-
                                 ServifyTextField(
                                     value = state.description,
                                     onValueChange = viewModel::onDescriptionChanged,
@@ -257,11 +281,40 @@ fun CreatePublicationScreen(
                                     supportingText = state.descriptionError ?: "Describe tu experiencia, herramientas, horario y garantías."
                                 )
 
+                                AiSuggestionCard(
+                                    isAnalyzing = state.isAiAnalyzing,
+                                    suggestion = state.aiSuggestion,
+                                    onUseCategory = viewModel::onUseAiCategory,
+                                    onDismiss = viewModel::onDismissAiSuggestion
+                                )
+
+                                CustomDropdownField(
+                                    label = "Categoría Principal",
+                                    selectedValue = state.categoryName,
+                                    options = categories,
+                                    onOptionSelected = viewModel::onCategoryChanged,
+                                    placeholder = "Selecciona una categoría",
+                                    error = state.categoryError
+                                )
+
+                                if (subcategories.isNotEmpty()) {
+                                    CustomDropdownField(
+                                        label = "Subcategoría Especializada",
+                                        selectedValue = state.subcategoryId,
+                                        options = subcategories,
+                                        onOptionSelected = viewModel::onSubcategoryChanged,
+                                        placeholder = "Selecciona subcategoría",
+                                        error = state.subcategoryError
+                                    )
+                                }
+
                                 PriceRangeFields(
-                                    minPrice = state.price,
-                                    onMinPriceChange = viewModel::onPriceChanged,
-                                    maxPrice = state.price,
-                                    onMaxPriceChange = viewModel::onPriceChanged
+                                    minPrice = state.minPrice,
+                                    onMinPriceChange = viewModel::onMinPriceChanged,
+                                    maxPrice = state.maxPrice,
+                                    onMaxPriceChange = viewModel::onMaxPriceChanged,
+                                    minPriceError = state.minPriceError,
+                                    maxPriceError = state.maxPriceError
                                 )
 
                                 LocationPickerField(
@@ -285,11 +338,11 @@ fun CreatePublicationScreen(
 
                                 val previewState = CreatePublicationUiState(
                                     title = state.title,
-                                    selectedCategory = state.categoryId,
+                                    selectedCategory = state.categoryName,
                                     selectedSubcategory = state.subcategoryId,
                                     description = state.description,
-                                    minPrice = state.price,
-                                    maxPrice = state.price,
+                                    minPrice = state.minPrice,
+                                    maxPrice = state.maxPrice,
                                     cityZone = state.locationName
                                 )
 

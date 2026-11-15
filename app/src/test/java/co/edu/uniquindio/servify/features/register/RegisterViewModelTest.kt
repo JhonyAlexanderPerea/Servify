@@ -1,9 +1,11 @@
 package co.edu.uniquindio.servify.features.register
 
 import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
+import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.usecase.user.RegisterUserUseCase
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
+import co.edu.uniquindio.servify.testutil.ScriptedAuthRepository
 import co.edu.uniquindio.servify.testutil.TestEnvironment
 import co.edu.uniquindio.servify.testutil.ThrowingAuthRepository
 import kotlinx.coroutines.flow.first
@@ -109,6 +111,32 @@ class RegisterViewModelTest {
             "No se pudo completar el registro. Revisa tu conexión e inténtalo de nuevo.",
             state.registerError
         )
+        assertNull(runBlocking { session.session.first() })
+    }
+
+    @Test
+    fun a_registration_that_requires_verification_shows_the_email_without_saving_the_session() {
+        val session = InMemorySessionRepository()
+        val vm = RegisterViewModel(
+            RegisterUserUseCase(
+                ScriptedAuthRepository(registerResult = AuthResult.VerificationRequired("nuevo@servify.demo")),
+                session
+            )
+        )
+        vm.onNameChange("Ana")
+        vm.onLastNameChange("Gómez")
+        vm.onEmailChange("nuevo@servify.demo")
+        vm.nextStep()
+        vm.onPasswordChange("ClaveSegura1")
+        vm.onConfirmPasswordChange("ClaveSegura1")
+        vm.onCityChange("Armenia, Quindío")
+        vm.toggleTerms()
+
+        vm.register()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        assertEquals("nuevo@servify.demo", state.verificationEmail)
         assertNull(runBlocking { session.session.first() })
     }
 

@@ -32,7 +32,7 @@ fun PublicationStatus.label(): String = when (this) {
     PublicationStatus.FINALIZADA, PublicationStatus.COMPLETED, PublicationStatus.PAUSED -> stringResource(R.string.publication_status_completed)
 }
 
-/** 🟡 pendiente · 🟢 verificada · 🔴 rechazada · 🔵 finalizada (misma codificación del mockup). */
+/** 🟡 pendiente · 🟢 verificada · 🔴 rechazada · 🔵 finalizada. */
 @Composable
 fun PublicationStatus.color(): Color = when (this) {
     PublicationStatus.PENDIENTE, PublicationStatus.PENDING, PublicationStatus.PENDING_REVIEW, PublicationStatus.DRAFT -> ServifyExtra.warning

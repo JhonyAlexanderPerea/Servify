@@ -7,6 +7,7 @@ import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.UserRole
+import co.edu.uniquindio.servify.testutil.ScriptedAuthRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -53,6 +54,18 @@ class RegisterUserUseCaseTest {
 
         assertEquals(result.user.id, saved?.userId)
         assertEquals(UserRole.USER, saved?.role)
+    }
+
+    @Test
+    fun a_registration_that_requires_verification_does_not_save_a_session() = runBlocking {
+        val session = InMemorySessionRepository()
+        val result = RegisterUserUseCase(
+            ScriptedAuthRepository(registerResult = AuthResult.VerificationRequired("ana.ruiz@servify.demo")),
+            session
+        )("Ana", "Ruiz", "ana.ruiz@servify.demo", "Servify2026", "Armenia")
+
+        assertTrue(result is AuthResult.VerificationRequired)
+        assertNull(session.session.first())
     }
 
     @Test

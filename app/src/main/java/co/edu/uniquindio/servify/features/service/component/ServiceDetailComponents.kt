@@ -51,10 +51,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.uniquindio.servify.features.home.component.AnimatedFavoriteIcon
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.component.StarRatingRow
 import co.edu.uniquindio.servify.features.service.model.CommentItemData
 import co.edu.uniquindio.servify.features.service.model.ServiceDetailData
+import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.TrustFactor
 import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
@@ -113,10 +115,9 @@ fun ServiceDetailTopBar(
                     .clickable(onClick = onFavoriteToggle),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorito",
-                    tint = if (isFavorite) ServifyExtra.favorite else MaterialTheme.colorScheme.onSurface,
+                AnimatedFavoriteIcon(
+                    isFavorite = isFavorite,
+                    unselectedTint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -577,6 +578,92 @@ fun ExpandableDescriptionCard(
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface
                 )
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// TARJETA DE UBICACIÓN Y MAPA DE SOLO LECTURA (TARJETAS 45 Y 48)
+// -----------------------------------------------------------------------------
+
+@Composable
+fun LocationCard(
+    publication: Publication,
+    addressState: co.edu.uniquindio.servify.features.service.detail.AddressState,
+    modifier: Modifier = Modifier
+) {
+    val location = publication.location ?: return
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Ubicación", // TODO(i18n)
+                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Detalle de la publicación: mapa pequeño de solo lectura (sección "Mapa de solo lectura" de la guía)
+            co.edu.uniquindio.servify.core.component.MapBox(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                center = com.mapbox.geojson.Point.fromLngLat(location.longitude, location.latitude),
+                zoom = 15.5,
+                publications = listOf(publication),
+                interactive = false
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            when (addressState) {
+                is co.edu.uniquindio.servify.features.service.detail.AddressState.Loading -> {
+                    Text(
+                        text = "Buscando dirección…", // TODO(i18n)
+                        style = ServifyTextStyle.Caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                is co.edu.uniquindio.servify.features.service.detail.AddressState.Success -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Place,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = addressState.address,
+                            style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                is co.edu.uniquindio.servify.features.service.detail.AddressState.Error -> {
+                    Text(
+                        text = "No se pudo obtener la dirección", // TODO(i18n)
+                        style = ServifyTextStyle.Caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                co.edu.uniquindio.servify.features.service.detail.AddressState.Hidden -> {
+                    if (publication.locationName.isNotBlank()) {
+                        Text(
+                            text = publication.locationName,
+                            style = ServifyTextStyle.Caption,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }

@@ -1,9 +1,12 @@
 package co.edu.uniquindio.servify.features.login
 
 import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
+import co.edu.uniquindio.servify.domain.model.AuthError
+import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
+import co.edu.uniquindio.servify.testutil.ScriptedAuthRepository
 import co.edu.uniquindio.servify.testutil.TestEnvironment
 import co.edu.uniquindio.servify.testutil.ThrowingAuthRepository
 import kotlinx.coroutines.flow.first
@@ -94,6 +97,29 @@ class LoginViewModelTest {
         assertEquals("Correo o contraseña incorrectos", viewModel.uiState.value.loginError)
         assertNull(runBlocking { env.session.session.first() })
         assertNull(env.auth.currentUserSnapshot)
+    }
+
+    @Test
+    fun an_unverified_email_shows_the_message_and_does_not_open_a_session() {
+        val session = InMemorySessionRepository()
+        val vm = LoginViewModel(
+            LoginUserUseCase(
+                ScriptedAuthRepository(loginResult = AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)),
+                session
+            )
+        )
+        vm.onEmailChange(TestEnvironment.JHONY_EMAIL)
+        vm.onPasswordChange(TestEnvironment.JHONY_PASSWORD)
+
+        vm.login()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        assertEquals(
+            "Verifica tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada y la carpeta de spam.",
+            state.loginError
+        )
+        assertNull(runBlocking { session.session.first() })
     }
 
     @Test

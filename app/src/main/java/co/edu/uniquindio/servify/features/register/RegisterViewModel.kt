@@ -111,6 +111,10 @@ class RegisterViewModel @Inject constructor(
                                 it.copy(isLoading = false)
                             }
 
+                            is AuthResult.VerificationRequired -> _uiState.update {
+                                it.copy(isLoading = false, verificationEmail = result.email)
+                            }
+
                             is AuthResult.Failure -> _uiState.update {
                                 // El email se captura en el paso 1: si falla por él, se vuelve a ese paso.
                                 if (result.error == AuthError.EMAIL_ALREADY_REGISTERED ||

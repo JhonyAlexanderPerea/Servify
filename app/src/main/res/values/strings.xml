@@ -112,4 +112,96 @@
     <string name="publication_status_approved">Verificada</string>
     <string name="publication_status_rejected">Rechazada</string>
     <string name="publication_status_completed">Finalizada</string>
+    <!-- Login -->
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to your Servify account</string>
+    <string name="login_email_label">Email address</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_show_password_cd">Show password</string>
+    <string name="login_button">Sign in</string>
+    <string name="login_forgot_password">Forgot your password?</string>
+    <string name="login_no_account">Don\'t have an account?</string>
+    <string name="login_register_link">Sign up</string>
+    <string name="login_remember_me">Remember me</string>
+    <string name="login_signing_in">Signing in…</string>
+    <string name="login_continue_with">or continue with</string>
+    <string name="google_continue">Continue with Google</string>
+    <string name="default_web_client_id">CLIENT_ID_PLACEHOLDER</string>
+    <string name="login_create_account">Create account</string>
+
+    <!-- Register -->
+    <string name="register_title">Create account</string>
+    <string name="register_subtitle">Join Servify as a client or provider</string>
+    <string name="register_name_label">Full name</string>
+    <string name="register_email_label">Email address</string>
+    <string name="register_password_label">Password</string>
+    <string name="register_confirm_password_label">Confirm password</string>
+    <string name="register_button">Sign up</string>
+    <string name="register_has_account">Already have an account?</string>
+    <string name="register_login_link">Sign in</string>
+
+    <!-- Forgot Password -->
+    <string name="forgot_title">Reset password</string>
+    <string name="forgot_subtitle">We will send you a link to reset your password</string>
+    <string name="forgot_email_label">Email address</string>
+    <string name="forgot_button">Send link</string>
+    <string name="forgot_back_login">Back to sign in</string>
+
+    <!-- Reset Password -->
+    <string name="reset_title">Reset password</string>
+    <string name="reset_subtitle">Enter your new password</string>
+    <string name="reset_password_label">New password</string>
+    <string name="reset_confirm_label">Confirm password</string>
+    <string name="reset_button">Update password</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Find local services</string>
+    <string name="onboarding_desc_1">Connect with the best professionals near you.</string>
+    <string name="onboarding_title_2">Publish your offers</string>
+    <string name="onboarding_desc_2">Offer your services and grow your business.</string>
+    <string name="onboarding_title_3">Security and trust</string>
+    <string name="onboarding_desc_3">Verified reputation system and trust index.</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_start">Get started</string>
+
+    <!-- Splash -->
+    <string name="splash_title">Servify</string>
+    <string name="splash_subtitle">Your trusted marketplace</string>
+
+    <!-- Moderator -->
+    <string name="mod_panel_title">Moderation Panel</string>
+    <string name="mod_review_title">Review Publication</string>
+    <string name="mod_approve">Approve</string>
+    <string name="mod_reject">Reject</string>
+    <string name="mod_reason_title">Rejection reason</string>
+    <string name="mod_reason_placeholder">Write the reason...</string>
+    <string name="mod_empty">No pending publications</string>
+
+    <!-- Profile -->
+    <string name="profile_title">My Profile</string>
+    <string name="profile_edit">Edit profile</string>
+    <string name="profile_logout">Log out</string>
+    <string name="profile_delete_account">Delete account</string>
+    <string name="profile_achievements">Achievements</string>
+    <string name="profile_statistics">Statistics</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">Personal Statistics</string>
+    <string name="stats_jobs_completed">Completed jobs</string>
+    <string name="stats_reputation">Reputation level</string>
+    <string name="stats_trust_index">Trust index</string>
+
+    <!-- Notifications -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_empty">You have no notifications</string>
+
+    <!-- Common actions -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_accept">Accept</string>
+    <string name="action_save">Save</string>
+    <string name="action_back">Back</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_close">Close</string>
+    <string name="action_confirm">Confirm</string>
 </resources>

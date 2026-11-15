@@ -11,4 +11,5 @@ interface NotificationRepository {
     suspend fun addNotification(notification: Notification)
     suspend fun markAsRead(id: String)
     suspend fun markAllAsRead()
+    suspend fun markAllAsReadForUser(userId: String) = markAllAsRead()
 }

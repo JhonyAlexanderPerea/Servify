@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import co.edu.uniquindio.servify.domain.rules.FeedRules
+import co.edu.uniquindio.servify.domain.rules.matchesCategory
 import javax.inject.Inject
 
 data class ExploreUiState(
@@ -49,8 +50,12 @@ class ExploreViewModel @Inject constructor(
         _selectedService
     ) { services, categories, query, categoryId, selected ->
 
+        val selectedCategoryLabel = categories
+            .find { it.id == categoryId }
+            ?.label
+
         val filtered = FeedRules.publicFeed(services).filter { pub ->
-            val matchesCategory = categoryId.isNullOrBlank() || pub.categoryId.equals(categoryId, ignoreCase = true)
+            val matchesCategory = pub.matchesCategory(categoryId, selectedCategoryLabel)
             val matchesQuery = query.isBlank() ||
                     pub.title.contains(query, ignoreCase = true) ||
                     pub.description.contains(query, ignoreCase = true) ||
@@ -85,8 +90,8 @@ class ExploreViewModel @Inject constructor(
         }
     }
 
-    fun onMarkerSelected(service: Publication?) {
-        _selectedService.value = service
+    fun onMarkerSelected(publication: Publication) {
+        _selectedService.value = publication
     }
 
     fun onDismissSelectedService() {

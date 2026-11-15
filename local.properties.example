@@ -3,9 +3,12 @@
 
 sdk.dir=/path/to/Android/Sdk
 
-# API Keys & Tokens
-MAPBOX_ACCESS_TOKEN=tu_mapbox_access_token_aqui
-OPENROUTER_API_KEY=tu_openrouter_api_key_aqui
+# Clave de OpenRouter (solo local; empieza por sk-or-)
+OPENROUTER_API_KEY=
+# Modelo gratuito de OpenRouter (termina en :free)
+OPENROUTER_MODEL=
+# Token público de Mapbox (empieza por pk.)
+MAPBOX_ACCESS_TOKEN=
 
 # Release Signing Config (Opcional)
 # RELEASE_STORE_FILE=app/release.jks

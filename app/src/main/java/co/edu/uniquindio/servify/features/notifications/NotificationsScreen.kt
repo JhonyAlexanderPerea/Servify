@@ -84,31 +84,41 @@ fun NotificationsScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Notificaciones",
-                        style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
-                        color = colors.onBackground
-                    )
-                    if (state.unreadCount > 0) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(colors.primary)
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = "${state.unreadCount} nuevas",
-                                style = ServifyTextStyle.Caption.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp
-                                ),
-                                color = colors.onPrimary,
-                                maxLines = 1,
-                                softWrap = false
-                            )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Notificaciones",
+                            style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
+                            color = colors.onBackground
+                        )
+                        if (state.unreadCount > 0) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(colors.primary)
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "${state.unreadCount} nuevas",
+                                    style = ServifyTextStyle.Caption.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    ),
+                                    color = colors.onPrimary,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
                         }
+                    }
+
+                    if (state.unreadCount > 0) {
+                        MarkAllAsReadAction(onClick = viewModel::onMarkAllAsRead)
                     }
                 }
                 Text(

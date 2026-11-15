@@ -31,6 +31,7 @@ import co.edu.uniquindio.servify.features.profile.edit.EditProfileScreen
 import co.edu.uniquindio.servify.features.publication.published.PublicationPublishedScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.request.confirmed.RequestConfirmedScreen
+import co.edu.uniquindio.servify.features.resetpassword.ResetPasswordScreen
 import co.edu.uniquindio.servify.features.request.create.RequestServiceScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
 import co.edu.uniquindio.servify.features.splash.SplashScreen
@@ -41,16 +42,28 @@ import co.edu.uniquindio.servify.ui.motion.servifyPopEnter
 import co.edu.uniquindio.servify.ui.motion.servifyPopExit
 
 @Composable
-fun AppNavigation(sessionViewModel: SessionViewModel = hiltViewModel()) {
+fun AppNavigation(
+    resetPasswordCode: String? = null,
+    onResetPasswordHandled: () -> Unit = {},
+    sessionViewModel: SessionViewModel = hiltViewModel()
+) {
     val sessionState by sessionViewModel.sessionState.collectAsStateWithLifecycle()
     var splashFinished by rememberSaveable { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        if (!splashFinished) {
-            // Se conserva el splash animado existente
-            SplashScreen(onFinished = { splashFinished = true })
-        } else {
-            when (val state = sessionState) {
+        when {
+            // El enlace de recuperación tiene prioridad sobre el splash y la sesión
+            resetPasswordCode != null -> ResetPasswordScreen(
+                oobCode = resetPasswordCode,
+                onFinished = onResetPasswordHandled
+            )
+
+            !splashFinished -> {
+                // Se conserva el splash animado existente
+                SplashScreen(onFinished = { splashFinished = true })
+            }
+
+            else -> when (val state = sessionState) {
                 // Indicador mientras se determina el estado de la sesión
                 is SessionState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()

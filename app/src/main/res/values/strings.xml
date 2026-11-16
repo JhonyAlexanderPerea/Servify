@@ -208,4 +208,12 @@
     <string name="action_retry">Retry</string>
     <string name="action_close">Close</string>
     <string name="action_confirm">Confirm</string>
+
+    <!-- Location Picker -->
+    <string name="location_picker_title">Select Location</string>
+    <string name="location_picker_hint">Move the map to align the pin with the exact location</string>
+    <string name="location_picker_confirm_button">Confirm Location</string>
+    <string name="location_picker_my_location_cd">Center on my current location</string>
+    <string name="location_picker_pin_cd">Selected location pin</string>
+    <string name="location_picker_loading_address">Getting address...</string>
 </resources>

@@ -50,6 +50,8 @@ data class PublicationFormUiState(
     val maxPriceError: String? = null,
     val priceUnit: String = "por trabajo",
     val locationName: String = "Armenia, Quindío",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val locationError: String? = null,
     val images: List<String> = emptyList(),
     val currentStep: Int = 1,
@@ -229,6 +231,17 @@ class PublicationFlowViewModel @Inject constructor(
             it.copy(
                 locationName = location,
                 locationError = if (location.isBlank()) "La ubicación es obligatoria" else null
+            )
+        }
+    }
+
+    fun onLocationPicked(latitude: Double, longitude: Double, address: String) {
+        _uiState.update {
+            it.copy(
+                locationName = address,
+                latitude = latitude,
+                longitude = longitude,
+                locationError = null
             )
         }
     }

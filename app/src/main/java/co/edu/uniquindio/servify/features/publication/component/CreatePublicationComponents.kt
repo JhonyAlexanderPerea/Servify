@@ -608,6 +608,7 @@ fun PriceRangeFields(
 fun LocationPickerField(
     cityZone: String,
     onCityZoneChange: (String) -> Unit,
+    onMapPickerClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     ServifyTextField(
@@ -615,6 +616,9 @@ fun LocationPickerField(
         onValueChange = onCityZoneChange,
         label = "Ciudad y Zona de Cobertura",
         leadingIcon = Icons.Default.Place,
+        trailingIcon = if (onMapPickerClick != null) Icons.Default.Place else null,
+        trailingIconDescription = "Seleccionar en el mapa",
+        onTrailingIconClick = onMapPickerClick,
         modifier = modifier.fillMaxWidth()
     )
 }

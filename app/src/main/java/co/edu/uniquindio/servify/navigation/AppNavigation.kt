@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,6 +24,7 @@ import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.features.dashboard.MainScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordViewModel
+import co.edu.uniquindio.servify.features.location.LocationPickerScreen
 import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.moderator.panel.ModeratorPanelScreen
 import co.edu.uniquindio.servify.features.moderator.review.ModeratorReviewScreen
@@ -31,6 +33,7 @@ import co.edu.uniquindio.servify.features.profile.edit.EditProfileScreen
 import co.edu.uniquindio.servify.features.publication.published.PublicationPublishedScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.request.confirmed.RequestConfirmedScreen
+import co.edu.uniquindio.servify.features.request.create.RequestServiceViewModel
 import co.edu.uniquindio.servify.features.resetpassword.ResetPasswordScreen
 import co.edu.uniquindio.servify.features.request.create.RequestServiceScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
@@ -255,13 +258,60 @@ private fun MainNavigation(role: UserRole) {
         // -----------------------------------------
         // SOLICITAR SERVICIO
         // -----------------------------------------
-        composable(Screen.RequestService.route) {
+        composable(Screen.RequestService.route) { entry ->
+            val viewModel: RequestServiceViewModel = hiltViewModel()
+            val pickedLat by entry.savedStateHandle.getStateFlow<Double?>("picked_lat", null).collectAsStateWithLifecycle()
+            val pickedLng by entry.savedStateHandle.getStateFlow<Double?>("picked_lng", null).collectAsStateWithLifecycle()
+            val pickedAddress by entry.savedStateHandle.getStateFlow<String?>("picked_address", null).collectAsStateWithLifecycle()
+
+            LaunchedEffect(pickedLat, pickedLng, pickedAddress) {
+                if (pickedLat != null && pickedLng != null && pickedAddress != null) {
+                    viewModel.onLocationPicked(pickedLat!!, pickedLng!!, pickedAddress!!)
+                    entry.savedStateHandle.remove<Double>("picked_lat")
+                    entry.savedStateHandle.remove<Double>("picked_lng")
+                    entry.savedStateHandle.remove<String>("picked_address")
+                }
+            }
+
             RequestServiceScreen(
                 onBackClick = { navController.popBackStack() },
                 onRequestConfirmed = { requestId ->
                     navController.navigate(Screen.RequestConfirmed.createRoute(requestId)) {
                         popUpTo(Screen.ServiceDetail.route) { inclusive = true }
                     }
+                },
+                onNavigateToLocationPicker = { initialLat, initialLng ->
+                    navController.navigate(Screen.LocationPicker.createRoute(initialLat, initialLng))
+                },
+                viewModel = viewModel
+            )
+        }
+
+        // -----------------------------------------
+        // SELECCIONAR UBICACIÓN EN EL MAPA
+        // -----------------------------------------
+        composable(
+            route = Screen.LocationPicker.route,
+            arguments = listOf(
+                navArgument("initialLat") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("initialLng") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
+            LocationPickerScreen(
+                onBackClick = { navController.popBackStack() },
+                onLocationConfirmed = { pickedLocation ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("picked_lat", pickedLocation.latitude)
+                    navController.previousBackStackEntry?.savedStateHandle?.set("picked_lng", pickedLocation.longitude)
+                    navController.previousBackStackEntry?.savedStateHandle?.set("picked_address", pickedLocation.address)
+                    navController.popBackStack()
                 }
             )
         }

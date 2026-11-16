@@ -209,4 +209,12 @@
     <string name="action_retry">Reintentar</string>
     <string name="action_close">Cerrar</string>
     <string name="action_confirm">Confirmar</string>
+
+    <!-- Location Picker -->
+    <string name="location_picker_title">Seleccionar ubicación</string>
+    <string name="location_picker_hint">Mueve el mapa para ubicar el pin en el punto exacto</string>
+    <string name="location_picker_confirm_button">Confirmar ubicación</string>
+    <string name="location_picker_my_location_cd">Centrar en mi ubicación actual</string>
+    <string name="location_picker_pin_cd">Pin de ubicación seleccionada</string>
+    <string name="location_picker_loading_address">Obteniendo dirección...</string>
 </resources>

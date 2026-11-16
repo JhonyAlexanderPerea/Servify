@@ -25,6 +25,9 @@ data class RequestServiceUiState(
     val selectedTimeSlot: String = "02:00 PM",
     val note: String = "",
     val noteError: String? = null,
+    val address: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val totalAmount: Double = 80000.0,
     val isSubmitting: Boolean = false,
     val isOwnService: Boolean = false,
@@ -82,6 +85,17 @@ class RequestServiceViewModel @Inject constructor(
 
     fun onNoteChanged(newNote: String) {
         _uiState.update { it.copy(note = newNote) }
+    }
+
+    fun onLocationPicked(latitude: Double, longitude: Double, address: String) {
+        _uiState.update {
+            it.copy(
+                address = address,
+                latitude = latitude,
+                longitude = longitude,
+                note = if (it.note.isBlank()) address else "${it.note}\nDirección: $address"
+            )
+        }
     }
 
     fun onSubmitRequest() {

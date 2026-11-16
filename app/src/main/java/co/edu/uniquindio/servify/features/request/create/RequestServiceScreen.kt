@@ -90,6 +90,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 fun RequestServiceScreen(
     onBackClick: () -> Unit,
     onRequestConfirmed: (String) -> Unit,
+    onNavigateToLocationPicker: ((initialLat: Double?, initialLng: Double?) -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: RequestServiceViewModel = hiltViewModel()
 ) {
@@ -471,11 +472,33 @@ fun RequestServiceScreen(
                     border = BorderStroke(1.dp, ServifyOutlineVariant)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Dirección y requerimientos especiales",
-                            style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                            color = ServifyOnSurface
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Dirección y requerimientos especiales",
+                                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                                color = ServifyOnSurface
+                            )
+
+                            if (onNavigateToLocationPicker != null) {
+                                TextButton(
+                                    onClick = {
+                                        onNavigateToLocationPicker(state.latitude, state.longitude)
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Ver mapa",
+                                        style = ServifyTextStyle.Caption.copy(
+                                            color = ServifyPrimary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(10.dp))
 

@@ -75,6 +75,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 fun CreatePublicationScreen(
     onBackClick: () -> Unit,
     onPublishSuccess: (publicationId: String) -> Unit,
+    onNavigateToLocationPicker: ((initialLat: Double?, initialLng: Double?) -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: PublicationFlowViewModel = hiltViewModel()
 ) {
@@ -260,7 +261,10 @@ fun CreatePublicationScreen(
 
                                 LocationPickerField(
                                     cityZone = state.locationName,
-                                    onCityZoneChange = viewModel::onLocationChanged
+                                    onCityZoneChange = viewModel::onLocationChanged,
+                                    onMapPickerClick = if (onNavigateToLocationPicker != null) {
+                                        { onNavigateToLocationPicker(state.latitude, state.longitude) }
+                                    } else null
                                 )
                             }
 

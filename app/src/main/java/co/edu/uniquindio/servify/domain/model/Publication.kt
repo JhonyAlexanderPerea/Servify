@@ -22,6 +22,7 @@ data class Publication(
     val reviewsCount: Int = 0,
     val locationName: String = "",
     val location: Location? = null,
+    val distanceKm: Double? = null,
     val zone: String = "",
     val city: String = "",
     val isFavorite: Boolean = false,

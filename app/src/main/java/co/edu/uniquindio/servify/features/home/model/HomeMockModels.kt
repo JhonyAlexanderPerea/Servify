@@ -51,7 +51,8 @@ data class ServiceItem(
     val interestedCount: Int,
     val isFavorite: Boolean = false,
     val nextAvailableSlot: String? = null,
-    val providerAvatarUrl: String? = null
+    val providerAvatarUrl: String? = null,
+    val distanceKm: Double? = null
 )
 
 fun Publication.toServiceItem(): ServiceItem {
@@ -88,7 +89,8 @@ fun Publication.toServiceItem(): ServiceItem {
         reviewCount = reviewsCount,
         interestedCount = interestedCount,
         isFavorite = isFavorite,
-        providerAvatarUrl = provider.avatarUrl
+        providerAvatarUrl = provider.avatarUrl,
+        distanceKm = distanceKm
     )
 }
 

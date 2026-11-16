@@ -217,4 +217,10 @@
     <string name="location_picker_my_location_cd">Centrar en mi ubicación actual</string>
     <string name="location_picker_pin_cd">Pin de ubicación seleccionada</string>
     <string name="location_picker_loading_address">Obteniendo dirección...</string>
+
+    <!-- Distance & Nearby Filter -->
+    <string name="filter_near_me">Cerca de mí</string>
+    <string name="distance_meters_format">A %1$d m</string>
+    <string name="distance_km_format">A %1$.1f km</string>
+    <string name="nearby_location_required">Activa tu ubicación para ordenar por cercanía</string>
 </resources>

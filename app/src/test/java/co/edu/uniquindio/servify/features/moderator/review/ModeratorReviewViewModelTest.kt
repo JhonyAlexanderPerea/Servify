@@ -65,8 +65,8 @@ class ModeratorReviewViewModelTest {
         viewModel.onApprove()
 
         val state = awaitState(viewModel) { it.finished }
-        assertEquals(PublicationStatus.VERIFICADA, env.publicationById("pub_jhony_tutorias")?.status)
-        assertEquals(env.nowMillis, env.publicationById("pub_jhony_tutorias")?.verifiedAtMillis)
+        assertEquals(PublicationStatus.VERIFICADA, env.publications.getById("pub_jhony_tutorias")?.status)
+        assertEquals(env.nowMillis, env.publications.getById("pub_jhony_tutorias")?.verifiedAtMillis)
         assertFalse(state.isProcessing)
     }
 
@@ -78,12 +78,12 @@ class ModeratorReviewViewModelTest {
         viewModel.onApproveClick()
 
         assertTrue(viewModel.uiState.value.showApproveDialog)
-        assertEquals(PublicationStatus.PENDIENTE, env.publicationById("pub_jhony_tutorias")?.status)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
 
         viewModel.onDismissApproveDialog()
 
         assertFalse(viewModel.uiState.value.showApproveDialog)
-        assertEquals(PublicationStatus.PENDIENTE, env.publicationById("pub_jhony_tutorias")?.status)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
     }
 
     @Test
@@ -96,7 +96,7 @@ class ModeratorReviewViewModelTest {
 
         val state = awaitState(viewModel) { it.finished }
         assertFalse(state.showApproveDialog)
-        assertEquals(PublicationStatus.VERIFICADA, env.publicationById("pub_jhony_tutorias")?.status)
+        assertEquals(PublicationStatus.VERIFICADA, env.publications.getById("pub_jhony_tutorias")?.status)
     }
 
     @Test
@@ -109,7 +109,7 @@ class ModeratorReviewViewModelTest {
         val state = awaitState(viewModel) { it.message != null }
         assertEquals("La publicación ya fue revisada (estado: verificada)", state.message)
         assertFalse(state.finished)
-        assertEquals(PublicationStatus.VERIFICADA, env.publicationById("pub_jhony_plomeria")?.status)
+        assertEquals(PublicationStatus.VERIFICADA, env.publications.getById("pub_jhony_plomeria")?.status)
     }
 
     @Test
@@ -157,7 +157,7 @@ class ModeratorReviewViewModelTest {
         )
         assertTrue(state.showRejectSheet)
         assertFalse(state.isRejectValid)
-        assertEquals(PublicationStatus.PENDIENTE, env.publicationById("pub_jhony_tutorias")?.status)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
     }
 
     @Test
@@ -184,7 +184,7 @@ class ModeratorReviewViewModelTest {
 
         val state = awaitState(viewModel) { it.finished }
         assertFalse(state.showRejectSheet)
-        val updated = env.publicationById("pub_jhony_tutorias")!!
+        val updated = env.publications.getById("pub_jhony_tutorias")!!
         assertEquals(PublicationStatus.RECHAZADA, updated.status)
         assertEquals("La categoría no corresponde al servicio.", updated.rejectionReason)
     }
@@ -198,7 +198,7 @@ class ModeratorReviewViewModelTest {
         viewModel.onDismissRejectSheet()
 
         assertFalse(viewModel.uiState.value.showRejectSheet)
-        assertEquals(PublicationStatus.PENDIENTE, env.publicationById("pub_jhony_tutorias")?.status)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
     }
 
     @Test
@@ -212,7 +212,7 @@ class ModeratorReviewViewModelTest {
         viewModel.onDismissFinalizeDialog()
 
         assertFalse(viewModel.uiState.value.showFinalizeDialog)
-        assertEquals(PublicationStatus.PENDIENTE, env.publicationById("pub_jhony_tutorias")?.status)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
     }
 
     @Test
@@ -225,7 +225,7 @@ class ModeratorReviewViewModelTest {
 
         val state = awaitState(viewModel) { it.finished }
         assertFalse(state.showFinalizeDialog)
-        val updated = env.publicationById("pub_jhony_tutorias")!!
+        val updated = env.publications.getById("pub_jhony_tutorias")!!
         assertEquals(PublicationStatus.FINALIZADA, updated.status)
         assertEquals(env.nowMillis, updated.finalizedAtMillis)
     }

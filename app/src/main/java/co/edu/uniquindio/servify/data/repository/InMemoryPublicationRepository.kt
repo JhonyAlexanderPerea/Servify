@@ -23,15 +23,15 @@ class InMemoryPublicationRepository(seed: List<Publication> = emptyList()) : Pub
             list.filter { it.authorId == authorId || it.provider.id == authorId }
         }
 
-    override suspend fun getById(id: String): Publication? = state.value[id]
+    override fun getById(id: String): Publication? = state.value[id]
 
     override fun snapshot(): List<Publication> = state.value.values.toList()
 
-    override suspend fun add(publication: Publication) {
+    override fun add(publication: Publication) {
         state.update { current -> mapOf(publication.id to publication) + (current - publication.id) }
     }
 
-    override suspend fun update(id: String, transform: (Publication) -> Publication): Publication? {
+    override fun update(id: String, transform: (Publication) -> Publication): Publication? {
         var result: Publication? = null
         state.update { current ->
             val existing = current[id] ?: return@update current
@@ -42,7 +42,7 @@ class InMemoryPublicationRepository(seed: List<Publication> = emptyList()) : Pub
         return result
     }
 
-    override suspend fun delete(id: String): Boolean {
+    override fun delete(id: String): Boolean {
         var removed = false
         state.update { current ->
             if (id !in current) return@update current

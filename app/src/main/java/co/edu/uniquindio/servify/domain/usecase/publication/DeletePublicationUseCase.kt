@@ -9,7 +9,7 @@ import javax.inject.Inject
 class DeletePublicationUseCase @Inject constructor(
     private val publicationRepository: PublicationRepository
 ) {
-    suspend operator fun invoke(userId: String, publicationId: String): PublicationActionResult {
+    operator fun invoke(userId: String, publicationId: String): PublicationActionResult {
         val publication = publicationRepository.getById(publicationId)
             ?: return PublicationActionResult.NotFound
         if (publication.authorId != userId) return PublicationActionResult.NotOwner

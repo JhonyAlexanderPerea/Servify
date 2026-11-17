@@ -76,7 +76,7 @@ class MyPublicationsViewModelTest {
         vm.onActionRequested(PublicationAction.ELIMINAR, target)
 
         assertEquals("pub_jhony_paseo", vm.uiState.value.pendingConfirmation?.publicationId)
-        assertNotNull(env.publicationById("pub_jhony_paseo"))
+        assertNotNull(env.publications.getById("pub_jhony_paseo"))
     }
 
     @Test
@@ -87,7 +87,7 @@ class MyPublicationsViewModelTest {
         vm.onActionRequested(PublicationAction.ELIMINAR, target)
         vm.onConfirmPending()
 
-        assertNull(env.publicationById("pub_jhony_paseo"))
+        assertNull(env.publications.getById("pub_jhony_paseo"))
         assertEquals(4, vm.uiState.value.publications.size)
         assertNull(vm.uiState.value.pendingConfirmation)
         assertEquals("Publicación eliminada", vm.uiState.value.message)
@@ -102,7 +102,7 @@ class MyPublicationsViewModelTest {
         vm.onDismissPending()
 
         assertNull(vm.uiState.value.pendingConfirmation)
-        assertNotNull(env.publicationById("pub_jhony_paseo"))
+        assertNotNull(env.publications.getById("pub_jhony_paseo"))
         assertNull(vm.uiState.value.message)
     }
 
@@ -128,7 +128,7 @@ class MyPublicationsViewModelTest {
         vm.onActionRequested(PublicationAction.FINALIZAR, target)
         vm.onConfirmPending()
 
-        assertEquals(PublicationStatus.PENDIENTE, env.publicationById("pub_jhony_tutorias")?.status)
+        assertEquals(PublicationStatus.PENDIENTE, env.publications.getById("pub_jhony_tutorias")?.status)
         assertEquals("Esa acción no está disponible para esta publicación", vm.uiState.value.message)
     }
 

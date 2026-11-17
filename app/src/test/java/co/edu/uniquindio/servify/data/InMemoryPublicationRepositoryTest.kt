@@ -30,11 +30,9 @@ class InMemoryPublicationRepositoryTest {
 
     @Test
     fun getById_returns_the_publication_or_null() {
-        runBlocking {
-            val repo = newRepo()
-            assertNotNull(repo.getById("pub_jhony_plomeria"))
-            assertNull(repo.getById("no_existe"))
-        }
+        val repo = newRepo()
+        assertNotNull(repo.getById("pub_jhony_plomeria"))
+        assertNull(repo.getById("no_existe"))
     }
 
     @Test
@@ -56,32 +54,26 @@ class InMemoryPublicationRepositoryTest {
 
     @Test
     fun update_applies_the_transform_and_returns_the_result() {
-        runBlocking {
-            val repo = newRepo()
-            val updated = repo.update("pub_jhony_tutorias") { it.copy(status = PublicationStatus.VERIFICADA) }
+        val repo = newRepo()
+        val updated = repo.update("pub_jhony_tutorias") { it.copy(status = PublicationStatus.VERIFICADA) }
 
-            assertEquals(PublicationStatus.VERIFICADA, updated?.status)
-            assertEquals(PublicationStatus.VERIFICADA, repo.getById("pub_jhony_tutorias")?.status)
-        }
+        assertEquals(PublicationStatus.VERIFICADA, updated?.status)
+        assertEquals(PublicationStatus.VERIFICADA, repo.getById("pub_jhony_tutorias")?.status)
     }
 
     @Test
     fun update_of_an_unknown_id_changes_nothing() {
-        runBlocking {
-            val repo = newRepo()
-            assertNull(repo.update("no_existe") { it.copy(title = "x") })
-            assertEquals(SeedPublications.publications.size, repo.snapshot().size)
-        }
+        val repo = newRepo()
+        assertNull(repo.update("no_existe") { it.copy(title = "x") })
+        assertEquals(SeedPublications.publications.size, repo.snapshot().size)
     }
 
     @Test
     fun delete_removes_the_publication_once() {
-        runBlocking {
-            val repo = newRepo()
+        val repo = newRepo()
 
-            assertTrue(repo.delete("pub_jhony_paseo"))
-            assertNull(repo.getById("pub_jhony_paseo"))
-            assertFalse(repo.delete("pub_jhony_paseo"))
-        }
+        assertTrue(repo.delete("pub_jhony_paseo"))
+        assertNull(repo.getById("pub_jhony_paseo"))
+        assertFalse(repo.delete("pub_jhony_paseo"))
     }
 }

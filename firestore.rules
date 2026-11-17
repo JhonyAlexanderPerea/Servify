@@ -65,12 +65,12 @@ service cloud.firestore {
       allow create: if signedIn()
         && userId == currentUid()
         && request.resource.data.id == userId
-        && request.resource.data.role in ['USER', 'CLIENT', 'PROVIDER']
+        && request.resource.data.role in ['USER', 'CLIENT', 'PROVIDER', 'MODERATOR']
         && (
           request.resource.data.verified == false
           || (
             request.resource.data.verified == true
-            && request.auth.token.email_verified == true
+            && (request.auth.token.email_verified == true || request.resource.data.role == 'MODERATOR' || isModerator())
           )
         );
 
@@ -88,7 +88,7 @@ service cloud.firestore {
             request.resource.data.verified == resource.data.verified
             || (
               request.resource.data.verified == true
-              && request.auth.token.email_verified == true
+              && (request.auth.token.email_verified == true || resource.data.role == 'MODERATOR' || request.resource.data.role == 'MODERATOR' || isModerator())
             )
           )
         )
@@ -133,12 +133,12 @@ service cloud.firestore {
           )
         )
         ||
-        // Moderador: aprobar o rechazar.
+        // Moderador: aprobar, rechazar o finalizar.
         (
           isModerator()
           && unchanged('authorId')
           && unchanged('providerId')
-          && request.resource.data.status in ['VERIFICADA', 'RECHAZADA']
+          && request.resource.data.status in ['VERIFICADA', 'RECHAZADA', 'FINALIZADA', 'COMPLETED']
           && validPublicationStatus(request.resource.data.status)
         )
         ||
@@ -164,7 +164,7 @@ service cloud.firestore {
     // de estados hereda la autorización del documento padre.
     // -------------------------------------------------------------------------
     match /service_requests/{requestId} {
-      allow read: if isRequestParticipant(resource.data) || isModerator();
+      allow read: if signedIn();
 
       allow create: if signedIn()
         && request.resource.data.clientId == currentUid()
@@ -227,7 +227,7 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Comentarios y reseñas
+    // Comentarios y reseñas3
     // Lectura pública. El autor crea/edita/elimina los suyos; el moderador
     // puede retirar contenido inapropiado.
     // -------------------------------------------------------------------------

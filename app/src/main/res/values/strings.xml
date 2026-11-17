@@ -3,119 +3,166 @@
     <string name="app_name">Servify</string>
 
     <!-- Bottom Navigation -->
-    <string name="nav_home">Inicio</string>
-    <string name="nav_explore">Explorar</string>
-    <string name="nav_create">Publicar</string>
-    <string name="nav_notifications">Alertas</string>
-    <string name="nav_profile">Perfil</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_create">Publish</string>
+    <string name="nav_notifications">Alerts</string>
+    <string name="nav_profile">Profile</string>
 
     <!-- Common UI & Dialogs -->
-    <string name="common_cancel">Cancelar</string>
-    <string name="common_confirm">Confirmar</string>
-    <string name="common_retry">Reintentar</string>
-    <string name="common_accept">Aceptar</string>
-    <string name="common_reject">Rechazar</string>
-    <string name="common_delete">Eliminar</string>
-    <string name="common_save">Guardar</string>
-    <string name="common_back">Volver</string>
-    <string name="common_close">Cerrar</string>
-    <string name="common_clear">Limpiar</string>
-    <string name="common_done">Listo</string>
-    <string name="common_reset">Restablecer</string>
-    <string name="common_explore">Explorar</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_accept">Accept</string>
+    <string name="common_reject">Reject</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_save">Save</string>
+    <string name="common_back">Back</string>
+    <string name="common_close">Close</string>
+    <string name="common_clear">Clear</string>
+    <string name="common_done">Done</string>
+    <string name="common_reset">Reset</string>
+    <string name="common_explore">Explore</string>
 
     <!-- State Component Messages -->
-    <string name="error_state_title">Algo salió mal</string>
-    <string name="error_state_description">Ocurrió un error inesperado. Por favor intenta de nuevo.</string>
-    <string name="empty_state_title">Sin publicaciones</string>
-    <string name="empty_state_description">Aún no hay publicaciones disponibles en esta categoría</string>
+    <string name="error_state_title">Something went wrong</string>
+    <string name="error_state_description">An unexpected error occurred. Please try again.</string>
+    <string name="empty_state_title">No publications</string>
+    <string name="empty_state_description">No publications available in this category yet</string>
 
     <!-- Confirm Dialog -->
-    <string name="confirm_dialog_title">Confirmar acción</string>
-    <string name="confirm_dialog_message">¿Estás seguro de que deseas continuar con esta acción?</string>
-    <string name="confirm_dialog_delete_publication_title">Eliminar publicación</string>
-    <string name="confirm_dialog_delete_publication_message">Esta acción no se puede deshacer. ¿Deseas eliminarla?</string>
+    <string name="confirm_dialog_title">Confirm action</string>
+    <string name="confirm_dialog_message">Are you sure you want to continue with this action?</string>
+    <string name="confirm_dialog_delete_publication_title">Delete publication</string>
+    <string name="confirm_dialog_delete_publication_message">This action cannot be undone. Do you want to delete it?</string>
 
     <!-- Image Picker -->
-    <string name="image_picker_title">Seleccionar imagen</string>
-    <string name="image_picker_camera">Tomar foto</string>
-    <string name="image_picker_gallery">Elegir de la galería</string>
-    <string name="image_picker_cancel">Cancelar</string>
-    <string name="image_picker_camera_permission_denied">Se requiere permiso de cámara para tomar fotografías</string>
+    <string name="image_picker_title">Select image</string>
+    <string name="image_picker_camera">Take photo</string>
+    <string name="image_picker_gallery">Choose from gallery</string>
+    <string name="image_picker_cancel">Cancel</string>
+    <string name="image_picker_camera_permission_denied">Camera permission is required to take photos</string>
 
     <!-- Home Screen -->
-    <string name="home_search_placeholder">¿Qué servicio necesitas hoy?</string>
-    <string name="home_feed_header">Servicios cerca de ti (%1$d)</string>
-    <string name="home_feed_empty_title">No se encontraron servicios</string>
-    <string name="home_feed_empty_desc">Intenta con otros términos o restablece los filtros.</string>
-    <string name="home_view_list">Vista de lista</string>
-    <string name="home_view_map">Ver en el mapa</string>
-    <string name="home_filter_title">Filtrar servicios</string>
-    <string name="home_filter_subtitle">Ordenar y filtrar por</string>
-    <string name="home_book_service">Solicitar</string>
+    <string name="home_greeting_format">Hello, %1$s 👋</string>
+    <string name="home_next_appointment">NEXT APPOINTMENT</string>
+    <string name="home_search_placeholder">What service do you need today?</string>
+    <string name="home_feed_header">Services near you (%1$d)</string>
+    <string name="home_feed_empty_title">No services found</string>
+    <string name="home_feed_empty_desc">Try other terms or reset filters.</string>
+    <string name="home_view_list">List view</string>
+    <string name="home_view_map">View on map</string>
+    <string name="home_filter_title">Filter services</string>
+    <string name="home_filter_subtitle">Sort and filter by</string>
+    <string name="home_book_service">Request</string>
     <string name="home_reviews_count">(%1$d)</string>
 
     <!-- Quick Filters -->
-    <string name="filter_all">Todos</string>
-    <string name="filter_top_rated">Mejor valorados</string>
-    <string name="filter_verified">Verificados</string>
-    <string name="filter_price_low">Menor precio</string>
-    <string name="filter_popular">Populares</string>
+    <string name="filter_all">All</string>
+    <string name="filter_top_rated">Top rated</string>
+    <string name="filter_verified">Verified</string>
+    <string name="filter_price_low">Lowest price</string>
+    <string name="filter_popular">Popular</string>
 
     <!-- Explore Screen -->
-    <string name="explore_title">Explorar mapa</string>
-    <string name="explore_search_placeholder">Buscar por servicio, categoría o zona…</string>
-    <string name="explore_filter_all">Todos</string>
-    <string name="explore_filter_verified">Solo Verificados</string>
-    <string name="explore_no_results_title">No hay servicios en esta zona</string>
-    <string name="explore_no_results_desc">Prueba moviendo el mapa o cambiando los filtros seleccionados.</string>
+    <string name="explore_title">Explore Services on Map</string>
+    <string name="explore_subtitle">Find trusted providers near you</string>
+    <string name="explore_search_placeholder">Search by service, category or zone…</string>
+    <string name="explore_filter_all">All</string>
+    <string name="explore_filter_verified">Verified only</string>
+    <string name="explore_no_results_title">No services in this area</string>
+    <string name="explore_no_results_desc">Try moving the map or changing selected filters.</string>
+    <string name="explore_featured_header">Featured providers nearby (%1$d)</string>
 
     <!-- Service Detail -->
-    <string name="service_detail_title">Detalle del Servicio</string>
-    <string name="service_detail_request_button">Solicitar Servicio</string>
-    <string name="service_detail_trust_index">Índice de Confianza: %1$d%%</string>
-    <string name="service_detail_reviews_count">(%1$d opiniones)</string>
-    <string name="service_detail_provider_section">Acerca del proveedor</string>
-    <string name="service_detail_comments_section">Opiniones y comentarios (%1$d)</string>
-    <string name="service_detail_add_comment">Agregar opinión</string>
-    <string name="service_detail_comment_placeholder">Escribe tu opinión sobre el servicio…</string>
-    <string name="service_detail_verified_badge">Proveedor Verificado</string>
+    <string name="provider_member_since_format">Member since %1$s</string>
+    <string name="service_detail_rating_label">Rating</string>
+    <string name="trust_index_title">Servify Trust Index</string>
+    <string name="trust_index_subtitle">System-verified profile and guarantee</string>
+    <string name="service_description_title">Service description</string>
+    <string name="service_read_more">Read full description</string>
+    <string name="service_read_less">Show less</string>
+    <string name="service_coverage_format">Coverage area: %1$s (%2$s)</string>
+    <string name="service_address_error">Could not get address</string>
+    <string name="service_detail_leave_review_title">Leave your review or question</string>
+    <string name="service_detail_rating_prefix">Rating: </string>
+    <string name="service_detail_comment_hint">Write a comment...</string>
+    <string name="service_detail_title">Service Detail</string>
+    <string name="service_detail_request_button">Request Service</string>
+    <string name="service_detail_trust_index">Trust Index: %1$d%%</string>
+    <string name="service_detail_reviews_count">(%1$d reviews)</string>
+    <string name="service_detail_provider_section">About the provider</string>
+    <string name="service_detail_comments_section">Reviews and comments (%1$d)</string>
+    <string name="service_detail_add_comment">Add review</string>
+    <string name="service_detail_comment_placeholder">Write your opinion about the service…</string>
+    <string name="service_detail_verified_badge">Verified Provider</string>
     <string name="service_detail_price_format">%1$s %2$s</string>
 
     <!-- Requests & Agenda -->
-    <string name="request_create_title">Solicitar Servicio</string>
-    <string name="request_select_date_time">Selecciona fecha y hora</string>
-    <string name="request_note_label">Nota o instrucciones para el proveedor</string>
-    <string name="request_note_placeholder">Describe los detalles de tu solicitud…</string>
-    <string name="request_total_amount">Total estimado</string>
-    <string name="request_confirm_button">Confirmar solicitud</string>
-    <string name="request_confirmed_title">¡Solicitud enviada!</string>
-    <string name="request_confirmed_desc">Tu solicitud ha sido enviada al proveedor exitosamente.</string>
-    <string name="request_my_requests_title">Mis Solicitudes</string>
+    <string name="request_appointment_date">Appointment date</string>
+    <string name="request_open_calendar">Calendar</string>
+    <string name="request_quick_day_select">Quick day select:</string>
+    <string name="request_available_slots">Available time slots:</string>
+    <string name="request_slot_past">%1$s (Past)</string>
+    <string name="request_slot_reserved">%1$s (Reserved)</string>
+    <string name="request_create_title">Request Service</string>
+    <string name="request_select_date_time">Select date and time</string>
+    <string name="request_note_label">Note or instructions for the provider</string>
+    <string name="request_note_placeholder">Describe the details of your request…</string>
+    <string name="request_total_amount">Estimated total</string>
+    <string name="request_confirm_button">Confirm request</string>
+    <string name="request_confirmed_title">Request sent to provider!</string>
+    <string name="request_confirmed_desc">Your request has been successfully sent to the provider.</string>
+    <string name="request_confirmed_desc_format">Provider %1$s has received your request. We will notify you as soon as they accept the appointment or propose a time change.</string>
+    <string name="request_summary_title">RESERVATION SUMMARY</string>
+    <string name="request_provider_format">Provider: %1$s</string>
+    <string name="request_status_label">Appointment status:</string>
+    <string name="request_status_pending_confirmation">Pending confirmation</string>
+    <string name="request_my_requests_title">My Requests</string>
 
     <!-- Publication -->
-    <string name="publication_create_title">Crear Publicación</string>
-    <string name="publication_edit_title">Editar Publicación</string>
-    <string name="publication_my_publications_title">Mis Publicaciones</string>
-    <string name="publication_title_label">Título de la publicación</string>
-    <string name="publication_description_label">Descripción</string>
-    <string name="publication_category_label">Categoría</string>
-    <string name="publication_subcategory_label">Subcategoría</string>
-    <string name="publication_price_label">Precio</string>
-    <string name="publication_price_unit_label">Unidad de precio</string>
-    <string name="publication_location_label">Ubicación</string>
-    <string name="publication_images_label">Imágenes del servicio</string>
-    <string name="publication_photos_label">Fotos del servicio (%1$d/5)</string>
-    <string name="publication_photos_add">Agregar foto</string>
-    <string name="publication_photos_error_min">Debes adjuntar al menos 1 fotografía</string>
-    <string name="publication_photos_remove_cd">Eliminar fotografía</string>
-    <string name="publication_submit_button">Publicar servicio</string>
-    <string name="publication_published_success_title">¡Publicación enviada!</string>
-    <string name="publication_published_success_desc">Tu servicio pasará por revisión de moderación antes de ser visible.</string>
-    <string name="publication_status_pending">Pendiente de verificación</string>
-    <string name="publication_status_approved">Verificada</string>
-    <string name="publication_status_rejected">Rechazada</string>
-    <string name="publication_status_completed">Finalizada</string>
+    <string name="publication_rejected_banner_title">Publication rejected</string>
+    <string name="publication_rejected_reason_format">Rejection reason: %1$s</string>
+    <string name="publication_step_1_title">Step 1: Basic Service Information</string>
+    <string name="publication_step_1_desc">Write a clear title for your service.</string>
+    <string name="publication_step_2_title">Step 2: Details, Pricing &amp; AI Suggestions</string>
+    <string name="publication_step_3_title">Step 3: Preview and Final Verification</string>
+    <string name="publication_step_3_desc">Review how clients will see your ad in the Marketplace before publishing.</string>
+    <string name="publication_terms_notice">Your ad will comply with Servify community guidelines and earn reputation points on your profile.</string>
+    <string name="publication_step_header">Step %1$d of 3</string>
+    <string name="publication_new_title">New Publication</string>
+    <string name="publication_formats_recommended">Recommended formats: JPG, PNG</string>
+    <string name="publication_ai_analyzing">Analyzing publication…</string>
+    <string name="publication_ai_confidence_format">Confidence: %1$d%%</string>
+    <string name="publication_price_range_label">Estimated price range ($ COP)</string>
+    <string name="publication_preview_badge">AD PREVIEW</string>
+    <string name="publication_estimated_fee_label">Estimated Fee:</string>
+    <string name="publication_ai_use_category">Use category</string>
+    <string name="publication_ai_choose_other">Choose another</string>
+    <string name="publication_create_title">Create Publication</string>
+    <string name="publication_edit_title">Edit Publication</string>
+    <string name="publication_my_publications_title">My Publications</string>
+    <string name="publication_title_label">Publication title</string>
+    <string name="publication_description_label">Description</string>
+    <string name="publication_category_label">Category</string>
+    <string name="publication_subcategory_label">Subcategory</string>
+    <string name="publication_price_label">Price</string>
+    <string name="publication_price_unit_label">Price unit</string>
+    <string name="publication_location_label">Location</string>
+    <string name="publication_images_label">Service images</string>
+    <string name="publication_photos_label">Service photos (%1$d/5)</string>
+    <string name="publication_photos_add">Add photo</string>
+    <string name="publication_photos_error_min">You must attach at least 1 photo</string>
+    <string name="publication_photos_remove_cd">Remove photo</string>
+    <string name="publication_submit_button">Publish service</string>
+    <string name="publication_published_success_title">Your publication has been submitted!</string>
+    <string name="publication_published_success_desc">Your service will go through moderation review before becoming visible.</string>
+    <string name="publication_offer_registered">OFFER REGISTERED</string>
+    <string name="publication_status_pending">Pending verification</string>
+    <string name="publication_status_approved">Verified</string>
+    <string name="publication_status_rejected">Rejected</string>
+    <string name="publication_status_completed">Completed</string>
+
     <!-- Login -->
     <string name="login_title">Welcome back</string>
     <string name="login_subtitle">Sign in to your Servify account</string>
@@ -172,6 +219,7 @@
     <!-- Splash -->
     <string name="splash_title">Servify</string>
     <string name="splash_subtitle">Your trusted marketplace</string>
+    <string name="splash_tagline">Trusted local services</string>
 
     <!-- Moderator -->
     <string name="mod_panel_title">Moderation Panel</string>
@@ -181,16 +229,39 @@
     <string name="mod_reason_title">Rejection reason</string>
     <string name="mod_reason_placeholder">Write the reason...</string>
     <string name="mod_empty">No pending publications</string>
+    <string name="mod_pending_header">Pending review (%1$d)</string>
+    <string name="mod_reject_sheet_title">Reject publication</string>
+    <string name="mod_reject_reason_label">Rejection reason (required)</string>
+    <string name="mod_reject_reason_desc">The author will see this reason in notifications and My publications.</string>
+    <string name="mod_reject_describe_label">Describe the reason</string>
+    <string name="mod_reject_confirm">Confirm rejection</string>
 
     <!-- Profile -->
-    <string name="profile_title">My Profile</string>
+    <string name="achievements_title">My Achievements</string>
+    <string name="achievements_unlocked_format">%1$d of %2$d badges</string>
+    <string name="achievements_next_title">Your next achievement</string>
+    <string name="achievements_section_unlocked">Unlocked (%1$d)</string>
+    <string name="achievements_section_locked">Locked (%1$d)</string>
+    <string name="trust_screen_title">Trust Index &amp; Reputation</string>
+    <string name="trust_jobs_completed_format">• %1$d Completed jobs</string>
+    <string name="trust_factors_title">Verified Trust Factors</string>
+    <string name="trust_how_calculated">How is the score calculated?</string>
+    <string name="profile_title">My Profile &amp; Reputation</string>
     <string name="profile_edit">Edit profile</string>
     <string name="profile_logout">Log out</string>
     <string name="profile_delete_account">Delete account</string>
+    <string name="profile_delete_account_title">Delete account</string>
+    <string name="profile_delete_account_desc">Are you sure you want to delete your account? This action cannot be undone.</string>
     <string name="profile_achievements">Achievements</string>
     <string name="profile_statistics">Statistics</string>
+    <string name="profile_badges_header">Badges (%1$d/%2$d)</string>
+    <string name="profile_badges_empty">You don\'t have badges yet. Publish your first service to get your first one.</string>
 
     <!-- Statistics -->
+    <string name="stats_performance_chart">Performance Chart</string>
+    <string name="stats_monthly_activity">Monthly activity</string>
+    <string name="stats_breakdown">Breakdown</string>
+    <string name="stats_breakdown_subtitle">Most requested or offered categories</string>
     <string name="stats_title">Personal Statistics</string>
     <string name="stats_jobs_completed">Completed jobs</string>
     <string name="stats_reputation">Reputation level</string>
@@ -198,7 +269,12 @@
 
     <!-- Notifications -->
     <string name="notifications_title">Notifications</string>
+    <string name="notifications_subtitle">Updates on your publications and requests</string>
+    <string name="notifications_section_today">Today</string>
+    <string name="notifications_section_earlier">Earlier</string>
+    <string name="notifications_mark_all_read">Mark all as read</string>
     <string name="notifications_empty">You have no notifications</string>
+    <string name="notifications_empty_desc">We will notify you when there are updates on your publications, requests, or badges.</string>
 
     <!-- Common actions -->
     <string name="action_cancel">Cancel</string>
@@ -219,8 +295,8 @@
 
     <!-- Distance & Nearby Filter -->
     <string name="filter_near_me">Near me</string>
-    <string name="distance_meters_format">A %1$d m</string>
-    <string name="distance_km_format">A %1$.1f km</string>
+    <string name="distance_meters_format">%1$d m away</string>
+    <string name="distance_km_format">%1$.1f km away</string>
     <string name="nearby_location_required">Turn on your location to sort by proximity</string>
 
     <!-- Connectivity / Offline Banner -->
@@ -229,6 +305,6 @@
     <string name="offline_banner_icon_cd">No internet connection icon</string>
 
     <!-- Image Carousel / Slider -->
-    <string name="publication_image_slide_cd">Imagen %1$d de %2$d de la publicación</string>
+    <string name="publication_image_slide_cd">Image %1$d of %2$d of the publication</string>
     <string name="publication_image_counter">%1$d / %2$d</string>
 </resources>

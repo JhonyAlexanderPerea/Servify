@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.publication.mine
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -139,7 +142,7 @@ fun MyPublicationsContent(
                     onClick = actions.onBackClick
                 )
                 Text(
-                    text = "Mis publicaciones",
+                    text = stringResource(R.string.publication_my_publications_title),
                     style = ServifyTextStyle.Title,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 4.dp)
@@ -366,13 +369,16 @@ private fun RejectionBanner(reason: String?, onEdit: () -> Unit) {
             .padding(12.dp)
     ) {
         Text(
-            text = "Publicación rechazada",
+            text = stringResource(R.string.publication_rejected_banner_title),
             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onErrorContainer
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Motivo del rechazo: ${reason ?: "no se indicó un motivo."}",
+            text = stringResource(
+                R.string.publication_rejected_reason_format,
+                reason ?: "no se indicó un motivo."
+            ),
             style = ServifyTextStyle.Small,
             color = MaterialTheme.colorScheme.onErrorContainer
         )

@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -40,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import co.edu.uniquindio.servify.domain.model.RequestStatus
+import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
 import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.state.EmptyState
@@ -47,7 +51,7 @@ import co.edu.uniquindio.servify.ui.components.state.LoadingState
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 
-/** Mis solicitudes: servicios que el usuario pidió y el estado de cada solicitud. */
+/** Mis solicitudes: servicios que el usuario pidió (como cliente) o que le solicitaron (como proveedor). */
 @Composable
 fun MyRequestsScreen(
     onBackClick: () -> Unit,
@@ -62,7 +66,7 @@ fun MyRequestsScreen(
     if (requestToCancel != null) {
         ConfirmDialog(
             title = "Cancelar Agendamiento",
-            message = "¿Estás seguro de que deseas cancelar la solicitud para \"${requestToCancel?.title}\"? Esta acción informará al proveedor.",
+            message = "¿Estás seguro de que deseas cancelar la solicitud para \"${requestToCancel?.title}\"?",
             confirmText = "Sí, cancelar",
             dismissText = "Volver",
             isDestructive = true,
@@ -81,6 +85,9 @@ fun MyRequestsScreen(
         onRequestClick = onRequestClick,
         onExploreClick = onExploreClick,
         onCancelRequest = { requestToCancel = it },
+        onAcceptRequest = { viewModel.acceptRequest(it.id) },
+        onRejectRequest = { viewModel.rejectRequest(it.id) },
+        onCompleteRequest = { viewModel.completeRequest(it.id) },
         modifier = modifier
     )
 }
@@ -92,6 +99,9 @@ fun MyRequestsContent(
     onRequestClick: (String) -> Unit,
     onExploreClick: () -> Unit,
     onCancelRequest: (RequestItem) -> Unit = {},
+    onAcceptRequest: (RequestItem) -> Unit = {},
+    onRejectRequest: (RequestItem) -> Unit = {},
+    onCompleteRequest: (RequestItem) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -134,7 +144,7 @@ fun MyRequestsContent(
                     .padding(paddingValues),
                 icon = Icons.Outlined.Assignment,
                 title = "Todavía no tienes solicitudes",
-                description = "Cuando solicites un servicio, aquí verás su estado.",
+                description = "Aquí verás el estado de los servicios que solicites o recibas.",
                 actionText = "Explorar servicios",
                 onActionClick = onExploreClick
             )
@@ -150,7 +160,10 @@ fun MyRequestsContent(
                     RequestCard(
                         item = item,
                         onClick = { onRequestClick(item.publicationId) },
-                        onCancelClick = { onCancelRequest(item) }
+                        onCancelClick = { onCancelRequest(item) },
+                        onAcceptClick = { onAcceptRequest(item) },
+                        onRejectClick = { onRejectRequest(item) },
+                        onCompleteClick = { onCompleteRequest(item) }
                     )
                 }
             }
@@ -162,7 +175,10 @@ fun MyRequestsContent(
 private fun RequestCard(
     item: RequestItem,
     onClick: () -> Unit,
-    onCancelClick: () -> Unit = {}
+    onCancelClick: () -> Unit = {},
+    onAcceptClick: () -> Unit = {},
+    onRejectClick: () -> Unit = {},
+    onCompleteClick: () -> Unit = {}
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -185,9 +201,10 @@ private fun RequestCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = item.providerName,
+                        text = if (item.isReceivedAsProvider) "Solicitud recibida" else item.providerName,
                         style = ServifyTextStyle.Caption,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (item.isReceivedAsProvider) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (item.isReceivedAsProvider) FontWeight.Bold else FontWeight.Normal
                     )
                 }
                 RequestStatusChip(item.status)
@@ -216,17 +233,55 @@ private fun RequestCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            if (item.status == RequestStatus.PENDING || item.status == RequestStatus.ACCEPTED) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onCancelClick) {
-                        Text(
-                            text = "Cancelar agendamiento",
-                            style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.error
+            if (item.isReceivedAsProvider) {
+                if (item.status == RequestStatus.PENDING) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(onClick = onRejectClick) {
+                            Text(
+                                text = "Rechazar",
+                                style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        ServifyFilledButton(
+                            text = "Aceptar solicitud",
+                            onClick = onAcceptClick,
+                            modifier = Modifier.height(36.dp)
                         )
+                    }
+                } else if (item.status == RequestStatus.ACCEPTED) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        ServifyFilledButton(
+                            text = "Marcar como completada",
+                            onClick = onCompleteClick,
+                            modifier = Modifier.height(36.dp)
+                        )
+                    }
+                }
+            } else {
+                if (item.status == RequestStatus.PENDING || item.status == RequestStatus.ACCEPTED) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = onCancelClick) {
+                            Text(
+                                text = "Cancelar agendamiento",
+                                style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
             }
@@ -275,12 +330,8 @@ private val previewState = MyRequestsUiState(
             "12/11/2026 09:00", "$80.000", "Fuga en el baño principal"
         ),
         RequestItem(
-            "r2", "p2", "Instalaciones eléctricas certificadas", "Luis Torres", RequestStatus.ACCEPTED,
-            "15/11/2026 14:30", "$120.000", null
-        ),
-        RequestItem(
-            "r3", "p3", "Paseo de mascotas", "María Ríos", RequestStatus.REJECTED,
-            "10/11/2026 07:00", "$25.000", null
+            "r2", "p2", "Instalaciones eléctricas certificadas", "Solicitud recibida", RequestStatus.PENDING,
+            "15/11/2026 14:30", "$120.000", null, isReceivedAsProvider = true
         )
     )
 )

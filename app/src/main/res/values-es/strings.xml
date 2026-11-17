@@ -44,6 +44,8 @@
     <string name="image_picker_camera_permission_denied">Se requiere permiso de cámara para tomar fotografías</string>
 
     <!-- Home Screen -->
+    <string name="home_greeting_format">Hola, %1$s 👋</string>
+    <string name="home_next_appointment">PRÓXIMA CITA</string>
     <string name="home_search_placeholder">¿Qué servicio necesitas hoy?</string>
     <string name="home_feed_header">Servicios cerca de ti (%1$d)</string>
     <string name="home_feed_empty_title">No se encontraron servicios</string>
@@ -63,14 +65,28 @@
     <string name="filter_popular">Populares</string>
 
     <!-- Explore Screen -->
-    <string name="explore_title">Explorar mapa</string>
+    <string name="explore_title">Explorar Servicios en el Mapa</string>
+    <string name="explore_subtitle">Encuentra proveedores de confianza cerca de ti</string>
     <string name="explore_search_placeholder">Buscar por servicio, categoría o zona…</string>
     <string name="explore_filter_all">Todos</string>
     <string name="explore_filter_verified">Solo Verificados</string>
     <string name="explore_no_results_title">No hay servicios en esta zona</string>
     <string name="explore_no_results_desc">Prueba moviendo el mapa o cambiando los filtros seleccionados.</string>
+    <string name="explore_featured_header">Proveedores destacados cerca (%1$d)</string>
 
     <!-- Service Detail -->
+    <string name="provider_member_since_format">Desde %1$s</string>
+    <string name="service_detail_rating_label">Calificación</string>
+    <string name="trust_index_title">Índice de Confianza Servify</string>
+    <string name="trust_index_subtitle">Garantía y perfil verificado por el sistema</string>
+    <string name="service_description_title">Descripción del servicio</string>
+    <string name="service_read_more">Leer descripción completa</string>
+    <string name="service_read_less">Mostrar menos</string>
+    <string name="service_coverage_format">Zona de cobertura: %1$s (%2$s)</string>
+    <string name="service_address_error">No se pudo obtener la dirección</string>
+    <string name="service_detail_leave_review_title">Deja tu opinión o consulta</string>
+    <string name="service_detail_rating_prefix">Calificación: </string>
+    <string name="service_detail_comment_hint">Escribe un comentario...</string>
     <string name="service_detail_title">Detalle del Servicio</string>
     <string name="service_detail_request_button">Solicitar Servicio</string>
     <string name="service_detail_trust_index">Índice de Confianza: %1$d%%</string>
@@ -83,17 +99,46 @@
     <string name="service_detail_price_format">%1$s %2$s</string>
 
     <!-- Requests & Agenda -->
+    <string name="request_appointment_date">Fecha de atención</string>
+    <string name="request_open_calendar">Calendario</string>
+    <string name="request_quick_day_select">Seleccionar día rápido:</string>
+    <string name="request_available_slots">Horarios disponibles:</string>
+    <string name="request_slot_past">%1$s (Pasado)</string>
+    <string name="request_slot_reserved">%1$s (Reservado)</string>
     <string name="request_create_title">Solicitar Servicio</string>
     <string name="request_select_date_time">Selecciona fecha y hora</string>
     <string name="request_note_label">Nota o instrucciones para el proveedor</string>
     <string name="request_note_placeholder">Describe los detalles de tu solicitud…</string>
     <string name="request_total_amount">Total estimado</string>
     <string name="request_confirm_button">Confirmar solicitud</string>
-    <string name="request_confirmed_title">¡Solicitud enviada!</string>
+    <string name="request_confirmed_title">¡Solicitud enviada al proveedor!</string>
     <string name="request_confirmed_desc">Tu solicitud ha sido enviada al proveedor exitosamente.</string>
+    <string name="request_confirmed_desc_format">El proveedor %1$s ha recibido tu solicitud. Te notificaremos tan pronto acepte la cita o si propone un cambio de horario.</string>
+    <string name="request_summary_title">RESUMEN DE RESERVA</string>
+    <string name="request_provider_format">Proveedor: %1$s</string>
+    <string name="request_status_label">Estado de cita:</string>
+    <string name="request_status_pending_confirmation">Pendiente de confirmación</string>
     <string name="request_my_requests_title">Mis Solicitudes</string>
 
     <!-- Publication -->
+    <string name="publication_rejected_banner_title">Publicación rechazada</string>
+    <string name="publication_rejected_reason_format">Motivo del rechazo: %1$s</string>
+    <string name="publication_step_1_title">Paso 1: Información Básica del Servicio</string>
+    <string name="publication_step_1_desc">Escribe un título claro para tu servicio.</string>
+    <string name="publication_step_2_title">Paso 2: Detalles, Precios y Sugerencias de IA</string>
+    <string name="publication_step_3_title">Paso 3: Vista Previa y Verificación Final</string>
+    <string name="publication_step_3_desc">Revisa cómo verán los clientes tu anuncio en el Marketplace antes de publicarlo.</string>
+    <string name="publication_terms_notice">Tu anuncio cumplirá con las normas de convivencia de Servify y ganará puntos de reputación en tu perfil.</string>
+    <string name="publication_step_header">Paso %1$d de 3</string>
+    <string name="publication_new_title">Nueva Publicación</string>
+    <string name="publication_formats_recommended">Formatos recomendados: JPG, PNG</string>
+    <string name="publication_ai_analyzing">Analizando publicación…</string>
+    <string name="publication_ai_confidence_format">Confianza: %1$d%%</string>
+    <string name="publication_price_range_label">Rango de precio estimado ($ COP)</string>
+    <string name="publication_preview_badge">VISTA PREVIA DEL ANUNCIO</string>
+    <string name="publication_estimated_fee_label">Tarifa Estimada:</string>
+    <string name="publication_ai_use_category">Usar categoría</string>
+    <string name="publication_ai_choose_other">Elegir otra</string>
     <string name="publication_create_title">Crear Publicación</string>
     <string name="publication_edit_title">Editar Publicación</string>
     <string name="publication_my_publications_title">Mis Publicaciones</string>
@@ -110,8 +155,9 @@
     <string name="publication_photos_error_min">Debes adjuntar al menos 1 fotografía</string>
     <string name="publication_photos_remove_cd">Eliminar fotografía</string>
     <string name="publication_submit_button">Publicar servicio</string>
-    <string name="publication_published_success_title">¡Publicación enviada!</string>
+    <string name="publication_published_success_title">¡Tu publicación ha sido enviada!</string>
     <string name="publication_published_success_desc">Tu servicio pasará por revisión de moderación antes de ser visible.</string>
+    <string name="publication_offer_registered">OFERTA REGISTRADA</string>
     <string name="publication_status_pending">Pendiente de verificación</string>
     <string name="publication_status_approved">Verificada</string>
     <string name="publication_status_rejected">Rechazada</string>
@@ -173,6 +219,7 @@
     <!-- Splash -->
     <string name="splash_title">Servify</string>
     <string name="splash_subtitle">Tu mercado de confianza</string>
+    <string name="splash_tagline">Servicios locales de confianza</string>
 
     <!-- Moderator -->
     <string name="mod_panel_title">Panel de Moderación</string>
@@ -182,16 +229,39 @@
     <string name="mod_reason_title">Motivo de rechazo</string>
     <string name="mod_reason_placeholder">Escribe el motivo...</string>
     <string name="mod_empty">No hay publicaciones pendientes</string>
+    <string name="mod_pending_header">Pendientes de revisión (%1$d)</string>
+    <string name="mod_reject_sheet_title">Rechazar publicación</string>
+    <string name="mod_reject_reason_label">Motivo del rechazo (obligatorio)</string>
+    <string name="mod_reject_reason_desc">El autor verá este motivo en sus notificaciones y en Mis publicaciones.</string>
+    <string name="mod_reject_describe_label">Describe el motivo</string>
+    <string name="mod_reject_confirm">Confirmar rechazo</string>
 
     <!-- Profile -->
-    <string name="profile_title">Mi Perfil</string>
+    <string name="achievements_title">Mis logros</string>
+    <string name="achievements_unlocked_format">%1$d de %2$d insignias</string>
+    <string name="achievements_next_title">Tu siguiente logro</string>
+    <string name="achievements_section_unlocked">Desbloqueadas (%1$d)</string>
+    <string name="achievements_section_locked">Bloqueadas (%1$d)</string>
+    <string name="trust_screen_title">Índice de Confianza y Reputación</string>
+    <string name="trust_jobs_completed_format">• %1$d Trabajos completados</string>
+    <string name="trust_factors_title">Factores de Confianza Verificados</string>
+    <string name="trust_how_calculated">¿Cómo se calcula el score?</string>
+    <string name="profile_title">Mi Perfil &amp; Reputación</string>
     <string name="profile_edit">Editar perfil</string>
     <string name="profile_logout">Cerrar sesión</string>
     <string name="profile_delete_account">Eliminar cuenta</string>
+    <string name="profile_delete_account_title">Eliminar cuenta</string>
+    <string name="profile_delete_account_desc">¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.</string>
     <string name="profile_achievements">Logros</string>
     <string name="profile_statistics">Estadísticas</string>
+    <string name="profile_badges_header">Insignias (%1$d/%2$d)</string>
+    <string name="profile_badges_empty">Aún no tienes insignias. Publica tu primer servicio para conseguir la primera.</string>
 
     <!-- Statistics -->
+    <string name="stats_performance_chart">Gráfica de Rendimiento</string>
+    <string name="stats_monthly_activity">Actividad mensual</string>
+    <string name="stats_breakdown">Desglose</string>
+    <string name="stats_breakdown_subtitle">Categorías más solicitadas u ofrecidas</string>
     <string name="stats_title">Estadísticas Personales</string>
     <string name="stats_jobs_completed">Trabajos completados</string>
     <string name="stats_reputation">Nivel de reputación</string>
@@ -199,7 +269,12 @@
 
     <!-- Notifications -->
     <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_subtitle">Novedades de tus publicaciones y solicitudes</string>
+    <string name="notifications_section_today">Hoy</string>
+    <string name="notifications_section_earlier">Anteriores</string>
+    <string name="notifications_mark_all_read">Marcar todas como leídas</string>
     <string name="notifications_empty">No tienes notificaciones</string>
+    <string name="notifications_empty_desc">Te avisaremos cuando haya novedades en tus publicaciones, solicitudes o insignias.</string>
 
     <!-- Common actions -->
     <string name="action_cancel">Cancelar</string>
@@ -212,7 +287,7 @@
 
     <!-- Location Picker -->
     <string name="location_picker_title">Seleccionar ubicación</string>
-    <string name="location_picker_hint">Mueve el mapa para ubicar el pin en el punto exacto</string>
+    <string name="location_picker_hint">Mueve el mapa para alinear el marcador con la ubicación exacta</string>
     <string name="location_picker_confirm_button">Confirmar ubicación</string>
     <string name="location_picker_my_location_cd">Centrar en mi ubicación actual</string>
     <string name="location_picker_pin_cd">Pin de ubicación seleccionada</string>
@@ -222,11 +297,11 @@
     <string name="filter_near_me">Cerca de mí</string>
     <string name="distance_meters_format">A %1$d m</string>
     <string name="distance_km_format">A %1$.1f km</string>
-    <string name="nearby_location_required">Activa tu ubicación para ordenar por cercanía</string>
+    <string name="nearby_location_required">Activa tu ubicación para ordenar por proximidad</string>
 
     <!-- Connectivity / Offline Banner -->
     <string name="offline_banner_title">Sin conexión a internet</string>
-    <string name="offline_banner_subtitle">Mostrando datos guardados. Los cambios se sincronizarán al volver en línea.</string>
+    <string name="offline_banner_subtitle">Mostrando datos guardados. Los cambios se sincronizarán al reconectar.</string>
     <string name="offline_banner_icon_cd">Icono sin conexión a internet</string>
 
     <!-- Image Carousel / Slider -->

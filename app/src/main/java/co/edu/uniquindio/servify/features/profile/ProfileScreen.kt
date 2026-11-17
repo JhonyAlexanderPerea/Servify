@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.profile
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -132,7 +135,7 @@ fun ProfileContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Mi Perfil & Reputación",
+                    text = stringResource(R.string.profile_title),
                     style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -354,7 +357,7 @@ private fun StatDivider() {
 private fun BadgesSection(state: ProfileUiState) {
     Column {
         Text(
-            text = "Insignias (${state.unlockedBadges.size}/${state.totalBadges})",
+            text = stringResource(R.string.profile_badges_header, state.unlockedBadges.size, state.totalBadges),
             style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -362,7 +365,7 @@ private fun BadgesSection(state: ProfileUiState) {
 
         if (state.unlockedBadges.isEmpty()) {
             Text(
-                text = "Aún no tienes insignias. Publica tu primer servicio para conseguir la primera.",
+                text = stringResource(R.string.profile_badges_empty),
                 style = ServifyTextStyle.Small,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

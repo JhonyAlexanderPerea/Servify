@@ -54,14 +54,10 @@ class NotificationFirestoreRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addNotification(notification: Notification) {
-        try {
-            val docId = notification.id.ifBlank { collection.document().id }
-            val notifWithId = notification.copy(id = docId)
-            val dto = NotificationDto.fromDomain(notifWithId)
-            collection.document(docId).set(dto.toDocument()).await()
-        } catch (e: Exception) {
-            Log.w("NotificationFirestoreRepo", "Error al agregar notificación: ${e.message}")
-        }
+        val docId = notification.id.ifBlank { collection.document().id }
+        val notifWithId = notification.copy(id = docId)
+        val dto = NotificationDto.fromDomain(notifWithId)
+        collection.document(docId).set(dto.toDocument()).await()
     }
 
     override suspend fun markAsRead(id: String) {

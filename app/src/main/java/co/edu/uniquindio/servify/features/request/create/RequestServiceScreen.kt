@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.request.create
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -132,7 +135,7 @@ fun RequestServiceScreen(
                     }
                 ) {
                     Text(
-                        text = "Confirmar",
+                        text = stringResource(R.string.common_confirm),
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -141,7 +144,7 @@ fun RequestServiceScreen(
             dismissButton = {
                 TextButton(onClick = { showDatePickerDialog = false }) {
                     Text(
-                        text = "Cancelar",
+                        text = stringResource(R.string.common_cancel),
                         style = ServifyTextStyle.SmallMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -331,7 +334,7 @@ fun RequestServiceScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
                                     Text(
-                                        text = "Fecha de atención",
+                                        text = stringResource(R.string.request_appointment_date),
                                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                                         color = ServifyOnSurface
                                     )
@@ -363,7 +366,7 @@ fun RequestServiceScreen(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "Calendario",
+                                        text = stringResource(R.string.request_open_calendar),
                                         style = ServifyTextStyle.Caption.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = ServifyPrimary
@@ -376,7 +379,7 @@ fun RequestServiceScreen(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         Text(
-                            text = "Seleccionar día rápido:",
+                            text = stringResource(R.string.request_quick_day_select),
                             style = ServifyTextStyle.Caption,
                             color = ServifyOnSurfaceVariant
                         )
@@ -425,7 +428,7 @@ fun RequestServiceScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Horarios disponibles:",
+                                text = stringResource(R.string.request_available_slots),
                                 style = ServifyTextStyle.Caption,
                                 color = ServifyOnSurfaceVariant
                             )
@@ -438,25 +441,47 @@ fun RequestServiceScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             items(availableSlots) { slot ->
+                                val isOccupied = state.occupiedTimeSlots.contains(slot)
+                                val isPast = isSameDay(state.scheduledDateMillis, System.currentTimeMillis()) &&
+                                        combineDateAndTime(state.scheduledDateMillis, slot) <= System.currentTimeMillis()
+                                val isUnavailable = isOccupied || isPast
                                 val isSelected = state.selectedTimeSlot == slot
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .background(if (isSelected) ServifyPrimary else ServifySurfaceVariant)
+                                        .background(
+                                            when {
+                                                isUnavailable -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                                isSelected -> ServifyPrimary
+                                                else -> ServifySurfaceVariant
+                                            }
+                                        )
                                         .border(
                                             1.dp,
-                                            if (isSelected) ServifyPrimary else ServifyOutlineVariant,
+                                            when {
+                                                isUnavailable -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                                isSelected -> ServifyPrimary
+                                                else -> ServifyOutlineVariant
+                                            },
                                             CircleShape
                                         )
-                                        .clickable { viewModel.onTimeSlotSelected(slot) }
+                                        .clickable(enabled = !isUnavailable) { viewModel.onTimeSlotSelected(slot) }
                                         .padding(horizontal = 14.dp, vertical = 8.dp)
                                 ) {
                                     Text(
-                                        text = slot,
+                                        text = when {
+                                            isPast -> stringResource(R.string.request_slot_past, slot)
+                                            isOccupied -> stringResource(R.string.request_slot_reserved, slot)
+                                            else -> slot
+                                        },
                                         style = ServifyTextStyle.Caption.copy(
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                            fontWeight = if (isSelected && !isUnavailable) FontWeight.Bold else FontWeight.Medium
                                         ),
-                                        color = if (isSelected) Color.White else ServifyOnSurface
+                                        color = when {
+                                            isUnavailable -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                            isSelected -> Color.White
+                                            else -> ServifyOnSurface
+                                        }
                                     )
                                 }
                             }

@@ -137,12 +137,23 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
 
     /**
      * Crea una nueva solicitud de servicio en Firestore con estado inicial PENDING.
+     * Si ya existe un documento activo para la misma fecha y hora del servicio, se rechaza la creación.
      */
     override suspend fun createRequest(request: ServiceRequest) {
         val docId = request.id.ifBlank { collection.document().id }
+        val docRef = collection.document(docId)
+
+        val snapshot = runCatching { docRef.get().await() }.getOrNull()
+        if (snapshot != null && snapshot.exists()) {
+            val existingStatus = snapshot.getString("status")
+            if (existingStatus != null && existingStatus != "CANCELLED" && existingStatus != "REJECTED") {
+                throw IllegalStateException("Este servicio ya cuenta con una reserva activa para la fecha y hora seleccionadas.")
+            }
+        }
+
         val reqWithId = request.copy(id = docId, status = RequestStatus.PENDING)
         val dto = ServiceRequestDto.fromDomain(reqWithId)
-        collection.document(docId).set(dto.toDocument()).await()
+        docRef.set(dto.toDocument()).await()
     }
 
     override suspend fun updateRequestStatus(requestId: String, newStatus: RequestStatus) {

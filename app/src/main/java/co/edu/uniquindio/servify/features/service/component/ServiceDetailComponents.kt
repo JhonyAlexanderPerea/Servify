@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.service.component
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -102,7 +105,7 @@ fun ServiceDetailTopBar(
         }
 
         Text(
-            text = "Detalle del Servicio",
+            text = stringResource(R.string.service_detail_title),
             style = ServifyTextStyle.SmallMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -287,7 +290,7 @@ fun ProviderCard(
                             LevelBadge(level = detail.providerLevel)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Desde ${detail.providerMemberSince}",
+                                text = stringResource(R.string.provider_member_since_format, detail.providerMemberSince),
                                 style = ServifyTextStyle.Caption,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -313,7 +316,7 @@ fun ProviderCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Trabajos",
+                        text = stringResource(R.string.stats_jobs_completed),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -329,7 +332,7 @@ fun ProviderCard(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     StarRatingRow(rating = detail.rating, reviewCount = detail.reviewCount)
                     Text(
-                        text = "Calificación",
+                        text = stringResource(R.string.service_detail_rating_label),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -353,7 +356,7 @@ fun ProviderCard(
                         softWrap = false
                     )
                     Text(
-                        text = "Confianza",
+                        text = stringResource(R.string.stats_trust_index),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -410,14 +413,14 @@ fun TrustSystemCard(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Índice de Confianza Servify",
+                            text = stringResource(R.string.trust_index_title),
                             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.secondary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Garantía y perfil verificado por el sistema",
+                            text = stringResource(R.string.trust_index_subtitle),
                             style = ServifyTextStyle.Caption,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -505,7 +508,7 @@ fun ExpandableDescriptionCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Descripción del servicio",
+                text = stringResource(R.string.service_description_title),
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -528,7 +531,7 @@ fun ExpandableDescriptionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (expanded) "Mostrar menos" else "Leer descripción completa",
+                    text = if (expanded) stringResource(R.string.service_read_less) else stringResource(R.string.service_read_more),
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -552,7 +555,7 @@ fun ExpandableDescriptionCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Zona de cobertura: $zone ($city)",
+                    text = stringResource(R.string.service_coverage_format, zone, city),
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -581,7 +584,7 @@ fun LocationCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Ubicación", // TODO(i18n)
+                text = stringResource(R.string.publication_location_label),
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -605,7 +608,7 @@ fun LocationCard(
             when (addressState) {
                 is co.edu.uniquindio.servify.features.service.detail.AddressState.Loading -> {
                     Text(
-                        text = "Buscando dirección…", // TODO(i18n)
+                        text = stringResource(R.string.location_picker_loading_address),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -628,7 +631,7 @@ fun LocationCard(
                 }
                 is co.edu.uniquindio.servify.features.service.detail.AddressState.Error -> {
                     Text(
-                        text = "No se pudo obtener la dirección", // TODO(i18n)
+                        text = stringResource(R.string.service_address_error),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -754,7 +757,7 @@ fun CommentInput(
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
-                text = "Deja tu opinión o consulta",
+                text = stringResource(R.string.service_detail_leave_review_title),
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -763,7 +766,7 @@ fun CommentInput(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Calificación: ",
+                    text = stringResource(R.string.service_detail_rating_prefix),
                     style = ServifyTextStyle.Caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -848,7 +851,7 @@ fun ServiceDetailBottomBar(
                     .padding(end = 12.dp)
             ) {
                 Text(
-                    text = "Tarifa estimada",
+                    text = stringResource(R.string.request_total_amount),
                     style = ServifyTextStyle.Caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

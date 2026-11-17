@@ -19,8 +19,8 @@ class CannotRequestOwnServiceException :
  * Caso de uso para la creación de solicitudes de servicio/citas.
  * Genera automáticamente una notificación [REQUEST_RECEIVED] para el proveedor.
  *
- * Un usuario no puede solicitar su propia publicación: el cliente y el proveedor serían la
- * misma persona y la solicitud quedaría sin un tercero que preste el servicio.
+ * El ID de la solicitud es determinista por publicación y horario (requestIdFor) para garantizar
+ * que un mismo cupo no pueda ser reservado de forma simultánea.
  */
 class CreateServiceRequestUseCase @Inject constructor(
     private val serviceRequestRepository: ServiceRequestRepository,
@@ -45,13 +45,10 @@ class CreateServiceRequestUseCase @Inject constructor(
         }
 
         val providerId = publication.authorId.ifBlank { publication.provider.id }
+        val requestId = requestIdFor(publicationId, scheduledDateTime)
 
-        // El id depende del servicio y del horario: dos clientes que intenten reservar el mismo
-        // cupo escriben el mismo documento. La regla de Firestore solo permite crear (no
-        // actualizar) solicitudes de otros usuarios, así que la segunda escritura falla sin
-        // exponer las solicitudes de terceros al cliente.
         val newRequest = ServiceRequest(
-            id = requestIdFor(publicationId, scheduledDateTime),
+            id = requestId,
             publicationId = publicationId,
             clientId = currentUser.id,
             providerId = providerId,
@@ -63,9 +60,13 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         try {
             serviceRequestRepository.createRequest(newRequest)
+        } catch (e: CannotRequestOwnServiceException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            throw e
         } catch (e: Exception) {
             throw IllegalArgumentException(
-                "Ya existe una solicitud o reserva para este servicio en la misma fecha y hora",
+                e.message ?: "No se pudo crear la solicitud de servicio",
                 e
             )
         }

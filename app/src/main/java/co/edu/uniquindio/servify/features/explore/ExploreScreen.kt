@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.explore
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -108,12 +111,12 @@ fun ExploreScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "Explorar Servicios en el Mapa",
+                    text = stringResource(R.string.explore_title),
                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = "Encuentra proveedores de confianza cerca de ti",
+                    text = stringResource(R.string.explore_subtitle),
                     style = ServifyTextStyle.Small,
                     color = ServifyOnSurfaceVariant
                 )
@@ -199,7 +202,7 @@ fun ExploreScreen(
                 // 4. CARRUSEL INFERIOR CUANDO NO HAY SERVICIO SELECCIONADO
                 if (state.selectedService == null) {
                     Text(
-                        text = "Proveedores destacados cerca (${state.nearbyServices.size})",
+                        text = stringResource(R.string.explore_featured_header, state.nearbyServices.size),
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                         color = ServifyOnSurface,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)

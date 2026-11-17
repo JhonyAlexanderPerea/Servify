@@ -32,7 +32,7 @@ data class HomeUiState(
     val categories: List<CategoryItem> = emptyList(),
     val selectedCategoryId: String? = null,
     val searchQuery: String = "",
-    val selectedFilterChip: String = "Cerca de mí",
+    val selectedFilterChips: Set<String> = emptySet(),
     val isMapView: Boolean = false,
     val isLoading: Boolean = false,
     val userMessage: String? = null,
@@ -47,7 +47,7 @@ data class HomeUiState(
 /** Filtros rápidos de Home con geolocalización real. */
 val HomeQuickFilters = listOf("Cerca de mí", "Ciudad", "Precio", "Mejor valorados", "Verificados")
 
-private data class HomeFilters(val query: String, val categoryId: String?, val chip: String)
+private data class HomeFilters(val query: String, val categoryId: String?, val chips: Set<String>)
 private data class HomeUserInfo(
     val name: String,
     val initials: String,
@@ -68,7 +68,7 @@ class HomeViewModel @Inject constructor(
 
     private val _searchQuery = MutableStateFlow("")
     private val _selectedCategoryId = MutableStateFlow<String?>(null)
-    private val _selectedFilterChip = MutableStateFlow("Cerca de mí")
+    private val _selectedFilterChips = MutableStateFlow<Set<String>>(emptySet())
     private val _isMapView = MutableStateFlow(false)
     private val _userLocation = MutableStateFlow<Pair<Double, Double>?>(null)
 
@@ -93,8 +93,8 @@ class HomeViewModel @Inject constructor(
         fetchUserLocation()
     }
 
-    private val filters = combine(_searchQuery, _selectedCategoryId, _selectedFilterChip) { query, categoryId, chip ->
-        HomeFilters(query, categoryId, chip)
+    private val filters = combine(_searchQuery, _selectedCategoryId, _selectedFilterChips) { query, categoryId, chips ->
+        HomeFilters(query, categoryId, chips)
     }
 
     private val userInfo = combine(observeSessionUseCase(), observeNotificationsUseCase()) { user, notifications ->
@@ -137,7 +137,7 @@ class HomeViewModel @Inject constructor(
             query = filters.query,
             categoryId = filters.categoryId,
             categoryLabel = selectedCategoryLabel,
-            filterChip = filters.chip,
+            filterChips = filters.chips,
             userLat = userLoc?.first,
             userLng = userLoc?.second
         )
@@ -148,7 +148,7 @@ class HomeViewModel @Inject constructor(
             categories = categories,
             selectedCategoryId = filters.categoryId,
             searchQuery = filters.query,
-            selectedFilterChip = filters.chip,
+            selectedFilterChips = filters.chips,
             isMapView = _isMapView.value,
             isLoading = false,
             userName = user.name,
@@ -175,14 +175,20 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onFilterChipSelected(filterLabel: String) {
-        _selectedFilterChip.value = filterLabel
-        if (filterLabel == "Cerca de mí" && _userLocation.value == null) {
+        _selectedFilterChips.update { current ->
+            if (current.contains(filterLabel)) {
+                current - filterLabel
+            } else {
+                current + filterLabel
+            }
+        }
+        if (filterLabel == "Cerca de mí" && !_selectedFilterChips.value.contains("Cerca de mí") && _userLocation.value == null) {
             fetchUserLocation()
         }
     }
 
     fun onClearFilters() {
-        _selectedFilterChip.value = HomeQuickFilters.first()
+        _selectedFilterChips.value = emptySet()
         _selectedCategoryId.value = null
     }
 
@@ -201,7 +207,7 @@ class HomeViewModel @Inject constructor(
         query: String,
         categoryId: String?,
         categoryLabel: String?,
-        filterChip: String,
+        filterChips: Set<String>,
         userLat: Double?,
         userLng: Double?
     ): List<Publication> {
@@ -212,33 +218,44 @@ class HomeViewModel @Inject constructor(
             pub.matchesCategory(categoryId, categoryLabel)
         }
 
-        // 2. Filtrado por texto de búsqueda
+        // 2. Motor de búsqueda robusto con normalización (ignorando tildes y mayúsculas)
         if (query.isNotBlank()) {
-            val q = query.trim().lowercase()
+            val q = query.trim().normalizeSearch()
             result = result.filter { pub ->
-                pub.title.lowercase().contains(q) ||
-                        pub.description.lowercase().contains(q) ||
-                        pub.locationName.lowercase().contains(q) ||
-                        (pub.subcategoryId?.lowercase()?.contains(q) == true) ||
-                        pub.provider.name.lowercase().contains(q)
+                pub.title.normalizeSearch().contains(q) ||
+                        pub.description.normalizeSearch().contains(q) ||
+                        pub.locationName.normalizeSearch().contains(q) ||
+                        (pub.subcategoryId?.normalizeSearch()?.contains(q) == true) ||
+                        pub.provider.name.normalizeSearch().contains(q) ||
+                        pub.category.normalizeSearch().contains(q)
             }
         }
 
-        // 3. Ordenamiento / Filtrado rápido por Chip
-        return when (filterChip) {
-            "Cerca de mí" -> {
-                FeedRules.filterNearMe(result, userLat, userLng, maxRadiusKm = 50.0)
-            }
-            "Mejor valorados" -> result.sortedByDescending { it.ratingAverage }
-            "Verificados" -> result.filter { it.provider.isVerified || it.wasVerified }
-            "Precio" -> result.sortedBy { it.price }
-            "Ciudad" -> {
-                val city = HomeMockData.currentUserCity.substringBefore(",").trim()
-                result.filter {
-                    it.locationName.contains(city, ignoreCase = true) || it.city.contains(city, ignoreCase = true)
-                }
-            }
-            else -> result
+        // 3. Aplicación simultánea de múltiples filtros (Chips independientes)
+        if (filterChips.contains("Cerca de mí")) {
+            result = FeedRules.filterNearMe(result, userLat, userLng, maxRadiusKm = 50.0)
         }
+        if (filterChips.contains("Verificados")) {
+            result = result.filter { it.provider.isVerified || it.wasVerified }
+        }
+        if (filterChips.contains("Mejor valorados")) {
+            result = result.sortedByDescending { it.ratingAverage }
+        }
+        if (filterChips.contains("Precio")) {
+            result = result.sortedBy { it.price }
+        }
+        if (filterChips.contains("Ciudad")) {
+            val city = HomeMockData.currentUserCity.substringBefore(",").trim()
+            result = result.filter {
+                it.locationName.contains(city, ignoreCase = true) || it.city.contains(city, ignoreCase = true)
+            }
+        }
+
+        return result
+    }
+
+    private fun String.normalizeSearch(): String {
+        val decomposed = java.text.Normalizer.normalize(this.lowercase(), java.text.Normalizer.Form.NFD)
+        return decomposed.replace(Regex("\\p{M}+"), "")
     }
 }

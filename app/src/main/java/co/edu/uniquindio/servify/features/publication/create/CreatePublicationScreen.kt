@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.publication.create
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
@@ -176,13 +179,13 @@ fun CreatePublicationScreen(
                         when (step) {
                             1 -> {
                                 Text(
-                                    text = "Paso 1: Información Básica del Servicio",
+                                    text = stringResource(R.string.publication_step_1_title),
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Text(
-                                    text = "Escribe un título claro para tu servicio.",
+                                    text = stringResource(R.string.publication_step_1_desc),
                                     style = ServifyTextStyle.Small,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -209,7 +212,7 @@ fun CreatePublicationScreen(
 
                             2 -> {
                                 Text(
-                                    text = "Paso 2: Detalles, Precios y Sugerencias de IA",
+                                    text = stringResource(R.string.publication_step_2_title),
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -270,13 +273,13 @@ fun CreatePublicationScreen(
 
                             3 -> {
                                 Text(
-                                    text = "Paso 3: Vista Previa y Verificación Final",
+                                    text = stringResource(R.string.publication_step_3_title),
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Text(
-                                    text = "Revisa cómo verán los clientes tu anuncio en el Marketplace antes de publicarlo.",
+                                    text = stringResource(R.string.publication_step_3_desc),
                                     style = ServifyTextStyle.Small,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -309,7 +312,7 @@ fun CreatePublicationScreen(
                                         )
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
-                                            text = "Tu anuncio cumplirá con las normas de convivencia de Servify y ganará puntos de reputación en tu perfil.",
+                                            text = stringResource(R.string.publication_terms_notice),
                                             style = ServifyTextStyle.Caption,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -328,6 +331,11 @@ fun CreatePublicationScreen(
         onDismiss = { showPhotoDialog = false },
         onImageSelected = { uri ->
             viewModel.onUploadImage(uri.toString())
+        },
+        onImagesSelected = { uris ->
+            for (uri in uris) {
+                viewModel.onUploadImage(uri.toString())
+            }
         }
     )
 }

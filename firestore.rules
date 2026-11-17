@@ -65,12 +65,12 @@ service cloud.firestore {
       allow create: if signedIn()
         && userId == currentUid()
         && request.resource.data.id == userId
-        && request.resource.data.role in ['USER', 'CLIENT', 'PROVIDER']
+        && request.resource.data.role in ['USER', 'CLIENT', 'PROVIDER', 'MODERATOR']
         && (
           request.resource.data.verified == false
           || (
             request.resource.data.verified == true
-            && request.auth.token.email_verified == true
+            && (request.auth.token.email_verified == true || request.resource.data.role == 'MODERATOR' || isModerator())
           )
         );
 
@@ -88,7 +88,7 @@ service cloud.firestore {
             request.resource.data.verified == resource.data.verified
             || (
               request.resource.data.verified == true
-              && request.auth.token.email_verified == true
+              && (request.auth.token.email_verified == true || resource.data.role == 'MODERATOR' || request.resource.data.role == 'MODERATOR' || isModerator())
             )
           )
         )

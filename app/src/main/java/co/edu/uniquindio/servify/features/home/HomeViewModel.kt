@@ -230,7 +230,7 @@ class HomeViewModel @Inject constructor(
                 FeedRules.filterNearMe(result, userLat, userLng, maxRadiusKm = 50.0)
             }
             "Mejor valorados" -> result.sortedByDescending { it.ratingAverage }
-            "Verificados" -> result.filter { it.provider.isVerified }
+            "Verificados" -> result.filter { it.provider.isVerified || it.wasVerified }
             "Precio" -> result.sortedBy { it.price }
             "Ciudad" -> {
                 val city = HomeMockData.currentUserCity.substringBefore(",").trim()

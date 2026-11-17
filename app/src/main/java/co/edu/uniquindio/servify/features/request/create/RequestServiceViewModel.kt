@@ -3,6 +3,7 @@ package co.edu.uniquindio.servify.features.request.create
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import co.edu.uniquindio.servify.domain.usecase.publication.GetPublicationByIdUseCase
@@ -92,8 +93,7 @@ class RequestServiceViewModel @Inject constructor(
             it.copy(
                 address = address,
                 latitude = latitude,
-                longitude = longitude,
-                note = if (it.note.isBlank()) address else "${it.note}\nDirección: $address"
+                longitude = longitude
             )
         }
     }
@@ -114,11 +114,19 @@ class RequestServiceViewModel @Inject constructor(
             }
 
             val combinedDateTime = combineDateAndTime(state.scheduledDateMillis, state.selectedTimeSlot)
+
+            val locationObj = if (state.latitude != null && state.longitude != null) {
+                Location(latitude = state.latitude, longitude = state.longitude, address = state.address.ifBlank { null })
+            } else if (state.address.isNotBlank()) {
+                Location(latitude = 0.0, longitude = 0.0, address = state.address)
+            } else null
+
             runCatching {
                 createServiceRequestUseCase(
                     publicationId = serviceId,
                     scheduledDateTime = combinedDateTime,
                     note = state.note.ifBlank { null },
+                    location = locationObj,
                     totalAmount = state.totalAmount
                 )
             }.onSuccess { request ->

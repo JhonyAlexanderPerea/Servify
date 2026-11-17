@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.domain.usecase.request
 
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.ServiceRequest
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
@@ -32,7 +33,8 @@ class CreateServiceRequestUseCase @Inject constructor(
         publicationId: String,
         scheduledDateTime: Long,
         note: String?,
-        totalAmount: Double
+        totalAmount: Double,
+        location: Location? = null
     ): ServiceRequest = withContext(Dispatchers.IO) {
         val currentUser = userRepository.observeCurrentUser().first()
         val publication = publicationRepository.getPublicationById(publicationId)
@@ -55,6 +57,7 @@ class CreateServiceRequestUseCase @Inject constructor(
             providerId = providerId,
             scheduledDateTime = scheduledDateTime,
             note = note,
+            location = location,
             totalAmount = totalAmount
         )
 

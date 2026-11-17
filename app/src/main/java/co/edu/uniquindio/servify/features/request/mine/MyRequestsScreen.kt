@@ -202,6 +202,13 @@ private fun RequestCard(
                 style = ServifyTextStyle.Caption,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            item.locationAddress?.let {
+                Text(
+                    text = "Dirección: $it",
+                    style = ServifyTextStyle.Caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             item.note?.let {
                 Text(
                     text = it,

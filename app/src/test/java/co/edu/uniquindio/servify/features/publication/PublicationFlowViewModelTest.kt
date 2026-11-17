@@ -166,6 +166,7 @@ class PublicationFlowViewModelTest {
         viewModel.onMinPriceChanged("80000")
         viewModel.onMaxPriceChanged("120000")
         viewModel.onLocationChanged("Armenia, Quindío")
+        viewModel.onAddImage("https://example.com/photo.jpg")
 
         val isValid = viewModel.validateForm()
 

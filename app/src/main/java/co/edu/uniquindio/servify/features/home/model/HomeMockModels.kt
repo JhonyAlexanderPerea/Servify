@@ -83,7 +83,7 @@ fun Publication.toServiceItem(): ServiceItem {
         providerInitials = if (initials.isNotBlank()) initials else "PR",
         providerColor = Color(0xFF1A55E3),
         providerLevel = level,
-        isVerified = provider.isVerified,
+        isVerified = provider.isVerified || wasVerified,
         trustIndex = provider.trustIndexScore,
         rating = ratingAverage,
         reviewCount = reviewsCount,

@@ -92,24 +92,33 @@ class RequestServiceViewModel @Inject constructor(
 
     private fun updateOccupiedSlots(requests: List<ServiceRequest>) {
         val state = _uiState.value
+        val nowMillis = System.currentTimeMillis()
+
         val activeOnDate = requests.filter { req ->
             req.publicationId == serviceId &&
                     req.status != RequestStatus.CANCELLED &&
                     req.status != RequestStatus.REJECTED &&
                     isSameDay(req.scheduledDateTime, state.scheduledDateMillis)
         }
-        val occupied = activeOnDate.map { req ->
+        val occupiedFromRequests = activeOnDate.map { req ->
             formatTimeSlot(req.scheduledDateTime)
         }.toSet()
 
+        val availableSlots = listOf("08:00 AM", "10:00 AM", "02:00 PM", "04:00 PM", "06:00 PM")
+        val pastSlots = availableSlots.filter { slot ->
+            val slotMillis = combineDateAndTime(state.scheduledDateMillis, slot)
+            slotMillis <= nowMillis
+        }.toSet()
+
+        val unavailable = occupiedFromRequests + pastSlots
+
         _uiState.update { current ->
-            val availableSlots = listOf("08:00 AM", "10:00 AM", "02:00 PM", "04:00 PM", "06:00 PM")
-            val newSelectedSlot = if (occupied.contains(current.selectedTimeSlot)) {
-                availableSlots.firstOrNull { !occupied.contains(it) } ?: current.selectedTimeSlot
+            val newSelectedSlot = if (unavailable.contains(current.selectedTimeSlot)) {
+                availableSlots.firstOrNull { !unavailable.contains(it) } ?: current.selectedTimeSlot
             } else {
                 current.selectedTimeSlot
             }
-            current.copy(occupiedTimeSlots = occupied, selectedTimeSlot = newSelectedSlot)
+            current.copy(occupiedTimeSlots = unavailable, selectedTimeSlot = newSelectedSlot)
         }
     }
 
@@ -154,6 +163,18 @@ class RequestServiceViewModel @Inject constructor(
                 return@launch
             }
 
+            val combinedDateTime = combineDateAndTime(state.scheduledDateMillis, state.selectedTimeSlot)
+
+            if (combinedDateTime <= System.currentTimeMillis()) {
+                _uiState.update {
+                    it.copy(
+                        isSubmitting = false,
+                        userMessage = "No puedes reservar en un horario que ya transcurrió. Selecciona una hora futura."
+                    )
+                }
+                return@launch
+            }
+
             if (state.occupiedTimeSlots.contains(state.selectedTimeSlot)) {
                 _uiState.update {
                     it.copy(
@@ -163,8 +184,6 @@ class RequestServiceViewModel @Inject constructor(
                 }
                 return@launch
             }
-
-            val combinedDateTime = combineDateAndTime(state.scheduledDateMillis, state.selectedTimeSlot)
 
             val locationObj = if (state.latitude != null && state.longitude != null) {
                 Location(latitude = state.latitude, longitude = state.longitude, address = state.address.ifBlank { null })
@@ -210,7 +229,7 @@ class RequestServiceViewModel @Inject constructor(
     }
 }
 
-private fun combineDateAndTime(dateMillis: Long, timeSlot: String): Long {
+internal fun combineDateAndTime(dateMillis: Long, timeSlot: String): Long {
     val zone = ZoneId.systemDefault()
     val localDate = Instant.ofEpochMilli(dateMillis).atZone(zone).toLocalDate()
     val hour = when (timeSlot) {

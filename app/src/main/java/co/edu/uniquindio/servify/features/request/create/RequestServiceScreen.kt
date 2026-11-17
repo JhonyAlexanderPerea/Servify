@@ -439,13 +439,16 @@ fun RequestServiceScreen(
                         ) {
                             items(availableSlots) { slot ->
                                 val isOccupied = state.occupiedTimeSlots.contains(slot)
+                                val isPast = isSameDay(state.scheduledDateMillis, System.currentTimeMillis()) &&
+                                        combineDateAndTime(state.scheduledDateMillis, slot) <= System.currentTimeMillis()
+                                val isUnavailable = isOccupied || isPast
                                 val isSelected = state.selectedTimeSlot == slot
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
                                         .background(
                                             when {
-                                                isOccupied -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                                isUnavailable -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                                 isSelected -> ServifyPrimary
                                                 else -> ServifySurfaceVariant
                                             }
@@ -453,22 +456,26 @@ fun RequestServiceScreen(
                                         .border(
                                             1.dp,
                                             when {
-                                                isOccupied -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                                isUnavailable -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                                                 isSelected -> ServifyPrimary
                                                 else -> ServifyOutlineVariant
                                             },
                                             CircleShape
                                         )
-                                        .clickable(enabled = !isOccupied) { viewModel.onTimeSlotSelected(slot) }
+                                        .clickable(enabled = !isUnavailable) { viewModel.onTimeSlotSelected(slot) }
                                         .padding(horizontal = 14.dp, vertical = 8.dp)
                                 ) {
                                     Text(
-                                        text = if (isOccupied) "$slot (Reservado)" else slot,
+                                        text = when {
+                                            isPast -> "$slot (Pasado)"
+                                            isOccupied -> "$slot (Reservado)"
+                                            else -> slot
+                                        },
                                         style = ServifyTextStyle.Caption.copy(
-                                            fontWeight = if (isSelected && !isOccupied) FontWeight.Bold else FontWeight.Medium
+                                            fontWeight = if (isSelected && !isUnavailable) FontWeight.Bold else FontWeight.Medium
                                         ),
                                         color = when {
-                                            isOccupied -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                            isUnavailable -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                             isSelected -> Color.White
                                             else -> ServifyOnSurface
                                         }

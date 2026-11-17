@@ -223,4 +223,9 @@
     <string name="distance_meters_format">A %1$d m</string>
     <string name="distance_km_format">A %1$.1f km</string>
     <string name="nearby_location_required">Activa tu ubicación para ordenar por cercanía</string>
+
+    <!-- Connectivity / Offline Banner -->
+    <string name="offline_banner_title">Sin conexión a internet</string>
+    <string name="offline_banner_subtitle">Mostrando datos guardados. Los cambios se sincronizarán al volver en línea.</string>
+    <string name="offline_banner_icon_cd">Icono sin conexión a internet</string>
 </resources>

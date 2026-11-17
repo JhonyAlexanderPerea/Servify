@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.moderator.panel
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -104,7 +107,7 @@ fun ModeratorPanelContent(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Panel de moderación",
+                        text = stringResource(R.string.mod_panel_title),
                         style = ServifyTextStyle.Title,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -143,7 +146,7 @@ fun ModeratorPanelContent(
 
             item {
                 Text(
-                    text = "Pendientes de revisión (${state.pending.size})",
+                    text = stringResource(R.string.mod_pending_header, state.pending.size),
                     style = ServifyTextStyle.BodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,

@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.publication.component
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -101,7 +104,7 @@ fun CreatePublicationTopBar(
         }
 
         Text(
-            text = "Nueva Publicación",
+            text = stringResource(R.string.publication_new_title),
             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -113,7 +116,7 @@ fun CreatePublicationTopBar(
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
             Text(
-                text = "Paso $currentStep de 3",
+                text = stringResource(R.string.publication_step_header, currentStep),
                 style = ServifyTextStyle.Caption.copy(
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -341,7 +344,7 @@ fun PhotoPickerGrid(
             )
 
             Text(
-                text = "Formatos recomendados: JPG, PNG",
+                text = stringResource(R.string.publication_formats_recommended),
                 style = ServifyTextStyle.Caption,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -384,7 +387,7 @@ fun PhotoPickerGrid(
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Agregar",
+                                text = stringResource(R.string.publication_photos_add),
                                 style = ServifyTextStyle.Caption.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -499,7 +502,7 @@ fun AiSuggestionCard(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Analizando publicación…", // TODO(i18n)
+                        text = stringResource(R.string.publication_ai_analyzing),
                         style = ServifyTextStyle.Small,
                         color = MaterialTheme.colorScheme.tertiary
                     )
@@ -524,7 +527,7 @@ fun AiSuggestionCard(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Confianza: ${current.confidence}%", // TODO(i18n)
+                        text = stringResource(R.string.publication_ai_confidence_format, current.confidence),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -537,13 +540,13 @@ fun AiSuggestionCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         ServifyFilledButton(
-                            text = "Usar categoría", // TODO(i18n)
+                            text = stringResource(R.string.publication_ai_use_category),
                             onClick = onUseCategory,
                             icon = Icons.Default.Check,
                             modifier = Modifier.weight(1f)
                         )
                         ServifyTextButton(
-                            text = "Elegir otra", // TODO(i18n)
+                            text = stringResource(R.string.publication_ai_choose_other),
                             onClick = onDismiss
                         )
                     }
@@ -569,7 +572,7 @@ fun PriceRangeFields(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "Rango de precio estimado ($ COP)",
+            text = stringResource(R.string.publication_price_range_label),
             style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
@@ -651,7 +654,7 @@ fun PublicationPreviewCard(
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "VISTA PREVIA DEL ANUNCIO",
+                        text = stringResource(R.string.publication_preview_badge),
                         style = ServifyTextStyle.Caption.copy(
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
@@ -711,7 +714,7 @@ fun PublicationPreviewCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Tarifa Estimada:",
+                    text = stringResource(R.string.publication_estimated_fee_label),
                     style = ServifyTextStyle.SmallMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )

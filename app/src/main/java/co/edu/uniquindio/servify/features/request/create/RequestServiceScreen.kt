@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.request.create
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -132,7 +135,7 @@ fun RequestServiceScreen(
                     }
                 ) {
                     Text(
-                        text = "Confirmar",
+                        text = stringResource(R.string.common_confirm),
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -141,7 +144,7 @@ fun RequestServiceScreen(
             dismissButton = {
                 TextButton(onClick = { showDatePickerDialog = false }) {
                     Text(
-                        text = "Cancelar",
+                        text = stringResource(R.string.common_cancel),
                         style = ServifyTextStyle.SmallMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -331,7 +334,7 @@ fun RequestServiceScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
                                     Text(
-                                        text = "Fecha de atención",
+                                        text = stringResource(R.string.request_appointment_date),
                                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                                         color = ServifyOnSurface
                                     )
@@ -363,7 +366,7 @@ fun RequestServiceScreen(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "Calendario",
+                                        text = stringResource(R.string.request_open_calendar),
                                         style = ServifyTextStyle.Caption.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = ServifyPrimary
@@ -376,7 +379,7 @@ fun RequestServiceScreen(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         Text(
-                            text = "Seleccionar día rápido:",
+                            text = stringResource(R.string.request_quick_day_select),
                             style = ServifyTextStyle.Caption,
                             color = ServifyOnSurfaceVariant
                         )
@@ -425,7 +428,7 @@ fun RequestServiceScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Horarios disponibles:",
+                                text = stringResource(R.string.request_available_slots),
                                 style = ServifyTextStyle.Caption,
                                 color = ServifyOnSurfaceVariant
                             )
@@ -467,8 +470,8 @@ fun RequestServiceScreen(
                                 ) {
                                     Text(
                                         text = when {
-                                            isPast -> "$slot (Pasado)"
-                                            isOccupied -> "$slot (Reservado)"
+                                            isPast -> stringResource(R.string.request_slot_past, slot)
+                                            isOccupied -> stringResource(R.string.request_slot_reserved, slot)
                                             else -> slot
                                         },
                                         style = ServifyTextStyle.Caption.copy(

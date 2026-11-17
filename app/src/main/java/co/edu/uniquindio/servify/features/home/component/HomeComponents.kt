@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.home.component
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -118,7 +121,7 @@ fun HomeTopAppBar(
     ) {
         Column {
             Text(
-                text = "Hola, $userName 👋",
+                text = stringResource(R.string.home_greeting_format, userName),
                 style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -456,7 +459,7 @@ fun NextAppointmentBanner(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "PRÓXIMA CITA",
+                        text = stringResource(R.string.home_next_appointment),
                         style = ServifyTextStyle.Caption.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
@@ -665,7 +668,7 @@ fun ServiceFeedCard(
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Text(
-                            text = "Verificado",
+                            text = stringResource(R.string.filter_verified),
                             style = ServifyTextStyle.Caption.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp

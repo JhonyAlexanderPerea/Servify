@@ -14,10 +14,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
@@ -35,9 +37,8 @@ fun DeleteAccountDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(24.dp),
         title = {
-            // TODO(i18n): mover a strings.xml
             Text(
-                text = "Eliminar cuenta",
+                text = stringResource(R.string.profile_delete_account_title),
                 style = ServifyTextStyle.TitleTight.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -46,10 +47,8 @@ fun DeleteAccountDialog(
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
-                // TODO(i18n): mover a strings.xml
                 Text(
-                    text = "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+                    text = stringResource(R.string.profile_delete_account_desc),
                     style = ServifyTextStyle.SmallMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -57,7 +56,7 @@ fun DeleteAccountDialog(
                 ServifyTextField(
                     value = password,
                     onValueChange = onPasswordChange,
-                    label = "Contraseña",
+                    label = stringResource(R.string.login_password_label),
                     leadingIcon = Icons.Outlined.Lock,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(
@@ -81,9 +80,8 @@ fun DeleteAccountDialog(
                         color = MaterialTheme.colorScheme.error
                     )
                 } else {
-                    // TODO(i18n): mover a strings.xml
                     Text(
-                        text = "Eliminar",
+                        text = stringResource(R.string.common_delete),
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.error
                     )
@@ -92,9 +90,8 @@ fun DeleteAccountDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                // TODO(i18n): mover a strings.xml
                 Text(
-                    text = "Cancelar",
+                    text = stringResource(R.string.common_cancel),
                     style = ServifyTextStyle.SmallMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

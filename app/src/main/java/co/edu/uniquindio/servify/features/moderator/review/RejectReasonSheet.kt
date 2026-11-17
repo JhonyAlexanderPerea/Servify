@@ -11,7 +11,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.domain.model.RejectionReason
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
@@ -20,7 +22,7 @@ import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 /**
- * Bottom Sheet de rechazo (mockup 23). El motivo escrito es obligatorio: los chips solo
+ * Bottom Sheet de rechazo. El motivo escrito es obligatorio: los chips solo
  * sugieren un texto que el moderador puede editar.
  */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -36,15 +38,15 @@ fun RejectReasonSheet(
 ) {
     ServifyBottomSheet(
         onDismissRequest = onDismiss,
-        title = "Rechazar publicación"
+        title = stringResource(R.string.mod_reject_sheet_title)
     ) {
         Text(
-            text = "Motivo del rechazo (obligatorio)",
+            text = stringResource(R.string.mod_reject_reason_label),
             style = ServifyTextStyle.BodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "El autor verá este motivo en sus notificaciones y en Mis publicaciones.",
+            text = stringResource(R.string.mod_reject_reason_desc),
             style = ServifyTextStyle.Caption,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
@@ -67,7 +69,7 @@ fun RejectReasonSheet(
         ServifyTextField(
             value = reasonText,
             onValueChange = onReasonTextChange,
-            label = "Describe el motivo",
+            label = stringResource(R.string.mod_reject_describe_label),
             singleLine = false,
             isError = errorMessage != null,
             supportingText = errorMessage,
@@ -77,7 +79,7 @@ fun RejectReasonSheet(
         )
 
         ServifyFilledButton(
-            text = "Confirmar rechazo",
+            text = stringResource(R.string.mod_reject_confirm),
             onClick = onConfirm,
             enabled = isConfirmEnabled,
             modifier = Modifier
@@ -85,7 +87,7 @@ fun RejectReasonSheet(
                 .padding(top = 16.dp)
         )
         ServifyTextButton(
-            text = "Cancelar",
+            text = stringResource(R.string.common_cancel),
             onClick = onDismiss,
             modifier = Modifier
                 .fillMaxWidth()

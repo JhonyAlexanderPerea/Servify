@@ -117,6 +117,28 @@ class GenerateNotificationUseCase @Inject constructor(
     }
 
     /**
+     * Avisa al autor de la publicación cuando otra persona deja una reseña.
+     */
+    suspend fun generateReviewPublishedNotification(
+        authorId: String,
+        reviewerName: String,
+        serviceTitle: String,
+        publicationId: String
+    ) = withContext(Dispatchers.IO) {
+        val notification = Notification(
+            id = "notif_${UUID.randomUUID()}",
+            userId = authorId,
+            title = "Nueva reseña en tu publicación",
+            message = "$reviewerName ha valorado tu servicio '$serviceTitle'.",
+            type = NotificationType.REVIEW_PUBLISHED,
+            isRead = false,
+            createdAt = System.currentTimeMillis(),
+            targetId = publicationId
+        )
+        notificationRepository.addNotification(notification)
+    }
+
+    /**
      * Genera la notificación cuando un moderador rechaza una publicación, incluyendo el motivo.
      */
     suspend fun generateRejectionNotification(

@@ -14,9 +14,12 @@ import co.edu.uniquindio.servify.domain.usecase.publication.GetServiceDetailUseC
 import co.edu.uniquindio.servify.domain.usecase.publication.ObserveServicesUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ToggleInterestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -30,6 +33,12 @@ sealed interface AddressState {
     object Error : AddressState
 }
 
+/** Eventos de un solo consumo para feedback en la UI (Snackbar). */
+sealed interface CommentSubmitEvent {
+    data object Success : CommentSubmitEvent
+    data class Error(val message: String) : CommentSubmitEvent
+}
+
 data class ServiceDetailUiState(
     val service: Publication? = null,
     val comments: List<Comment> = emptyList(),
@@ -37,6 +46,7 @@ data class ServiceDetailUiState(
     val newCommentRating: Int = 5,
     val isLoading: Boolean = false,
     val isSubmittingComment: Boolean = false,
+    val commentErrorMessage: String? = null,
     val isOwnService: Boolean = false,
     val addressState: AddressState = AddressState.Hidden,
     val userMessage: String? = null
@@ -45,7 +55,8 @@ data class ServiceDetailUiState(
 private data class CommentFormData(
     val text: String,
     val rating: Int,
-    val isSubmitting: Boolean
+    val isSubmitting: Boolean,
+    val errorMessage: String?
 )
 
 @HiltViewModel
@@ -64,8 +75,15 @@ class ServiceDetailViewModel @Inject constructor(
     private val _newCommentText = MutableStateFlow("")
     private val _newCommentRating = MutableStateFlow(5)
     private val _isSubmittingComment = MutableStateFlow(false)
+    private val _commentErrorMessage = MutableStateFlow<String?>(null)
     private val _addressState = MutableStateFlow<AddressState>(AddressState.Hidden)
+    private val _commentSubmitEvents = MutableSharedFlow<CommentSubmitEvent>(
+        replay = 1,
+        extraBufferCapacity = 1
+    )
     private var lastFetchedLocation: Location? = null
+
+    val commentSubmitEvents: SharedFlow<CommentSubmitEvent> = _commentSubmitEvents.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -91,9 +109,10 @@ class ServiceDetailViewModel @Inject constructor(
     private val _commentFormFlow = combine(
         _newCommentText,
         _newCommentRating,
-        _isSubmittingComment
-    ) { text, rating, submitting ->
-        CommentFormData(text, rating, submitting)
+        _isSubmittingComment,
+        _commentErrorMessage
+    ) { text, rating, submitting, errorMessage ->
+        CommentFormData(text, rating, submitting, errorMessage)
     }
 
     val uiState: StateFlow<ServiceDetailUiState> = combine(
@@ -114,6 +133,7 @@ class ServiceDetailViewModel @Inject constructor(
             newCommentRating = formData.rating,
             isLoading = false,
             isSubmittingComment = formData.isSubmitting,
+            commentErrorMessage = formData.errorMessage,
             isOwnService = isOwn,
             addressState = addressState
         )
@@ -131,6 +151,7 @@ class ServiceDetailViewModel @Inject constructor(
 
     fun onCommentTextChanged(text: String) {
         _newCommentText.value = text
+        if (_commentErrorMessage.value != null) _commentErrorMessage.value = null
     }
 
     fun onRatingChanged(rating: Int) {
@@ -139,26 +160,41 @@ class ServiceDetailViewModel @Inject constructor(
 
     fun onSubmitComment() {
         val text = _newCommentText.value.trim()
-        if (text.isBlank()) return
+        if (text.isBlank() || _isSubmittingComment.value) return
 
         viewModelScope.launch {
             _isSubmittingComment.value = true
-            val currentUser = userRepository.observeCurrentUser().first()
+            _commentErrorMessage.value = null
 
-            val newComment = Comment(
-                id = "c_${System.currentTimeMillis()}",
-                publicationId = serviceId,
-                author = currentUser,
-                rating = _newCommentRating.value,
-                text = text,
-                createdAt = System.currentTimeMillis()
-            )
+            try {
+                val currentUser = userRepository.observeCurrentUser().first()
+                val newComment = Comment(
+                    id = "c_${System.currentTimeMillis()}",
+                    publicationId = serviceId,
+                    author = currentUser,
+                    rating = _newCommentRating.value,
+                    text = text,
+                    createdAt = System.currentTimeMillis()
+                )
 
-            addCommentUseCase(newComment)
+                addCommentUseCase(newComment)
 
-            _newCommentText.value = ""
-            _newCommentRating.value = 5
-            _isSubmittingComment.value = false
+                // Solo se limpia el formulario si la transacción terminó bien.
+                _newCommentText.value = ""
+                _newCommentRating.value = 5
+                _commentSubmitEvents.emit(CommentSubmitEvent.Success)
+            } catch (e: Exception) {
+                val message = e.message ?: "unknown_error"
+                _commentErrorMessage.value = message
+                _commentSubmitEvents.emit(CommentSubmitEvent.Error(message))
+            } finally {
+                _isSubmittingComment.value = false
+            }
         }
+    }
+
+    /** Permite a la UI descartar el aviso de error una vez mostrado. */
+    fun onCommentErrorShown() {
+        _commentErrorMessage.value = null
     }
 }

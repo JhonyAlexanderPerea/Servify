@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -762,12 +763,16 @@ fun CommentItem(
 
 @Composable
 fun CommentInput(
-    onSendComment: (String, Int) -> Unit,
+    text: String,
+    rating: Int,
+    isSubmitting: Boolean,
+    submittingText: String,
+    onTextChanged: (String) -> Unit,
+    onRatingChanged: (Int) -> Unit,
+    onSendComment: () -> Unit,
+    errorMessage: String? = null,
     modifier: Modifier = Modifier
 ) {
-    var text by remember { mutableStateOf("") }
-    var selectedRating by remember { mutableStateOf(5) }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -794,10 +799,10 @@ fun CommentInput(
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = "$starNumber estrellas",
-                        tint = if (starNumber <= selectedRating) ServifyExtra.gold else MaterialTheme.colorScheme.outlineVariant,
+                        tint = if (starNumber <= rating) ServifyExtra.gold else MaterialTheme.colorScheme.outlineVariant,
                         modifier = Modifier
                             .size(20.dp)
-                            .clickable { selectedRating = starNumber }
+                            .clickable(enabled = !isSubmitting) { onRatingChanged(starNumber) }
                     )
                 }
             }
@@ -810,9 +815,10 @@ fun CommentInput(
             ) {
                 ServifyTextField(
                     value = text,
-                    onValueChange = { text = it },
+                    onValueChange = onTextChanged,
                     label = "Escribe un comentario...",
                     singleLine = false,
+                    enabled = !isSubmitting,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -820,20 +826,48 @@ fun CommentInput(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(if (text.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)
-                        .clickable(enabled = text.isNotBlank()) {
-                            onSendComment(text, selectedRating)
-                            text = ""
+                        .background(
+                            if (text.isNotBlank() && !isSubmitting) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant
+                        )
+                        .clickable(enabled = text.isNotBlank() && !isSubmitting) {
+                            onSendComment()
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = "Enviar",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    if (isSubmitting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = "Enviar",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
+            }
+
+            if (isSubmitting) {
+                Text(
+                    text = submittingText,
+                    style = ServifyTextStyle.Caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    style = ServifyTextStyle.Caption,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
             }
         }
     }

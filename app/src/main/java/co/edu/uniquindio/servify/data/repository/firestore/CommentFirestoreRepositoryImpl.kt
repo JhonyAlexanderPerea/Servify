@@ -4,6 +4,7 @@ import android.util.Log
 import co.edu.uniquindio.servify.data.model.dto.CommentDto
 import co.edu.uniquindio.servify.domain.model.Comment
 import co.edu.uniquindio.servify.domain.repository.CommentRepository
+import co.edu.uniquindio.servify.domain.usecase.comment.ReviewRatingCalculator
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -61,13 +62,39 @@ class CommentFirestoreRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addComment(comment: Comment) {
-        try {
-            val docId = comment.id.ifBlank { collection.document().id }
-            val commentWithId = comment.copy(id = docId)
-            val dto = CommentDto.fromDomain(commentWithId)
-            collection.document(docId).set(dto.toDocument()).await()
-        } catch (e: Exception) {
-            Log.w("CommentFirestoreRepo", "Error al guardar comentario: ${e.message}")
-        }
+        val publicationRef = firestore.collection("publications").document(comment.publicationId)
+        val commentRef = collection.document(comment.id.ifBlank { collection.document().id })
+        val dto = CommentDto.fromDomain(comment.copy(id = commentRef.id))
+
+        // El comentario y el resumen de valoraciones se escriben en una sola transacción.
+        // No hay try-catch: cualquier fallo (sin conexión, permisos, publicación inexistente)
+        // se propaga al caso de uso y desde ahí a la UI.
+        firestore.runTransaction { transaction ->
+            // Firestore exige que TODAS las lecturas vayan antes de cualquier escritura.
+            val pubSnapshot = transaction.get(publicationRef)
+            if (!pubSnapshot.exists()) throw IllegalStateException("Publication not found")
+
+            transaction.set(commentRef, dto.toDocument())
+
+            // Una consulta sin calificación no altera el promedio de la publicación.
+            if (comment.rating in 1..5) {
+                val currentCount = (pubSnapshot.getLong("reviewsCount") ?: 0L).toInt()
+                val currentAverage = pubSnapshot.getDouble("ratingAverage") ?: 0.0
+                val totals = ReviewRatingCalculator.calculate(
+                    currentAverage = currentAverage,
+                    currentCount = currentCount,
+                    newRating = comment.rating
+                )
+                transaction.update(
+                    publicationRef,
+                    mapOf(
+                        "reviewsCount" to totals.reviewsCount,
+                        "ratingAverage" to totals.ratingAverage
+                    )
+                )
+            }
+            // runTransaction necesita un valor de retorno; el resultado no se usa.
+            null
+        }.await()
     }
 }

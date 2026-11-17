@@ -60,6 +60,7 @@ fun ServifyTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     singleLine: Boolean = true,
     isError: Boolean = false,
+    enabled: Boolean = true,
     supportingText: String? = null
 ) {
 
@@ -92,6 +93,7 @@ fun ServifyTextField(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
+            enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .onFocusChanged { focused = it.isFocused },

@@ -29,13 +29,18 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.features.home.component.StarRatingRow
 import co.edu.uniquindio.servify.features.service.component.CommentInput
 import co.edu.uniquindio.servify.features.service.component.CommentItem
@@ -74,8 +80,20 @@ fun ServiceDetailScreen(
     viewModel: ServiceDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val commentSubmitErrorText = stringResource(R.string.comment_submit_error)
+
+    LaunchedEffect(Unit) {
+        viewModel.commentSubmitEvents.collect { event ->
+            if (event is CommentSubmitEvent.Error) {
+                snackbarHostState.showSnackbar(commentSubmitErrorText)
+                viewModel.onCommentErrorShown()
+            }
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier
             .fillMaxSize()
             .background(ServifySurface)
@@ -308,10 +326,17 @@ fun ServiceDetailScreen(
                 // 8. ENTRADA PARA DEJAR COMENTARIOS
                 item {
                     CommentInput(
-                        onSendComment = { commentText, rating ->
-                            viewModel.onCommentTextChanged(commentText)
-                            viewModel.onRatingChanged(rating)
-                            viewModel.onSubmitComment()
+                        text = state.newCommentText,
+                        rating = state.newCommentRating,
+                        isSubmitting = state.isSubmittingComment,
+                        submittingText = stringResource(R.string.comment_submitting),
+                        onTextChanged = viewModel::onCommentTextChanged,
+                        onRatingChanged = viewModel::onRatingChanged,
+                        onSendComment = viewModel::onSubmitComment,
+                        errorMessage = if (state.commentErrorMessage != null) {
+                            stringResource(R.string.comment_submit_error)
+                        } else {
+                            null
                         }
                     )
                 }

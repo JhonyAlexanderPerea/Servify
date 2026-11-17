@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -150,26 +151,23 @@ fun ImageGalleryBanner(
     detail: ServiceDetailData,
     modifier: Modifier = Modifier
 ) {
-    var activeImageIndex by remember { mutableStateOf(0) }
-
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(220.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
-        val currentImageUrl = detail.images.getOrNull(activeImageIndex) ?: detail.images.firstOrNull()
-        if (!currentImageUrl.isNullOrBlank()) {
-            ServifyAsyncImage(
-                imageUrl = currentImageUrl,
-                contentDescription = detail.title,
-                modifier = Modifier.matchParentSize()
+        if (detail.images.isNotEmpty()) {
+            PublicationImageSlider(
+                images = detail.images,
+                aspectRatio = 16f / 10f,
+                showPageCounter = true
             )
         } else {
             Box(
                 modifier = Modifier
-                    .matchParentSize()
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 10f)
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
@@ -206,26 +204,6 @@ fun ImageGalleryBanner(
                 style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(bottom = 12.dp)
-                .align(Alignment.BottomCenter),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            repeat(detail.images.size) { index ->
-                val isActive = index == activeImageIndex
-                Box(
-                    modifier = Modifier
-                        .size(if (isActive) 18.dp else 8.dp, 8.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isActive) ServifyExtra.onHero else ServifyExtra.onHero.copy(alpha = 0.5f)
-                        )
-                        .clickable { activeImageIndex = index }
-                )
-            }
         }
     }
 }

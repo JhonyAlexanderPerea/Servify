@@ -2,12 +2,15 @@ package co.edu.uniquindio.servify.features.home
 
 import co.edu.uniquindio.servify.data.repository.memory.InMemoryCategoryRepository
 import co.edu.uniquindio.servify.data.seed.SeedUsers
+import co.edu.uniquindio.servify.domain.location.LocationTracker
 import co.edu.uniquindio.servify.domain.usecase.category.ObserveCategoriesUseCase
 import co.edu.uniquindio.servify.domain.usecase.notification.ObserveNotificationsUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ToggleInterestUseCase
+import co.edu.uniquindio.servify.domain.util.GeoDistanceCalculator
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
 import co.edu.uniquindio.servify.testutil.TestEnvironment
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -25,7 +28,12 @@ class HomeViewModelTest {
         observeCategoriesUseCase = ObserveCategoriesUseCase(InMemoryCategoryRepository()),
         observeSessionUseCase = env.observeSession,
         observeNotificationsUseCase = ObserveNotificationsUseCase(env.notifications),
-        toggleInterestUseCase = ToggleInterestUseCase(env.publications)
+        toggleInterestUseCase = ToggleInterestUseCase(env.publications),
+        locationTracker = object : LocationTracker {
+            override suspend fun getCurrentLocation() = null
+            override fun observeUserLocation() = flowOf(null)
+        },
+        geoDistanceCalculator = GeoDistanceCalculator()
     )
 
     @Test

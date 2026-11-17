@@ -138,7 +138,8 @@ class HomeViewModel @Inject constructor(
             categoryId = filters.categoryId,
             categoryLabel = selectedCategoryLabel,
             filterChip = filters.chip,
-            hasLocation = userLoc != null
+            userLat = userLoc?.first,
+            userLng = userLoc?.second
         )
 
         HomeUiState(
@@ -201,7 +202,8 @@ class HomeViewModel @Inject constructor(
         categoryId: String?,
         categoryLabel: String?,
         filterChip: String,
-        hasLocation: Boolean
+        userLat: Double?,
+        userLng: Double?
     ): List<Publication> {
         var result = services
 
@@ -225,7 +227,7 @@ class HomeViewModel @Inject constructor(
         // 3. Ordenamiento / Filtrado rápido por Chip
         return when (filterChip) {
             "Cerca de mí" -> {
-                FeedRules.sortFeed(result, filterChip, isNearMeActive = true)
+                FeedRules.filterNearMe(result, userLat, userLng, maxRadiusKm = 30.0)
             }
             "Mejor valorados" -> result.sortedByDescending { it.ratingAverage }
             "Verificados" -> result.filter { it.provider.isVerified }

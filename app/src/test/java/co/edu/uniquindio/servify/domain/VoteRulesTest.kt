@@ -47,9 +47,10 @@ class VoteRulesTest {
     }
 
     @Test
-    fun author_cannot_vote_own_publication() {
-        val r = VoteRules.toggle(publication(), "author")
-        assertEquals(VoteOutcome.Denied(VoteDenied.OWN_PUBLICATION), r)
+    fun author_can_vote_own_publication() {
+        val r = VoteRules.toggle(publication(), "author") as VoteOutcome.Toggled
+        assertTrue(r.nowInterested)
+        assertEquals(setOf("author"), r.interestedUserIds)
     }
 
     @Test

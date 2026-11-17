@@ -39,6 +39,25 @@ object FeedRules {
     }
 
     /**
+     * Filtra y ordena las publicaciones que se encuentran dentro del radio máximo (30 km)
+     * a partir de la ubicación del usuario para el filtro "Cerca de mí".
+     */
+    fun filterNearMe(
+        publications: List<Publication>,
+        userLat: Double?,
+        userLng: Double?,
+        maxRadiusKm: Double = 30.0
+    ): List<Publication> {
+        if (userLat == null || userLng == null) return emptyList()
+        return publications
+            .filter { pub ->
+                val dist = pub.distanceKm
+                dist != null && dist <= maxRadiusKm
+            }
+            .sortedBy { it.distanceKm ?: Double.MAX_VALUE }
+    }
+
+    /**
      * Ordena las publicaciones por distancia cuando el filtro "Cerca de mí" está activo.
      */
     fun sortFeed(

@@ -62,9 +62,11 @@ class CreateServiceRequestUseCase @Inject constructor(
             serviceRequestRepository.createRequest(newRequest)
         } catch (e: CannotRequestOwnServiceException) {
             throw e
+        } catch (e: IllegalStateException) {
+            throw e
         } catch (e: Exception) {
             throw IllegalArgumentException(
-                "Este horario ya ha sido reservado para este servicio. Por favor selecciona otra fecha u hora.",
+                e.message ?: "No se pudo crear la solicitud de servicio",
                 e
             )
         }

@@ -143,8 +143,8 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
         val docId = request.id.ifBlank { collection.document().id }
         val docRef = collection.document(docId)
 
-        val snapshot = docRef.get().await()
-        if (snapshot.exists()) {
+        val snapshot = runCatching { docRef.get().await() }.getOrNull()
+        if (snapshot != null && snapshot.exists()) {
             val existingStatus = snapshot.getString("status")
             if (existingStatus != null && existingStatus != "CANCELLED" && existingStatus != "REJECTED") {
                 throw IllegalStateException("Este servicio ya cuenta con una reserva activa para la fecha y hora seleccionadas.")

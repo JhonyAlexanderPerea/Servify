@@ -164,7 +164,7 @@ service cloud.firestore {
     // de estados hereda la autorización del documento padre.
     // -------------------------------------------------------------------------
     match /service_requests/{requestId} {
-      allow read: if isRequestParticipant(resource.data) || isModerator();
+      allow read: if signedIn();
 
       allow create: if signedIn()
         && request.resource.data.clientId == currentUid()

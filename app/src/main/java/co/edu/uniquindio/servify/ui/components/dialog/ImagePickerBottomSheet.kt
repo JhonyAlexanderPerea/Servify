@@ -42,7 +42,7 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 import co.edu.uniquindio.servify.ui.util.createTempImageUri
 
 /**
- * Modal Bottom Sheet reutilizable para seleccionar imágenes desde la Galería (PickVisualMedia)
+ * Modal Bottom Sheet reutilizable para seleccionar múltiples imágenes desde la Galería (PickMultipleVisualMedia)
  * o capturarlas con la Cámara (TakePicture + FileProvider).
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +50,8 @@ import co.edu.uniquindio.servify.ui.util.createTempImageUri
 fun ImagePickerBottomSheet(
     isVisible: Boolean,
     onDismiss: () -> Unit,
-    onImageSelected: (Uri) -> Unit,
+    onImageSelected: ((Uri) -> Unit)? = null,
+    onImagesSelected: ((List<Uri>) -> Unit)? = null,
     onPermissionDenied: (() -> Unit)? = null
 ) {
     if (!isVisible) return
@@ -58,12 +59,13 @@ fun ImagePickerBottomSheet(
     val context = LocalContext.current
     var cameraTempUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Launcher de Galería (PickVisualMedia)
+    // Launcher de Galería múltiple (PickMultipleVisualMedia hasta 5)
     val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            onImageSelected(uri)
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            onImagesSelected?.invoke(uris)
+            uris.firstOrNull()?.let { onImageSelected?.invoke(it) }
             onDismiss()
         }
     }
@@ -74,7 +76,8 @@ fun ImagePickerBottomSheet(
     ) { success: Boolean ->
         if (success) {
             cameraTempUri?.let { uri ->
-                onImageSelected(uri)
+                onImageSelected?.invoke(uri)
+                onImagesSelected?.invoke(listOf(uri))
                 onDismiss()
             }
         }

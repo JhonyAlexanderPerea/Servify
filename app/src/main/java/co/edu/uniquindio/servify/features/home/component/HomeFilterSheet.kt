@@ -21,13 +21,13 @@ import co.edu.uniquindio.servify.ui.components.dialog.ServifyBottomSheet
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 /**
- * Hoja de filtros para la pantalla principal.
+ * Hoja de filtros para la pantalla principal (soporta selección múltiple simultánea).
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun HomeFilterSheet(
     options: List<String>,
-    selected: String,
+    selected: Set<String>,
     onSelect: (String) -> Unit,
     onClear: () -> Unit,
     onDismiss: () -> Unit
@@ -48,7 +48,11 @@ fun HomeFilterSheet(
             modifier = Modifier.fillMaxWidth()
         ) {
             options.forEach { option ->
-                ServifyChip(label = option, selected = option == selected, onClick = { onSelect(option) })
+                ServifyChip(
+                    label = option,
+                    selected = selected.contains(option),
+                    onClick = { onSelect(option) }
+                )
             }
         }
         Row(

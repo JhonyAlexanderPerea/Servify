@@ -328,6 +328,11 @@ fun CreatePublicationScreen(
         onDismiss = { showPhotoDialog = false },
         onImageSelected = { uri ->
             viewModel.onUploadImage(uri.toString())
+        },
+        onImagesSelected = { uris ->
+            for (uri in uris) {
+                viewModel.onUploadImage(uri.toString())
+            }
         }
     )
 }

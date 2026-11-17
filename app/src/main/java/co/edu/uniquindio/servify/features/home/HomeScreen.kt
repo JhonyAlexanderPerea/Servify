@@ -144,7 +144,7 @@ fun HomeScreen(
                         items(HomeQuickFilters) { label ->
                             ServifyChip(
                                 label = label,
-                                selected = state.selectedFilterChip == label,
+                                selected = state.selectedFilterChips.contains(label),
                                 onClick = { viewModel.onFilterChipSelected(label) }
                             )
                         }
@@ -228,7 +228,7 @@ fun HomeScreen(
     if (showFilters) {
         HomeFilterSheet(
             options = HomeQuickFilters,
-            selected = state.selectedFilterChip,
+            selected = state.selectedFilterChips,
             onSelect = viewModel::onFilterChipSelected,
             onClear = viewModel::onClearFilters,
             onDismiss = { showFilters = false }

@@ -254,6 +254,16 @@ class PublicationFlowViewModel @Inject constructor(
         }
     }
 
+    fun onAddImages(imageUris: List<String>) {
+        _uiState.update { state ->
+            val remainingSlots = 5 - state.images.size
+            if (remainingSlots > 0 && imageUris.isNotEmpty()) {
+                val newImages = (state.images + imageUris).distinct().take(5)
+                state.copy(images = newImages)
+            } else state
+        }
+    }
+
     fun onUploadImage(localUri: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, userMessage = "Subiendo imagen a Cloudinary...") }

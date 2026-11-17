@@ -227,7 +227,7 @@ class HomeViewModel @Inject constructor(
         // 3. Ordenamiento / Filtrado rápido por Chip
         return when (filterChip) {
             "Cerca de mí" -> {
-                FeedRules.filterNearMe(result, userLat, userLng, maxRadiusKm = 30.0)
+                FeedRules.filterNearMe(result, userLat, userLng, maxRadiusKm = 50.0)
             }
             "Mejor valorados" -> result.sortedByDescending { it.ratingAverage }
             "Verificados" -> result.filter { it.provider.isVerified }

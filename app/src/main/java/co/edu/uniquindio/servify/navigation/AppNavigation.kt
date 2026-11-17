@@ -1,7 +1,9 @@
 package co.edu.uniquindio.servify.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import co.edu.uniquindio.servify.ui.components.feedback.OfflineBanner
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -153,7 +155,11 @@ private fun AuthNavigation() {
 }
 
 @Composable
-private fun MainNavigation(role: UserRole) {
+private fun MainNavigation(
+    role: UserRole,
+    appStateViewModel: AppStateViewModel = hiltViewModel()
+) {
+    val isOnline by appStateViewModel.isOnline.collectAsStateWithLifecycle()
     val navController = rememberNavController()
 
     // Vuelve al dashboard y le pide abrir una sección (Mis solicitudes, Mis publicaciones...).
@@ -167,14 +173,18 @@ private fun MainNavigation(role: UserRole) {
         }
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = if (role == UserRole.MODERATOR) Screen.ModeratorPanel.route else Screen.Home.route,
-        enterTransition = { servifyEnter() },
-        exitTransition = { servifyExit() },
-        popEnterTransition = { servifyPopEnter() },
-        popExitTransition = { servifyPopExit() }
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        OfflineBanner(isVisible = !isOnline)
+
+        Box(modifier = Modifier.weight(1f)) {
+            NavHost(
+                navController = navController,
+                startDestination = if (role == UserRole.MODERATOR) Screen.ModeratorPanel.route else Screen.Home.route,
+                enterTransition = { servifyEnter() },
+                exitTransition = { servifyExit() },
+                popEnterTransition = { servifyPopEnter() },
+                popExitTransition = { servifyPopExit() }
+            ) {
         // -----------------------------------------
         // DASHBOARD PRINCIPAL CON BOTTOM NAVIGATION BAR
         // -----------------------------------------
@@ -337,4 +347,6 @@ private fun MainNavigation(role: UserRole) {
             )
         }
     }
+    }
+}
 }

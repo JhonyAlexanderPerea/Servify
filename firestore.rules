@@ -133,12 +133,12 @@ service cloud.firestore {
           )
         )
         ||
-        // Moderador: aprobar o rechazar.
+        // Moderador: aprobar, rechazar o finalizar.
         (
           isModerator()
           && unchanged('authorId')
           && unchanged('providerId')
-          && request.resource.data.status in ['VERIFICADA', 'RECHAZADA']
+          && request.resource.data.status in ['VERIFICADA', 'RECHAZADA', 'FINALIZADA', 'COMPLETED']
           && validPublicationStatus(request.resource.data.status)
         )
         ||

@@ -169,8 +169,7 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.clientId == currentUid()
         && request.resource.data.providerId != currentUid()
-        && request.resource.data.status == 'PENDING'
-        && !exists(/databases/$(database)/documents/service_requests/$(requestId));
+        && request.resource.data.status == 'PENDING';
 
       allow update: if signedIn()
         && isRequestParticipant(resource.data)

@@ -46,12 +46,8 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         val providerId = publication.authorId.ifBlank { publication.provider.id }
 
-        // El id depende del servicio y del horario: dos clientes que intenten reservar el mismo
-        // cupo escriben el mismo documento. La regla de Firestore solo permite crear (no
-        // actualizar) solicitudes de otros usuarios, así que la segunda escritura falla sin
-        // exponer las solicitudes de terceros al cliente.
         val newRequest = ServiceRequest(
-            id = requestIdFor(publicationId, scheduledDateTime),
+            id = "",
             publicationId = publicationId,
             clientId = currentUser.id,
             providerId = providerId,
@@ -65,7 +61,7 @@ class CreateServiceRequestUseCase @Inject constructor(
             serviceRequestRepository.createRequest(newRequest)
         } catch (e: Exception) {
             throw IllegalArgumentException(
-                "Ya existe una solicitud o reserva para este servicio en la misma fecha y hora",
+                e.message ?: "No se pudo crear la solicitud de servicio",
                 e
             )
         }
@@ -80,9 +76,4 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         newRequest
     }
-}
-
-private fun requestIdFor(publicationId: String, scheduledDateTime: Long): String {
-    val safePublicationId = publicationId.replace(Regex("[^A-Za-z0-9_-]"), "_")
-    return "req_${safePublicationId}_$scheduledDateTime"
 }

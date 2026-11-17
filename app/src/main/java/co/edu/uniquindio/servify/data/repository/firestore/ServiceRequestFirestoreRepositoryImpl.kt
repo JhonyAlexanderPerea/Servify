@@ -140,14 +140,9 @@ class ServiceRequestFirestoreRepositoryImpl @Inject constructor(
      */
     override suspend fun createRequest(request: ServiceRequest) {
         val docId = request.id.ifBlank { collection.document().id }
-        val docRef = collection.document(docId)
-        val existing = docRef.get().await()
-        if (existing.exists()) {
-            throw IllegalStateException("Este horario ya ha sido reservado para este servicio. Por favor seleccione otro.")
-        }
         val reqWithId = request.copy(id = docId, status = RequestStatus.PENDING)
         val dto = ServiceRequestDto.fromDomain(reqWithId)
-        docRef.set(dto.toDocument()).await()
+        collection.document(docId).set(dto.toDocument()).await()
     }
 
     override suspend fun updateRequestStatus(requestId: String, newStatus: RequestStatus) {

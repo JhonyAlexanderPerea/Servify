@@ -69,7 +69,7 @@ class FirebaseAuthRepository @Inject constructor(
                 return AuthResult.Failure(AuthError.ROLE_NOT_ALLOWED)
             }
 
-            if (user.role != UserRole.MODERATOR && firebaseUser.isEmailVerified != true) {
+            if (user.role != UserRole.MODERATOR && firebaseUser.isEmailVerified != true && !user.isVerified) {
                 auth.signOut()
                 return AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)
             }

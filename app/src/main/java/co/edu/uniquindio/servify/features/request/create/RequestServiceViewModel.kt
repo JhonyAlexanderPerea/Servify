@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.domain.model.RequestStatus
+import co.edu.uniquindio.servify.domain.model.ServiceRequest
+import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import co.edu.uniquindio.servify.domain.usecase.publication.GetPublicationByIdUseCase
 import co.edu.uniquindio.servify.domain.usecase.request.CannotRequestOwnServiceException
@@ -24,6 +27,7 @@ data class RequestServiceUiState(
     val publication: Publication? = null,
     val scheduledDateMillis: Long = System.currentTimeMillis() + 86400000L,
     val selectedTimeSlot: String = "02:00 PM",
+    val occupiedTimeSlots: Set<String> = emptySet(),
     val note: String = "",
     val noteError: String? = null,
     val address: String = "",
@@ -42,6 +46,7 @@ class RequestServiceViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getPublicationByIdUseCase: GetPublicationByIdUseCase,
     private val createServiceRequestUseCase: CreateServiceRequestUseCase,
+    private val serviceRequestRepository: ServiceRequestRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
 
@@ -52,6 +57,7 @@ class RequestServiceViewModel @Inject constructor(
 
     init {
         loadPublication()
+        observeOccupiedSlots()
     }
 
     private fun loadPublication() {
@@ -76,8 +82,43 @@ class RequestServiceViewModel @Inject constructor(
         }
     }
 
+    private fun observeOccupiedSlots() {
+        viewModelScope.launch {
+            serviceRequestRepository.observeRequests().collect { requests ->
+                updateOccupiedSlots(requests)
+            }
+        }
+    }
+
+    private fun updateOccupiedSlots(requests: List<ServiceRequest>) {
+        val state = _uiState.value
+        val activeOnDate = requests.filter { req ->
+            req.publicationId == serviceId &&
+                    req.status != RequestStatus.CANCELLED &&
+                    req.status != RequestStatus.REJECTED &&
+                    isSameDay(req.scheduledDateTime, state.scheduledDateMillis)
+        }
+        val occupied = activeOnDate.map { req ->
+            formatTimeSlot(req.scheduledDateTime)
+        }.toSet()
+
+        _uiState.update { current ->
+            val availableSlots = listOf("08:00 AM", "10:00 AM", "02:00 PM", "04:00 PM", "06:00 PM")
+            val newSelectedSlot = if (occupied.contains(current.selectedTimeSlot)) {
+                availableSlots.firstOrNull { !occupied.contains(it) } ?: current.selectedTimeSlot
+            } else {
+                current.selectedTimeSlot
+            }
+            current.copy(occupiedTimeSlots = occupied, selectedTimeSlot = newSelectedSlot)
+        }
+    }
+
     fun onDateSelected(dateMillis: Long) {
         _uiState.update { it.copy(scheduledDateMillis = dateMillis) }
+        viewModelScope.launch {
+            val requests = serviceRequestRepository.observeRequests().first()
+            updateOccupiedSlots(requests)
+        }
     }
 
     fun onTimeSlotSelected(timeSlot: String) {
@@ -108,6 +149,16 @@ class RequestServiceViewModel @Inject constructor(
                     it.copy(
                         isSubmitting = false,
                         userMessage = "No puedes solicitar un servicio que tú mismo publicaste"
+                    )
+                }
+                return@launch
+            }
+
+            if (state.occupiedTimeSlots.contains(state.selectedTimeSlot)) {
+                _uiState.update {
+                    it.copy(
+                        isSubmitting = false,
+                        userMessage = "Este horario ya se encuentra ocupado. Por favor selecciona otro."
                     )
                 }
                 return@launch
@@ -171,4 +222,24 @@ private fun combineDateAndTime(dateMillis: Long, timeSlot: String): Long {
         else -> 14
     }
     return localDate.atTime(hour, 0).atZone(zone).toInstant().toEpochMilli()
+}
+
+private fun formatTimeSlot(scheduledDateTime: Long): String {
+    val zone = ZoneId.systemDefault()
+    val hour = Instant.ofEpochMilli(scheduledDateTime).atZone(zone).hour
+    return when (hour) {
+        8 -> "08:00 AM"
+        10 -> "10:00 AM"
+        14 -> "02:00 PM"
+        16 -> "04:00 PM"
+        18 -> "06:00 PM"
+        else -> "%02d:00".format(hour)
+    }
+}
+
+private fun isSameDay(millis1: Long, millis2: Long): Boolean {
+    val zone = ZoneId.systemDefault()
+    val date1 = Instant.ofEpochMilli(millis1).atZone(zone).toLocalDate()
+    val date2 = Instant.ofEpochMilli(millis2).atZone(zone).toLocalDate()
+    return date1 == date2
 }

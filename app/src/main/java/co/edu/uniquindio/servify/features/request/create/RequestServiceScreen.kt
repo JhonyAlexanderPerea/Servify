@@ -438,25 +438,40 @@ fun RequestServiceScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             items(availableSlots) { slot ->
+                                val isOccupied = state.occupiedTimeSlots.contains(slot)
                                 val isSelected = state.selectedTimeSlot == slot
                                 Box(
                                     modifier = Modifier
                                         .clip(CircleShape)
-                                        .background(if (isSelected) ServifyPrimary else ServifySurfaceVariant)
+                                        .background(
+                                            when {
+                                                isOccupied -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                                isSelected -> ServifyPrimary
+                                                else -> ServifySurfaceVariant
+                                            }
+                                        )
                                         .border(
                                             1.dp,
-                                            if (isSelected) ServifyPrimary else ServifyOutlineVariant,
+                                            when {
+                                                isOccupied -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                                isSelected -> ServifyPrimary
+                                                else -> ServifyOutlineVariant
+                                            },
                                             CircleShape
                                         )
-                                        .clickable { viewModel.onTimeSlotSelected(slot) }
+                                        .clickable(enabled = !isOccupied) { viewModel.onTimeSlotSelected(slot) }
                                         .padding(horizontal = 14.dp, vertical = 8.dp)
                                 ) {
                                     Text(
-                                        text = slot,
+                                        text = if (isOccupied) "$slot (Reservado)" else slot,
                                         style = ServifyTextStyle.Caption.copy(
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                            fontWeight = if (isSelected && !isOccupied) FontWeight.Bold else FontWeight.Medium
                                         ),
-                                        color = if (isSelected) Color.White else ServifyOnSurface
+                                        color = when {
+                                            isOccupied -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                            isSelected -> Color.White
+                                            else -> ServifyOnSurface
+                                        }
                                     )
                                 }
                             }

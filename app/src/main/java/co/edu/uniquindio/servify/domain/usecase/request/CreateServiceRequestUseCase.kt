@@ -19,8 +19,8 @@ class CannotRequestOwnServiceException :
  * Caso de uso para la creación de solicitudes de servicio/citas.
  * Genera automáticamente una notificación [REQUEST_RECEIVED] para el proveedor.
  *
- * Un usuario no puede solicitar su propia publicación: el cliente y el proveedor serían la
- * misma persona y la solicitud quedaría sin un tercero que preste el servicio.
+ * El ID de la solicitud es determinista por publicación y horario (requestIdFor) para garantizar
+ * que un mismo cupo no pueda ser reservado de forma simultánea.
  */
 class CreateServiceRequestUseCase @Inject constructor(
     private val serviceRequestRepository: ServiceRequestRepository,
@@ -45,9 +45,10 @@ class CreateServiceRequestUseCase @Inject constructor(
         }
 
         val providerId = publication.authorId.ifBlank { publication.provider.id }
+        val requestId = requestIdFor(publicationId, scheduledDateTime)
 
         val newRequest = ServiceRequest(
-            id = "",
+            id = requestId,
             publicationId = publicationId,
             clientId = currentUser.id,
             providerId = providerId,
@@ -59,9 +60,11 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         try {
             serviceRequestRepository.createRequest(newRequest)
+        } catch (e: CannotRequestOwnServiceException) {
+            throw e
         } catch (e: Exception) {
             throw IllegalArgumentException(
-                e.message ?: "No se pudo crear la solicitud de servicio",
+                "Este horario ya ha sido reservado para este servicio. Por favor selecciona otra fecha u hora.",
                 e
             )
         }
@@ -76,4 +79,9 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         newRequest
     }
+}
+
+private fun requestIdFor(publicationId: String, scheduledDateTime: Long): String {
+    val safePublicationId = publicationId.replace(Regex("[^A-Za-z0-9_-]"), "_")
+    return "req_${safePublicationId}_$scheduledDateTime"
 }

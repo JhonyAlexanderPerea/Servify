@@ -2,12 +2,19 @@ package co.edu.uniquindio.servify.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.domain.location.LocationTracker
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.domain.rules.FeedRules
+import co.edu.uniquindio.servify.domain.rules.matchesCategory
+import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.category.ObserveCategoriesUseCase
-import co.edu.uniquindio.servify.features.home.model.toCategoryItem
+import co.edu.uniquindio.servify.domain.usecase.notification.ObserveNotificationsUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ObserveServicesUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ToggleInterestUseCase
+import co.edu.uniquindio.servify.domain.util.GeoDistanceCalculator
 import co.edu.uniquindio.servify.features.home.model.CategoryItem
+import co.edu.uniquindio.servify.features.home.model.HomeMockData
+import co.edu.uniquindio.servify.features.home.model.toCategoryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,11 +24,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import co.edu.uniquindio.servify.domain.rules.FeedRules
-import co.edu.uniquindio.servify.domain.rules.matchesCategory
-import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
-import co.edu.uniquindio.servify.domain.usecase.notification.ObserveNotificationsUseCase
-import co.edu.uniquindio.servify.features.home.model.HomeMockData
 import javax.inject.Inject
 
 data class HomeUiState(
@@ -37,10 +39,12 @@ data class HomeUiState(
     val userName: String = "",
     val userInitials: String = "",
     val userAvatarUrl: String? = null,
-    val unreadCount: Int = 0
+    val unreadCount: Int = 0,
+    val userLatitude: Double? = null,
+    val userLongitude: Double? = null
 )
 
-/** Filtros rápidos de Home. "Cerca de mí" no filtra (aún no hay geolocalización real). */
+/** Filtros rápidos de Home con geolocalización real. */
 val HomeQuickFilters = listOf("Cerca de mí", "Ciudad", "Precio", "Mejor valorados", "Verificados")
 
 private data class HomeFilters(val query: String, val categoryId: String?, val chip: String)
@@ -57,19 +61,42 @@ class HomeViewModel @Inject constructor(
     observeCategoriesUseCase: ObserveCategoriesUseCase,
     observeSessionUseCase: ObserveSessionUseCase,
     observeNotificationsUseCase: ObserveNotificationsUseCase,
-    private val toggleInterestUseCase: ToggleInterestUseCase
+    private val toggleInterestUseCase: ToggleInterestUseCase,
+    private val locationTracker: LocationTracker,
+    private val geoDistanceCalculator: GeoDistanceCalculator
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     private val _selectedCategoryId = MutableStateFlow<String?>(null)
     private val _selectedFilterChip = MutableStateFlow("Cerca de mí")
     private val _isMapView = MutableStateFlow(false)
+    private val _userLocation = MutableStateFlow<Pair<Double, Double>?>(null)
+
+    init {
+        fetchUserLocation()
+    }
+
+    fun fetchUserLocation() {
+        viewModelScope.launch {
+            val loc = locationTracker.getCurrentLocation()
+            if (loc != null) {
+                _userLocation.value = loc
+            }
+        }
+    }
+
+    fun onUserLocationUpdated(latitude: Double, longitude: Double) {
+        _userLocation.value = Pair(latitude, longitude)
+    }
+
+    fun onLocationPermissionGranted() {
+        fetchUserLocation()
+    }
 
     private val filters = combine(_searchQuery, _selectedCategoryId, _selectedFilterChip) { query, categoryId, chip ->
         HomeFilters(query, categoryId, chip)
     }
 
-    // Saludo, iniciales y contador de notificaciones salen de la sesión real (antes eran datos fijos).
     private val userInfo = combine(observeSessionUseCase(), observeNotificationsUseCase()) { user, notifications ->
         val fullName = user?.name.orEmpty()
         val userId = user?.id.orEmpty()
@@ -86,26 +113,36 @@ class HomeViewModel @Inject constructor(
         observeServicesUseCase(),
         observeCategoriesUseCase().map { list -> list.map { it.toCategoryItem() } },
         filters,
-        userInfo
-    ) { allServices, categories, filters, user ->
+        userInfo,
+        _userLocation
+    ) { allServices, categories, filters, user, userLoc ->
 
-        // El feed público solo muestra publicaciones verificadas (las pendientes esperan al moderador).
-        val services = FeedRules.publicFeed(allServices)
+        // El feed público solo muestra publicaciones verificadas.
+        val publicServices = FeedRules.publicFeed(allServices)
+
+        // Asocia distancias calculadas con Haversine a cada publicación.
+        val servicesWithDistance = FeedRules.attachDistances(
+            publications = publicServices,
+            userLat = userLoc?.first,
+            userLng = userLoc?.second,
+            calculator = geoDistanceCalculator
+        )
 
         val selectedCategoryLabel = categories
             .find { it.id == filters.categoryId }
             ?.label
 
         val filtered = filterPublications(
-            services = services,
+            services = servicesWithDistance,
             query = filters.query,
             categoryId = filters.categoryId,
             categoryLabel = selectedCategoryLabel,
-            filterChip = filters.chip
+            filterChip = filters.chip,
+            hasLocation = userLoc != null
         )
 
         HomeUiState(
-            services = services,
+            services = servicesWithDistance,
             filteredServices = filtered,
             categories = categories,
             selectedCategoryId = filters.categoryId,
@@ -116,7 +153,9 @@ class HomeViewModel @Inject constructor(
             userName = user.name,
             userInitials = user.initials,
             userAvatarUrl = user.avatarUrl,
-            unreadCount = user.unread
+            unreadCount = user.unread,
+            userLatitude = userLoc?.first,
+            userLongitude = userLoc?.second
         )
     }.stateIn(
         scope = viewModelScope,
@@ -136,6 +175,9 @@ class HomeViewModel @Inject constructor(
 
     fun onFilterChipSelected(filterLabel: String) {
         _selectedFilterChip.value = filterLabel
+        if (filterLabel == "Cerca de mí" && _userLocation.value == null) {
+            fetchUserLocation()
+        }
     }
 
     fun onClearFilters() {
@@ -158,11 +200,12 @@ class HomeViewModel @Inject constructor(
         query: String,
         categoryId: String?,
         categoryLabel: String?,
-        filterChip: String
+        filterChip: String,
+        hasLocation: Boolean
     ): List<Publication> {
         var result = services
 
-        // 1. Filtrado por categoría (id del catálogo o nombre visible)
+        // 1. Filtrado por categoría
         result = result.filter { pub ->
             pub.matchesCategory(categoryId, categoryLabel)
         }
@@ -181,6 +224,9 @@ class HomeViewModel @Inject constructor(
 
         // 3. Ordenamiento / Filtrado rápido por Chip
         return when (filterChip) {
+            "Cerca de mí" -> {
+                FeedRules.sortFeed(result, filterChip, isNearMeActive = true)
+            }
             "Mejor valorados" -> result.sortedByDescending { it.ratingAverage }
             "Verificados" -> result.filter { it.provider.isVerified }
             "Precio" -> result.sortedBy { it.price }

@@ -109,6 +109,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.data.store)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // -----------------------------------------
     // Dependency Injection (Hilt & Inject)

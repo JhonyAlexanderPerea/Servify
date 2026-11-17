@@ -228,4 +228,8 @@
     <string name="offline_banner_title">Sin conexión a internet</string>
     <string name="offline_banner_subtitle">Mostrando datos guardados. Los cambios se sincronizarán al volver en línea.</string>
     <string name="offline_banner_icon_cd">Icono sin conexión a internet</string>
+
+    <!-- Image Carousel / Slider -->
+    <string name="publication_image_slide_cd">Imagen %1$d de %2$d de la publicación</string>
+    <string name="publication_image_counter">%1$d / %2$d</string>
 </resources>

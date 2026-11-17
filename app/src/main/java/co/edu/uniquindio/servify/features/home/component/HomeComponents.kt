@@ -85,6 +85,7 @@ import co.edu.uniquindio.servify.features.home.model.AppointmentBannerItem
 import co.edu.uniquindio.servify.features.home.model.CategoryItem
 import co.edu.uniquindio.servify.features.home.model.ServiceItem
 import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
+import co.edu.uniquindio.servify.ui.format.formatDistance
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyOnline
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
@@ -770,21 +771,46 @@ fun ServiceFeedCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Place,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(
-                            text = service.zone,
-                            style = ServifyTextStyle.Caption,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Place,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = service.zone,
+                                style = ServifyTextStyle.Caption,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        val distanceStr = formatDistance(service.distanceKm)
+                        if (distanceStr != null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = distanceStr,
+                                    style = ServifyTextStyle.Caption.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
                     }
 
                     TrustIndexBadge(trustIndexPercent = service.trustIndex)

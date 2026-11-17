@@ -50,7 +50,9 @@ data class ServiceItem(
     val reviewCount: Int,
     val interestedCount: Int,
     val isFavorite: Boolean = false,
-    val nextAvailableSlot: String? = null
+    val nextAvailableSlot: String? = null,
+    val providerAvatarUrl: String? = null,
+    val distanceKm: Double? = null
 )
 
 fun Publication.toServiceItem(): ServiceItem {
@@ -81,12 +83,14 @@ fun Publication.toServiceItem(): ServiceItem {
         providerInitials = if (initials.isNotBlank()) initials else "PR",
         providerColor = Color(0xFF1A55E3),
         providerLevel = level,
-        isVerified = provider.isVerified,
+        isVerified = provider.isVerified || wasVerified,
         trustIndex = provider.trustIndexScore,
         rating = ratingAverage,
         reviewCount = reviewsCount,
         interestedCount = interestedCount,
-        isFavorite = isFavorite
+        isFavorite = isFavorite,
+        providerAvatarUrl = provider.avatarUrl,
+        distanceKm = distanceKm
     )
 }
 

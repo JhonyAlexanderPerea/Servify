@@ -2,12 +2,19 @@ package co.edu.uniquindio.servify.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.uniquindio.servify.domain.location.LocationTracker
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.domain.rules.FeedRules
+import co.edu.uniquindio.servify.domain.rules.matchesCategory
+import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
 import co.edu.uniquindio.servify.domain.usecase.category.ObserveCategoriesUseCase
-import co.edu.uniquindio.servify.features.home.model.toCategoryItem
+import co.edu.uniquindio.servify.domain.usecase.notification.ObserveNotificationsUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ObserveServicesUseCase
 import co.edu.uniquindio.servify.domain.usecase.publication.ToggleInterestUseCase
+import co.edu.uniquindio.servify.domain.util.GeoDistanceCalculator
 import co.edu.uniquindio.servify.features.home.model.CategoryItem
+import co.edu.uniquindio.servify.features.home.model.HomeMockData
+import co.edu.uniquindio.servify.features.home.model.toCategoryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,10 +24,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import co.edu.uniquindio.servify.domain.rules.FeedRules
-import co.edu.uniquindio.servify.domain.usecase.auth.ObserveSessionUseCase
-import co.edu.uniquindio.servify.domain.usecase.notification.ObserveNotificationsUseCase
-import co.edu.uniquindio.servify.features.home.model.HomeMockData
 import javax.inject.Inject
 
 data class HomeUiState(
@@ -29,20 +32,28 @@ data class HomeUiState(
     val categories: List<CategoryItem> = emptyList(),
     val selectedCategoryId: String? = null,
     val searchQuery: String = "",
-    val selectedFilterChip: String = "Cerca de mí",
+    val selectedFilterChips: Set<String> = emptySet(),
     val isMapView: Boolean = false,
     val isLoading: Boolean = false,
     val userMessage: String? = null,
     val userName: String = "",
     val userInitials: String = "",
-    val unreadCount: Int = 0
+    val userAvatarUrl: String? = null,
+    val unreadCount: Int = 0,
+    val userLatitude: Double? = null,
+    val userLongitude: Double? = null
 )
 
-/** Filtros rápidos de Home. "Cerca de mí" no filtra (aún no hay geolocalización real). */
+/** Filtros rápidos de Home con geolocalización real. */
 val HomeQuickFilters = listOf("Cerca de mí", "Ciudad", "Precio", "Mejor valorados", "Verificados")
 
-private data class HomeFilters(val query: String, val categoryId: String?, val chip: String)
-private data class HomeUserInfo(val name: String, val initials: String, val unread: Int)
+private data class HomeFilters(val query: String, val categoryId: String?, val chips: Set<String>)
+private data class HomeUserInfo(
+    val name: String,
+    val initials: String,
+    val avatarUrl: String?,
+    val unread: Int
+)
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -50,26 +61,51 @@ class HomeViewModel @Inject constructor(
     observeCategoriesUseCase: ObserveCategoriesUseCase,
     observeSessionUseCase: ObserveSessionUseCase,
     observeNotificationsUseCase: ObserveNotificationsUseCase,
-    private val toggleInterestUseCase: ToggleInterestUseCase
+    private val toggleInterestUseCase: ToggleInterestUseCase,
+    private val locationTracker: LocationTracker,
+    private val geoDistanceCalculator: GeoDistanceCalculator
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     private val _selectedCategoryId = MutableStateFlow<String?>(null)
-    private val _selectedFilterChip = MutableStateFlow("Cerca de mí")
+    private val _selectedFilterChips = MutableStateFlow<Set<String>>(emptySet())
     private val _isMapView = MutableStateFlow(false)
+    private val _userLocation = MutableStateFlow<Pair<Double, Double>?>(null)
 
-    private val filters = combine(_searchQuery, _selectedCategoryId, _selectedFilterChip) { query, categoryId, chip ->
-        HomeFilters(query, categoryId, chip)
+    init {
+        fetchUserLocation()
     }
 
-    // Saludo, iniciales y contador de notificaciones salen de la sesión real (antes eran datos fijos).
+    fun fetchUserLocation() {
+        viewModelScope.launch {
+            val loc = locationTracker.getCurrentLocation()
+            if (loc != null) {
+                _userLocation.value = loc
+            }
+        }
+    }
+
+    fun onUserLocationUpdated(latitude: Double, longitude: Double) {
+        _userLocation.value = Pair(latitude, longitude)
+    }
+
+    fun onLocationPermissionGranted() {
+        fetchUserLocation()
+    }
+
+    private val filters = combine(_searchQuery, _selectedCategoryId, _selectedFilterChips) { query, categoryId, chips ->
+        HomeFilters(query, categoryId, chips)
+    }
+
     private val userInfo = combine(observeSessionUseCase(), observeNotificationsUseCase()) { user, notifications ->
         val fullName = user?.name.orEmpty()
+        val userId = user?.id.orEmpty()
         HomeUserInfo(
             name = fullName.substringBefore(' '),
             initials = fullName.split(' ').filter { it.isNotBlank() }.take(2)
                 .joinToString("") { it.first().uppercase() },
-            unread = notifications.count { !it.isRead }
+            avatarUrl = user?.avatarUrl,
+            unread = notifications.count { it.userId == userId && !it.isRead }
         )
     }
 
@@ -77,31 +113,50 @@ class HomeViewModel @Inject constructor(
         observeServicesUseCase(),
         observeCategoriesUseCase().map { list -> list.map { it.toCategoryItem() } },
         filters,
-        userInfo
-    ) { allServices, categories, filters, user ->
+        userInfo,
+        _userLocation
+    ) { allServices, categories, filters, user, userLoc ->
 
-        // El feed público solo muestra publicaciones verificadas (las pendientes esperan al moderador).
-        val services = FeedRules.publicFeed(allServices)
+        // El feed público solo muestra publicaciones verificadas.
+        val publicServices = FeedRules.publicFeed(allServices)
+
+        // Asocia distancias calculadas con Haversine a cada publicación.
+        val servicesWithDistance = FeedRules.attachDistances(
+            publications = publicServices,
+            userLat = userLoc?.first,
+            userLng = userLoc?.second,
+            calculator = geoDistanceCalculator
+        )
+
+        val selectedCategoryLabel = categories
+            .find { it.id == filters.categoryId }
+            ?.label
 
         val filtered = filterPublications(
-            services = services,
+            services = servicesWithDistance,
             query = filters.query,
             categoryId = filters.categoryId,
-            filterChip = filters.chip
+            categoryLabel = selectedCategoryLabel,
+            filterChips = filters.chips,
+            userLat = userLoc?.first,
+            userLng = userLoc?.second
         )
 
         HomeUiState(
-            services = services,
+            services = servicesWithDistance,
             filteredServices = filtered,
             categories = categories,
             selectedCategoryId = filters.categoryId,
             searchQuery = filters.query,
-            selectedFilterChip = filters.chip,
+            selectedFilterChips = filters.chips,
             isMapView = _isMapView.value,
             isLoading = false,
             userName = user.name,
             userInitials = user.initials,
-            unreadCount = user.unread
+            userAvatarUrl = user.avatarUrl,
+            unreadCount = user.unread,
+            userLatitude = userLoc?.first,
+            userLongitude = userLoc?.second
         )
     }.stateIn(
         scope = viewModelScope,
@@ -120,11 +175,20 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onFilterChipSelected(filterLabel: String) {
-        _selectedFilterChip.value = filterLabel
+        _selectedFilterChips.update { current ->
+            if (current.contains(filterLabel)) {
+                current - filterLabel
+            } else {
+                current + filterLabel
+            }
+        }
+        if (filterLabel == "Cerca de mí" && !_selectedFilterChips.value.contains("Cerca de mí") && _userLocation.value == null) {
+            fetchUserLocation()
+        }
     }
 
     fun onClearFilters() {
-        _selectedFilterChip.value = HomeQuickFilters.first()
+        _selectedFilterChips.value = emptySet()
         _selectedCategoryId.value = null
     }
 
@@ -142,41 +206,56 @@ class HomeViewModel @Inject constructor(
         services: List<Publication>,
         query: String,
         categoryId: String?,
-        filterChip: String
+        categoryLabel: String?,
+        filterChips: Set<String>,
+        userLat: Double?,
+        userLng: Double?
     ): List<Publication> {
         var result = services
 
         // 1. Filtrado por categoría
-        if (!categoryId.isNullOrBlank()) {
-            result = result.filter { pub ->
-                pub.categoryId.equals(categoryId, ignoreCase = true)
-            }
+        result = result.filter { pub ->
+            pub.matchesCategory(categoryId, categoryLabel)
         }
 
-        // 2. Filtrado por texto de búsqueda
+        // 2. Motor de búsqueda robusto con normalización (ignorando tildes y mayúsculas)
         if (query.isNotBlank()) {
-            val q = query.trim().lowercase()
+            val q = query.trim().normalizeSearch()
             result = result.filter { pub ->
-                pub.title.lowercase().contains(q) ||
-                        pub.description.lowercase().contains(q) ||
-                        pub.locationName.lowercase().contains(q) ||
-                        (pub.subcategoryId?.lowercase()?.contains(q) == true) ||
-                        pub.provider.name.lowercase().contains(q)
+                pub.title.normalizeSearch().contains(q) ||
+                        pub.description.normalizeSearch().contains(q) ||
+                        pub.locationName.normalizeSearch().contains(q) ||
+                        (pub.subcategoryId?.normalizeSearch()?.contains(q) == true) ||
+                        pub.provider.name.normalizeSearch().contains(q) ||
+                        pub.category.normalizeSearch().contains(q)
             }
         }
 
-        // 3. Ordenamiento / Filtrado rápido por Chip
-        return when (filterChip) {
-            "Mejor valorados" -> result.sortedByDescending { it.ratingAverage }
-            "Verificados" -> result.filter { it.provider.isVerified }
-            "Precio" -> result.sortedBy { it.price }
-            "Ciudad" -> {
-                val city = HomeMockData.currentUserCity.substringBefore(",").trim()
-                result.filter {
-                    it.locationName.contains(city, ignoreCase = true) || it.city.contains(city, ignoreCase = true)
-                }
-            }
-            else -> result
+        // 3. Aplicación simultánea de múltiples filtros (Chips independientes)
+        if (filterChips.contains("Cerca de mí")) {
+            result = FeedRules.filterNearMe(result, userLat, userLng, maxRadiusKm = 50.0)
         }
+        if (filterChips.contains("Verificados")) {
+            result = result.filter { it.provider.isVerified || it.wasVerified }
+        }
+        if (filterChips.contains("Mejor valorados")) {
+            result = result.sortedByDescending { it.ratingAverage }
+        }
+        if (filterChips.contains("Precio")) {
+            result = result.sortedBy { it.price }
+        }
+        if (filterChips.contains("Ciudad")) {
+            val city = HomeMockData.currentUserCity.substringBefore(",").trim()
+            result = result.filter {
+                it.locationName.contains(city, ignoreCase = true) || it.city.contains(city, ignoreCase = true)
+            }
+        }
+
+        return result
+    }
+
+    private fun String.normalizeSearch(): String {
+        val decomposed = java.text.Normalizer.normalize(this.lowercase(), java.text.Normalizer.Form.NFD)
+        return decomposed.replace(Regex("\\p{M}+"), "")
     }
 }

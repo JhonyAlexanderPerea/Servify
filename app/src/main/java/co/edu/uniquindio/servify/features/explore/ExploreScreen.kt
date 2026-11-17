@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.explore
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -45,6 +48,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,11 +72,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.edu.uniquindio.servify.domain.model.Publication
+import co.edu.uniquindio.servify.features.home.component.AnimatedFavoriteIcon
 import co.edu.uniquindio.servify.features.home.component.CategoryChipsRow
 import co.edu.uniquindio.servify.features.home.component.HomeSearchBar
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.component.TrustIndexBadge
 import co.edu.uniquindio.servify.features.home.model.toServiceItem
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurface
 import co.edu.uniquindio.servify.ui.theme.ServifyOnSurfaceVariant
@@ -105,12 +111,12 @@ fun ExploreScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "Explorar Servicios en el Mapa",
+                    text = stringResource(R.string.explore_title),
                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = "Encuentra proveedores de confianza cerca de ti",
+                    text = stringResource(R.string.explore_subtitle),
                     style = ServifyTextStyle.Small,
                     color = ServifyOnSurfaceVariant
                 )
@@ -149,81 +155,25 @@ fun ExploreScreen(
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
 
-                // 2. CONTENEDOR PRINCIPAL DEL MAPA INTERACTIVO MOCK
+                // 2. CONTENEDOR PRINCIPAL DEL MAPA DE MAPBOX
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                         .padding(horizontal = 16.dp)
                         .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    MaterialTheme.colorScheme.surfaceContainerHighest
-                                )
-                            )
-                        )
                 ) {
-                    MapBackdrop(modifier = Modifier.matchParentSize())
-
-                    // Fondo estilizado de mapa urbano
-                    Box(
+                    co.edu.uniquindio.servify.core.component.MapBox(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clickable { viewModel.onDismissSelectedService() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.Map,
-                                contentDescription = "Mapa",
-                                tint = ServifyPrimary.copy(alpha = 0.35f),
-                                modifier = Modifier.size(72.dp)
-                            )
-                            Text(
-                                text = "Mapa de Servicios Cercanos",
-                                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
-                                color = ServifyOnSurfaceVariant
-                            )
-                            Text(
-                                text = "${state.nearbyServices.size} servicios disponibles en la zona",
-                                style = ServifyTextStyle.Caption,
-                                color = ServifyOnSurfaceVariant
-                            )
+                            .fillMaxSize(),
+                        publications = state.nearbyServices,
+                        onMarkerClick = { pubId ->
+                            val pub = state.nearbyServices.find { it.id == pubId }
+                            if (pub != null) {
+                                viewModel.onMarkerSelected(pub)
+                            }
                         }
-                    }
-
-                    // Marcadores dinámicos e interactivos en el mapa
-                    state.nearbyServices.forEachIndexed { index, publication ->
-                        val isSelected = state.selectedService?.id == publication.id
-
-                        ServiceMapMarker(
-                            publication = publication,
-                            isSelected = isSelected,
-                            onClick = { viewModel.onMarkerSelected(publication) },
-                            modifier = Modifier.align(MapPinSlots[index % MapPinSlots.size])
-                        )
-                    }
-
-                    // Botón Mi Ubicación
-                    Box(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surface)
-                            .border(1.dp, ServifyOutlineVariant, CircleShape)
-                            .align(Alignment.TopEnd),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MyLocation,
-                            contentDescription = "Mi ubicación",
-                            tint = ServifyPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    )
 
                     // 3. TARJETA FLOTANTE DEL SERVICIO SELECCIONADO
                     if (state.selectedService != null) {
@@ -252,7 +202,7 @@ fun ExploreScreen(
                 // 4. CARRUSEL INFERIOR CUANDO NO HAY SERVICIO SELECCIONADO
                 if (state.selectedService == null) {
                     Text(
-                        text = "Proveedores destacados cerca (${state.nearbyServices.size})",
+                        text = stringResource(R.string.explore_featured_header, state.nearbyServices.size),
                         style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                         color = ServifyOnSurface,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
@@ -354,20 +304,31 @@ private fun NearbyServiceFloatingCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(ServifyPrimary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = publication.provider.name.take(2).uppercase(),
-                            style = ServifyTextStyle.Caption.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
+                    if (!publication.provider.avatarUrl.isNullOrBlank()) {
+                        ServifyAsyncImage(
+                            imageUrl = publication.provider.avatarUrl,
+                            contentDescription = publication.provider.name,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape),
+                            fallbackIcon = Icons.Default.Person
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(ServifyPrimary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = publication.provider.name.take(2).uppercase(),
+                                style = ServifyTextStyle.Caption.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(10.dp))
@@ -402,10 +363,9 @@ private fun NearbyServiceFloatingCard(
                             .clickable(onClick = onFavoriteToggle),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = if (publication.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorito",
-                            tint = if (publication.isFavorite) ServifyExtra.favorite else ServifyOnSurfaceVariant,
+                        AnimatedFavoriteIcon(
+                            isFavorite = publication.isFavorite,
+                            unselectedTint = ServifyOnSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                     }

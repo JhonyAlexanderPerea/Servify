@@ -28,6 +28,28 @@ interface PublicationRepository {
 
     fun update(id: String, transform: (Publication) -> Publication): Publication?
 
+    /**
+     * Da o retira "Me interesa" para [userId] y devuelve el nuevo estado.
+     * Las implementaciones remotas deben actualizar solo los campos de interés.
+     */
+    suspend fun toggleInterest(publicationId: String, userId: String): Boolean? {
+        val publication = getById(publicationId) ?: return null
+        val updatedIds = if (userId in publication.interestedUserIds) {
+            publication.interestedUserIds - userId
+        } else {
+            publication.interestedUserIds + userId
+        }
+        val nowInterested = userId in updatedIds
+        updatePublication(
+            publication.copy(
+                interestedUserIds = updatedIds,
+                interestedCount = updatedIds.size,
+                isFavorite = nowInterested
+            )
+        )
+        return nowInterested
+    }
+
     suspend fun deletePublication(id: String): Boolean = delete(id)
 
     fun delete(id: String): Boolean

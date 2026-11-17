@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.features.home.component.CategoryChipsRow
 import co.edu.uniquindio.servify.features.home.component.HomeFilterSheet
 import co.edu.uniquindio.servify.features.home.component.HomeSearchBar
@@ -88,6 +90,7 @@ fun HomeScreen(
                 userName = state.userName.ifBlank { HomeMockData.currentUserName },
                 userCity = HomeMockData.currentUserCity,
                 userInitials = state.userInitials.ifBlank { HomeMockData.currentUserInitials },
+                userAvatarUrl = state.userAvatarUrl,
                 hasUnreadNotifications = state.unreadCount > 0,
                 onLocationClick = onLocationClick,
                 onNotificationClick = onNotificationClick,
@@ -141,7 +144,7 @@ fun HomeScreen(
                         items(HomeQuickFilters) { label ->
                             ServifyChip(
                                 label = label,
-                                selected = state.selectedFilterChip == label,
+                                selected = state.selectedFilterChips.contains(label),
                                 onClick = { viewModel.onFilterChipSelected(label) }
                             )
                         }
@@ -158,7 +161,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Servicios cerca de ti (${state.filteredServices.size})",
+                            text = stringResource(R.string.home_feed_header, state.filteredServices.size),
                             style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                             color = colors.onBackground,
                             modifier = Modifier.weight(1f)
@@ -191,13 +194,13 @@ fun HomeScreen(
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
-                                    text = "No se encontraron servicios",
+                                    text = stringResource(R.string.home_feed_empty_title),
                                     style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                                     color = colors.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Intenta con otros términos o restablece los filtros.",
+                                    text = stringResource(R.string.home_feed_empty_desc),
                                     style = ServifyTextStyle.Caption,
                                     color = colors.onSurfaceVariant,
                                     textAlign = TextAlign.Center
@@ -225,7 +228,7 @@ fun HomeScreen(
     if (showFilters) {
         HomeFilterSheet(
             options = HomeQuickFilters,
-            selected = state.selectedFilterChip,
+            selected = state.selectedFilterChips,
             onSelect = viewModel::onFilterChipSelected,
             onClear = viewModel::onClearFilters,
             onDismiss = { showFilters = false }
@@ -247,10 +250,10 @@ private fun ViewModeToggle(isMapView: Boolean, onMapClick: () -> Unit) {
             .padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        ViewModeOption(selected = !isMapView, label = "Vista de lista", onClick = {}) {
+        ViewModeOption(selected = !isMapView, label = stringResource(R.string.home_view_list), onClick = {}) {
             Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(18.dp), tint = it)
         }
-        ViewModeOption(selected = isMapView, label = "Ver en el mapa", onClick = onMapClick) {
+        ViewModeOption(selected = isMapView, label = stringResource(R.string.home_view_map), onClick = onMapClick) {
             Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(18.dp), tint = it)
         }
     }

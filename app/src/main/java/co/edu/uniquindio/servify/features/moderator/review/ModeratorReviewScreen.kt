@@ -50,6 +50,7 @@ import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.model.RejectionReason
 import co.edu.uniquindio.servify.domain.rules.ModerationRules
 import co.edu.uniquindio.servify.features.publication.component.PublicationStatusBadge
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyIconButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
@@ -203,19 +204,31 @@ fun ModeratorReviewContent(
 
 @Composable
 private fun PublicationInfo(publication: Publication) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Image,
-            contentDescription = "Imagen de la publicación",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+    val firstImageUrl = publication.imageUrls.firstOrNull()
+    if (!firstImageUrl.isNullOrBlank()) {
+        ServifyAsyncImage(
+            imageUrl = firstImageUrl,
+            contentDescription = publication.title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .clip(RoundedCornerShape(16.dp))
         )
+    } else {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Image,
+                contentDescription = "Imagen de la publicación",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -54,15 +54,29 @@ class ForgotPasswordViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, error = null, resent = false) }
 
         viewModelScope.launch {
-            when (sendPasswordResetUseCase(state.email, role)) {
-                PasswordResetResult.Sent -> _uiState.update {
-                    it.copy(isLoading = false, sent = true, resent = isResend)
-                }
+            runCatching { sendPasswordResetUseCase(state.email, role) }
+                .fold(
+                    onSuccess = { result ->
+                        when (result) {
+                            PasswordResetResult.Sent -> _uiState.update {
+                                it.copy(isLoading = false, sent = true, resent = isResend)
+                            }
 
-                PasswordResetResult.InvalidEmail -> _uiState.update {
-                    it.copy(isLoading = false, error = "Correo electrónico inválido")
-                }
-            }
+                            PasswordResetResult.InvalidEmail -> _uiState.update {
+                                it.copy(isLoading = false, error = "Correo electrónico inválido")
+                            }
+                        }
+                    },
+                    onFailure = {
+                        // TODO(i18n): mover a strings.xml
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = "No se pudo enviar el correo. Revisa tu conexión e inténtalo de nuevo."
+                            )
+                        }
+                    }
+                )
         }
     }
 

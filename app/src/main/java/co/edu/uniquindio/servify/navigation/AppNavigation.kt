@@ -1,13 +1,21 @@
 package co.edu.uniquindio.servify.navigation
 
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import co.edu.uniquindio.servify.ui.motion.servifyEnter
-import co.edu.uniquindio.servify.ui.motion.servifyExit
-import co.edu.uniquindio.servify.ui.motion.servifyPopEnter
-import co.edu.uniquindio.servify.ui.motion.servifyPopExit
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import co.edu.uniquindio.servify.ui.components.feedback.OfflineBanner
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -18,58 +26,74 @@ import co.edu.uniquindio.servify.domain.model.UserRole
 import co.edu.uniquindio.servify.features.dashboard.MainScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordScreen
 import co.edu.uniquindio.servify.features.forgotpassword.ForgotPasswordViewModel
+import co.edu.uniquindio.servify.features.location.LocationPickerScreen
 import co.edu.uniquindio.servify.features.login.LoginScreen
 import co.edu.uniquindio.servify.features.moderator.panel.ModeratorPanelScreen
 import co.edu.uniquindio.servify.features.moderator.review.ModeratorReviewScreen
 import co.edu.uniquindio.servify.features.onboarding.OnboardingScreen
+import co.edu.uniquindio.servify.features.profile.edit.EditProfileScreen
 import co.edu.uniquindio.servify.features.publication.published.PublicationPublishedScreen
 import co.edu.uniquindio.servify.features.register.RegisterScreen
 import co.edu.uniquindio.servify.features.request.confirmed.RequestConfirmedScreen
+import co.edu.uniquindio.servify.features.request.create.RequestServiceViewModel
+import co.edu.uniquindio.servify.features.resetpassword.ResetPasswordScreen
 import co.edu.uniquindio.servify.features.request.create.RequestServiceScreen
 import co.edu.uniquindio.servify.features.service.detail.ServiceDetailScreen
-import co.edu.uniquindio.servify.features.session.SessionViewModel
 import co.edu.uniquindio.servify.features.splash.SplashScreen
 import co.edu.uniquindio.servify.features.trust.TrustSystemScreen
-import co.edu.uniquindio.servify.features.profile.edit.EditProfileScreen
+import co.edu.uniquindio.servify.ui.motion.servifyEnter
+import co.edu.uniquindio.servify.ui.motion.servifyExit
+import co.edu.uniquindio.servify.ui.motion.servifyPopEnter
+import co.edu.uniquindio.servify.ui.motion.servifyPopExit
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController()
+    resetPasswordCode: String? = null,
+    onResetPasswordHandled: () -> Unit = {},
+    sessionViewModel: SessionViewModel = hiltViewModel()
 ) {
-    val sessionViewModel: SessionViewModel = hiltViewModel()
+    val sessionState by sessionViewModel.sessionState.collectAsStateWithLifecycle()
+    var splashFinished by rememberSaveable { mutableStateOf(false) }
 
-    // Vuelve al dashboard y le pide abrir una sección (Mis solicitudes, Mis publicaciones...).
-    fun goToDashboard(dashboardRoute: String?) {
-        runCatching {
-            navController.getBackStackEntry(Screen.Home.route)
-                .savedStateHandle["dashboard_route"] = dashboardRoute
-        }
-        if (!navController.popBackStack(Screen.Home.route, inclusive = false)) {
-            navController.navigate(Screen.Home.route)
+    Surface(modifier = Modifier.fillMaxSize()) {
+        when {
+            // El enlace de recuperación tiene prioridad sobre el splash y la sesión
+            resetPasswordCode != null -> ResetPasswordScreen(
+                oobCode = resetPasswordCode,
+                onFinished = onResetPasswordHandled
+            )
+
+            !splashFinished -> {
+                // Se conserva el splash animado existente
+                SplashScreen(onFinished = { splashFinished = true })
+            }
+
+            else -> when (val state = sessionState) {
+                // Indicador mientras se determina el estado de la sesión
+                is SessionState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                // Sin sesión: navegación de autenticación
+                is SessionState.NotAuthenticated -> AuthNavigation()
+                // Con sesión: grafo autenticado, con inicio según el rol
+                is SessionState.Authenticated -> MainNavigation(role = state.session.role)
+            }
         }
     }
+}
+
+@Composable
+private fun AuthNavigation() {
+    val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route,
+        startDestination = Screen.Onboarding.route,
         enterTransition = { servifyEnter() },
         exitTransition = { servifyExit() },
         popEnterTransition = { servifyPopEnter() },
         popExitTransition = { servifyPopExit() }
     ) {
-        // -----------------------------------------
-        // SPLASH
-        // -----------------------------------------
-        composable(Screen.Splash.route) {
-            SplashScreen(
-                onFinished = {
-                    navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
         // -----------------------------------------
         // ONBOARDING
         // -----------------------------------------
@@ -88,15 +112,6 @@ fun AppNavigation(
         // -----------------------------------------
         composable(Screen.Login.route) {
             LoginScreen(
-                onLoginSuccess = { role ->
-                    val destination = when (role) {
-                        UserRole.MODERATOR -> Screen.ModeratorPanel.route
-                        UserRole.USER, UserRole.CLIENT, UserRole.PROVIDER -> Screen.Home.route
-                    }
-                    navController.navigate(destination) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                },
                 onRegisterClick = {
                     navController.navigate(Screen.Register.route)
                 },
@@ -111,12 +126,7 @@ fun AppNavigation(
         // -----------------------------------------
         composable(Screen.Register.route) {
             RegisterScreen(
-                onBack = { navController.popBackStack() },
-                onRegisterSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Register.route) { inclusive = true }
-                    }
-                }
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -141,7 +151,40 @@ fun AppNavigation(
                 }
             )
         }
+    }
+}
 
+@Composable
+private fun MainNavigation(
+    role: UserRole,
+    appStateViewModel: AppStateViewModel = hiltViewModel()
+) {
+    val isOnline by appStateViewModel.isOnline.collectAsStateWithLifecycle()
+    val navController = rememberNavController()
+
+    // Vuelve al dashboard y le pide abrir una sección (Mis solicitudes, Mis publicaciones...).
+    fun goToDashboard(dashboardRoute: String?) {
+        runCatching {
+            navController.getBackStackEntry(Screen.Home.route)
+                .savedStateHandle["dashboard_route"] = dashboardRoute
+        }
+        if (!navController.popBackStack(Screen.Home.route, inclusive = false)) {
+            navController.navigate(Screen.Home.route)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        OfflineBanner(isVisible = !isOnline)
+
+        Box(modifier = Modifier.weight(1f)) {
+            NavHost(
+                navController = navController,
+                startDestination = if (role == UserRole.MODERATOR) Screen.ModeratorPanel.route else Screen.Home.route,
+                enterTransition = { servifyEnter() },
+                exitTransition = { servifyExit() },
+                popEnterTransition = { servifyPopEnter() },
+                popExitTransition = { servifyPopExit() }
+            ) {
         // -----------------------------------------
         // DASHBOARD PRINCIPAL CON BOTTOM NAVIGATION BAR
         // -----------------------------------------
@@ -160,12 +203,6 @@ fun AppNavigation(
                 },
                 onNavigateToEditProfile = {
                     navController.navigate(Screen.EditProfile.route)
-                },
-                onLogoutClick = {
-                    sessionViewModel.logout()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
                 }
             )
         }
@@ -177,12 +214,6 @@ fun AppNavigation(
             ModeratorPanelScreen(
                 onReviewClick = { publicationId ->
                     navController.navigate(Screen.ModeratorReview.createRoute(publicationId))
-                },
-                onLogoutClick = {
-                    sessionViewModel.logout()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.ModeratorPanel.route) { inclusive = true }
-                    }
                 }
             )
         }
@@ -237,13 +268,60 @@ fun AppNavigation(
         // -----------------------------------------
         // SOLICITAR SERVICIO
         // -----------------------------------------
-        composable(Screen.RequestService.route) {
+        composable(Screen.RequestService.route) { entry ->
+            val viewModel: RequestServiceViewModel = hiltViewModel()
+            val pickedLat by entry.savedStateHandle.getStateFlow<Double?>("picked_lat", null).collectAsStateWithLifecycle()
+            val pickedLng by entry.savedStateHandle.getStateFlow<Double?>("picked_lng", null).collectAsStateWithLifecycle()
+            val pickedAddress by entry.savedStateHandle.getStateFlow<String?>("picked_address", null).collectAsStateWithLifecycle()
+
+            LaunchedEffect(pickedLat, pickedLng, pickedAddress) {
+                if (pickedLat != null && pickedLng != null && pickedAddress != null) {
+                    viewModel.onLocationPicked(pickedLat!!, pickedLng!!, pickedAddress!!)
+                    entry.savedStateHandle.remove<Double>("picked_lat")
+                    entry.savedStateHandle.remove<Double>("picked_lng")
+                    entry.savedStateHandle.remove<String>("picked_address")
+                }
+            }
+
             RequestServiceScreen(
                 onBackClick = { navController.popBackStack() },
                 onRequestConfirmed = { requestId ->
                     navController.navigate(Screen.RequestConfirmed.createRoute(requestId)) {
                         popUpTo(Screen.ServiceDetail.route) { inclusive = true }
                     }
+                },
+                onNavigateToLocationPicker = { initialLat, initialLng ->
+                    navController.navigate(Screen.LocationPicker.createRoute(initialLat, initialLng))
+                },
+                viewModel = viewModel
+            )
+        }
+
+        // -----------------------------------------
+        // SELECCIONAR UBICACIÓN EN EL MAPA
+        // -----------------------------------------
+        composable(
+            route = Screen.LocationPicker.route,
+            arguments = listOf(
+                navArgument("initialLat") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("initialLng") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
+            LocationPickerScreen(
+                onBackClick = { navController.popBackStack() },
+                onLocationConfirmed = { pickedLocation ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("picked_lat", pickedLocation.latitude)
+                    navController.previousBackStackEntry?.savedStateHandle?.set("picked_lng", pickedLocation.longitude)
+                    navController.previousBackStackEntry?.savedStateHandle?.set("picked_address", pickedLocation.address)
+                    navController.popBackStack()
                 }
             )
         }
@@ -260,16 +338,15 @@ fun AppNavigation(
             )
         }
 
+        // -----------------------------------------
+        // EDITAR PERFIL
+        // -----------------------------------------
         composable(Screen.EditProfile.route) {
             EditProfileScreen(
-                onBackClick = { navController.popBackStack() },
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.EditProfile.route) { inclusive = true }
-                    }
-                }
+                onBackClick = { navController.popBackStack() }
             )
         }
-
     }
+    }
+}
 }

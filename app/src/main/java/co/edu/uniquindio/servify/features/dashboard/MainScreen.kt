@@ -28,7 +28,11 @@ import co.edu.uniquindio.servify.features.notifications.NotificationsScreen
 import co.edu.uniquindio.servify.features.profile.ProfileActions
 import co.edu.uniquindio.servify.features.profile.ProfileScreen
 import co.edu.uniquindio.servify.features.profile.achievements.AchievementsScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import co.edu.uniquindio.servify.features.location.LocationPickerScreen
 import co.edu.uniquindio.servify.features.publication.create.CreatePublicationScreen
+import co.edu.uniquindio.servify.features.publication.create.PublicationFlowViewModel
 import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsActions
 import co.edu.uniquindio.servify.features.publication.mine.MyPublicationsScreen
 import co.edu.uniquindio.servify.features.statistics.PersonalStatisticsScreen
@@ -50,7 +54,6 @@ fun MainScreen(
     /** Ruta del dashboard que debe abrirse al volver (p. ej. Mis publicaciones tras "Publicación enviada"). */
     pendingRoute: String? = null,
     onPendingRouteConsumed: () -> Unit = {},
-    onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     dashboardNavController: NavHostController = rememberNavController(),
     dashboardViewModel: DashboardViewModel = hiltViewModel()
@@ -144,18 +147,34 @@ fun MainScreen(
             }
 
             // 3. CREAR PUBLICACIÓN DE SERVICIO (+ IA) → "Publicación enviada"
-            composable(Screen.CreatePublication.route) {
+            composable(Screen.CreatePublication.route) { entry ->
+                val viewModel: PublicationFlowViewModel = hiltViewModel()
+                val pickedLat by entry.savedStateHandle.getStateFlow<Double?>("picked_lat", null).collectAsStateWithLifecycle()
+                val pickedLng by entry.savedStateHandle.getStateFlow<Double?>("picked_lng", null).collectAsStateWithLifecycle()
+                val pickedAddress by entry.savedStateHandle.getStateFlow<String?>("picked_address", null).collectAsStateWithLifecycle()
+
+                LaunchedEffect(pickedLat, pickedLng, pickedAddress) {
+                    if (pickedLat != null && pickedLng != null && pickedAddress != null) {
+                        viewModel.onLocationPicked(pickedLat!!, pickedLng!!, pickedAddress!!)
+                        entry.savedStateHandle.remove<Double>("picked_lat")
+                        entry.savedStateHandle.remove<Double>("picked_lng")
+                        entry.savedStateHandle.remove<String>("picked_address")
+                    }
+                }
+
                 CreatePublicationScreen(
                     onBackClick = { dashboardNavController.popBackStack() },
                     onPublishSuccess = { publicationId ->
-                        // Se saca el formulario de la pila: al volver de "Publicación enviada" no debe
-                        // reaparecer en estado de éxito.
                         dashboardNavController.navigate(Screen.Home.route) {
                             popUpTo(dashboardNavController.graph.findStartDestination().id) { inclusive = false }
                             launchSingleTop = true
                         }
                         onNavigateToPublicationPublished(publicationId)
-                    }
+                    },
+                    onNavigateToLocationPicker = { initialLat, initialLng ->
+                        dashboardNavController.navigate(Screen.LocationPicker.createRoute(initialLat, initialLng))
+                    },
+                    viewModel = viewModel
                 )
             }
 
@@ -186,7 +205,6 @@ fun MainScreen(
                         onAchievementsClick = { dashboardNavController.navigate(Screen.Achievements.route) },
                         onStatisticsClick = { dashboardNavController.navigate(Screen.Statistics.route) },
                         onSettingsClick = onNavigateToEditProfile,
-                        onLogoutClick = onLogoutClick,
                         onNavigateToEditProfile = onNavigateToEditProfile,
                         onNavigateToStatistics = { dashboardNavController.navigate(Screen.Statistics.route) }
                     )
@@ -194,11 +212,56 @@ fun MainScreen(
             }
 
             // 5.1 EDITAR / REENVIAR PUBLICACIÓN (reutiliza el formulario de crear)
-            composable(Screen.EditPublication.route) {
+            composable(Screen.EditPublication.route) { entry ->
+                val viewModel: PublicationFlowViewModel = hiltViewModel()
+                val pickedLat by entry.savedStateHandle.getStateFlow<Double?>("picked_lat", null).collectAsStateWithLifecycle()
+                val pickedLng by entry.savedStateHandle.getStateFlow<Double?>("picked_lng", null).collectAsStateWithLifecycle()
+                val pickedAddress by entry.savedStateHandle.getStateFlow<String?>("picked_address", null).collectAsStateWithLifecycle()
+
+                LaunchedEffect(pickedLat, pickedLng, pickedAddress) {
+                    if (pickedLat != null && pickedLng != null && pickedAddress != null) {
+                        viewModel.onLocationPicked(pickedLat!!, pickedLng!!, pickedAddress!!)
+                        entry.savedStateHandle.remove<Double>("picked_lat")
+                        entry.savedStateHandle.remove<Double>("picked_lng")
+                        entry.savedStateHandle.remove<String>("picked_address")
+                    }
+                }
+
                 CreatePublicationScreen(
                     onBackClick = { dashboardNavController.popBackStack() },
                     onPublishSuccess = {
                         dashboardNavController.popBackStack(Screen.MyPublications.route, inclusive = false)
+                    },
+                    onNavigateToLocationPicker = { initialLat, initialLng ->
+                        dashboardNavController.navigate(Screen.LocationPicker.createRoute(initialLat, initialLng))
+                    },
+                    viewModel = viewModel
+                )
+            }
+
+            // 5.2 SELECCIONAR UBICACIÓN EN EL MAPA
+            composable(
+                route = Screen.LocationPicker.route,
+                arguments = listOf(
+                    navArgument("initialLat") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                    navArgument("initialLng") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) {
+                LocationPickerScreen(
+                    onBackClick = { dashboardNavController.popBackStack() },
+                    onLocationConfirmed = { pickedLocation ->
+                        dashboardNavController.previousBackStackEntry?.savedStateHandle?.set("picked_lat", pickedLocation.latitude)
+                        dashboardNavController.previousBackStackEntry?.savedStateHandle?.set("picked_lng", pickedLocation.longitude)
+                        dashboardNavController.previousBackStackEntry?.savedStateHandle?.set("picked_address", pickedLocation.address)
+                        dashboardNavController.popBackStack()
                     }
                 )
             }

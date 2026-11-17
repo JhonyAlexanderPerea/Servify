@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.profile
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.Place
@@ -33,6 +37,7 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,19 +47,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import co.edu.uniquindio.servify.domain.model.Badge
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
+import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.feedback.ServifyProgressBar
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -90,7 +100,7 @@ fun ProfileScreen(
             icon = Icons.AutoMirrored.Filled.Logout,
             onConfirm = {
                 showLogoutConfirmation = false
-                actions.onLogoutClick()
+                viewModel.logout()
             },
             onDismiss = { showLogoutConfirmation = false }
         )
@@ -109,6 +119,8 @@ fun ProfileContent(
     actions: ProfileActions,
     modifier: Modifier = Modifier
 ) {
+    var showAvatarPreview by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -123,7 +135,7 @@ fun ProfileContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Mi Perfil & Reputación",
+                    text = stringResource(R.string.profile_title),
                     style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -154,9 +166,43 @@ fun ProfileContent(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { ProfileHeaderCard(state) }
+            item { ProfileHeaderCard(state, onAvatarClick = { showAvatarPreview = true }) }
             item { BadgesSection(state) }
             item { ProfileMenu(actions) }
+        }
+    }
+
+    if (showAvatarPreview && !state.avatarUrl.isNullOrBlank()) {
+        Dialog(
+            onDismissRequest = { showAvatarPreview = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = state.avatarUrl,
+                    contentDescription = "Foto de perfil ampliada",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+                IconButton(
+                    onClick = { showAvatarPreview = false },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar foto de perfil",
+                        tint = Color.White
+                    )
+                }
+            }
         }
     }
 }
@@ -166,7 +212,7 @@ fun ProfileContent(
 // -----------------------------------------------------------------------------
 
 @Composable
-private fun ProfileHeaderCard(state: ProfileUiState) {
+private fun ProfileHeaderCard(state: ProfileUiState, onAvatarClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -179,16 +225,31 @@ private fun ProfileHeaderCard(state: ProfileUiState) {
                     modifier = Modifier
                         .size(60.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable(
+                            enabled = !state.avatarUrl.isNullOrBlank(),
+                            role = Role.Button,
+                            onClickLabel = "Ver foto de perfil",
+                            onClick = onAvatarClick
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = state.initials,
-                        style = ServifyTextStyle.Title.copy(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 22.sp
+                    if (!state.avatarUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = state.avatarUrl,
+                            contentDescription = "Foto de perfil",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
-                    )
+                    } else {
+                        Text(
+                            text = state.initials,
+                            style = ServifyTextStyle.Title.copy(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 22.sp
+                            )
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(14.dp))
@@ -296,7 +357,7 @@ private fun StatDivider() {
 private fun BadgesSection(state: ProfileUiState) {
     Column {
         Text(
-            text = "Insignias (${state.unlockedBadges.size}/${state.totalBadges})",
+            text = stringResource(R.string.profile_badges_header, state.unlockedBadges.size, state.totalBadges),
             style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -304,7 +365,7 @@ private fun BadgesSection(state: ProfileUiState) {
 
         if (state.unlockedBadges.isEmpty()) {
             Text(
-                text = "Aún no tienes insignias. Publica tu primer servicio para conseguir la primera.",
+                text = stringResource(R.string.profile_badges_empty),
                 style = ServifyTextStyle.Small,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

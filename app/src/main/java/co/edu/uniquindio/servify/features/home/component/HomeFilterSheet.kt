@@ -11,7 +11,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyOutlinedButton
 import co.edu.uniquindio.servify.ui.components.chips.ServifyChip
@@ -19,24 +21,23 @@ import co.edu.uniquindio.servify.ui.components.dialog.ServifyBottomSheet
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 /**
- * Hoja de filtros. Antes el botón de filtros de la barra de búsqueda y el enlace "Filtros"
- * no hacían nada; ahora comparten esta hoja (mockup: Cerca de mí, Ciudad, Precio, Mejor valorados).
+ * Hoja de filtros para la pantalla principal (soporta selección múltiple simultánea).
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun HomeFilterSheet(
     options: List<String>,
-    selected: String,
+    selected: Set<String>,
     onSelect: (String) -> Unit,
     onClear: () -> Unit,
     onDismiss: () -> Unit
 ) {
     ServifyBottomSheet(
         onDismissRequest = onDismiss,
-        title = "Filtrar servicios"
+        title = stringResource(R.string.home_filter_title)
     ) {
         Text(
-            text = "Ordenar y filtrar por",
+            text = stringResource(R.string.home_filter_subtitle),
             style = ServifyTextStyle.BodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -47,7 +48,11 @@ fun HomeFilterSheet(
             modifier = Modifier.fillMaxWidth()
         ) {
             options.forEach { option ->
-                ServifyChip(label = option, selected = option == selected, onClick = { onSelect(option) })
+                ServifyChip(
+                    label = option,
+                    selected = selected.contains(option),
+                    onClick = { onSelect(option) }
+                )
             }
         }
         Row(
@@ -57,12 +62,12 @@ fun HomeFilterSheet(
                 .padding(top = 20.dp)
         ) {
             ServifyOutlinedButton(
-                text = "Restablecer",
+                text = stringResource(R.string.common_reset),
                 onClick = onClear,
                 modifier = Modifier.weight(1f)
             )
             ServifyFilledButton(
-                text = "Listo",
+                text = stringResource(R.string.common_done),
                 onClick = onDismiss,
                 modifier = Modifier.weight(1f)
             )

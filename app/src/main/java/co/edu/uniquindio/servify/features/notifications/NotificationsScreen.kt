@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.notifications
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -84,35 +87,45 @@ fun NotificationsScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Notificaciones",
-                        style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
-                        color = colors.onBackground
-                    )
-                    if (state.unreadCount > 0) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(colors.primary)
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = "${state.unreadCount} nuevas",
-                                style = ServifyTextStyle.Caption.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp
-                                ),
-                                color = colors.onPrimary,
-                                maxLines = 1,
-                                softWrap = false
-                            )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.notifications_title),
+                            style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
+                            color = colors.onBackground
+                        )
+                        if (state.unreadCount > 0) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(colors.primary)
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "${state.unreadCount} nuevas",
+                                    style = ServifyTextStyle.Caption.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    ),
+                                    color = colors.onPrimary,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
                         }
+                    }
+
+                    if (state.unreadCount > 0) {
+                        MarkAllAsReadAction(onClick = viewModel::onMarkAllAsRead)
                     }
                 }
                 Text(
-                    text = "Novedades de tus publicaciones y solicitudes",
+                    text = stringResource(R.string.notifications_subtitle),
                     style = ServifyTextStyle.Small,
                     color = colors.onSurfaceVariant
                 )
@@ -156,13 +169,13 @@ fun NotificationsScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "No tienes notificaciones",
+                            text = stringResource(R.string.notifications_empty),
                             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                             color = colors.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Te avisaremos cuando haya novedades en tus publicaciones, solicitudes o insignias.",
+                            text = stringResource(R.string.notifications_empty_desc),
                             style = ServifyTextStyle.Caption,
                             color = colors.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -189,7 +202,7 @@ fun NotificationsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Hoy (${state.todayNotifications.size})",
+                                text = "${stringResource(R.string.notifications_section_today)} (${state.todayNotifications.size})",
                                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                                 color = colors.primary,
                                 modifier = Modifier.weight(1f)
@@ -212,7 +225,7 @@ fun NotificationsScreen(
                 if (state.earlierNotifications.isNotEmpty()) {
                     item(key = "header_earlier") {
                         Text(
-                            text = "Anteriores (${state.earlierNotifications.size})",
+                            text = "${stringResource(R.string.notifications_section_earlier)} (${state.earlierNotifications.size})",
                             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                             color = colors.onSurfaceVariant,
                             modifier = Modifier.padding(top = 10.dp, bottom = 2.dp)
@@ -249,7 +262,7 @@ private fun MarkAllAsReadAction(onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-            text = "Marcar todas como leídas",
+            text = stringResource(R.string.notifications_mark_all_read),
             style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,

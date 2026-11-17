@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Singleton
 class CommentRepositoryImpl @Inject constructor() : CommentRepository {
 
-    private val _comments = MutableStateFlow(SampleData.commentsList)
+    private val _comments = MutableStateFlow<List<Comment>>(emptyList())
 
     override fun observeCommentsForPublication(publicationId: String): Flow<List<Comment>> {
         return _comments.map { list ->

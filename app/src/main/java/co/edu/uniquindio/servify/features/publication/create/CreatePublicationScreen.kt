@@ -1,6 +1,15 @@
 package co.edu.uniquindio.servify.features.publication.create
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -27,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,8 +44,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +68,7 @@ import co.edu.uniquindio.servify.features.publication.component.StepIndicatorRow
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationMockData
 import co.edu.uniquindio.servify.features.publication.model.CreatePublicationUiState
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
+import co.edu.uniquindio.servify.ui.components.dialog.ImagePickerBottomSheet
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyPrimary
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -66,13 +78,15 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 fun CreatePublicationScreen(
     onBackClick: () -> Unit,
     onPublishSuccess: (publicationId: String) -> Unit,
+    onNavigateToLocationPicker: ((initialLat: Double?, initialLng: Double?) -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: PublicationFlowViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var showPhotoDialog by remember { mutableStateOf(false) }
 
     val categories = CreatePublicationMockData.categoriesList.map { it.name }
-    val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == state.categoryId }
+    val selectedCategoryObj = CreatePublicationMockData.categoriesList.find { it.name == state.categoryName }
     val subcategories = selectedCategoryObj?.subcategories ?: emptyList()
 
     Scaffold(
@@ -92,8 +106,12 @@ fun CreatePublicationScreen(
                 CreatePublicationBottomBar(
                     currentStep = state.currentStep,
                     canGoNext = when (state.currentStep) {
-                        1 -> state.title.length >= 5 && state.categoryId.isNotBlank()
-                        2 -> state.description.length >= 20 && state.price.isNotBlank()
+                        1 -> state.title.length >= 5
+                        2 -> state.description.length >= 20 &&
+                            state.minPrice.isNotBlank() &&
+                            state.maxPrice.isNotBlank() &&
+                            state.categoryId.isNotBlank() &&
+                            state.subcategoryId.isNotBlank()
                         else -> true
                     },
                     onPreviousClick = viewModel::onPreviousStep,
@@ -119,8 +137,7 @@ fun CreatePublicationScreen(
                 CircularProgressIndicator(color = ServifyPrimary)
             }
         } else if (state.isSuccess) {
-            // Al guardar se abre "Publicación enviada" (pendiente de verificación). Antes aquí se
-            // mostraba un texto que decía que ya estaba en el feed, lo cual ya no es cierto.
+            // Al guardar se abre "Publicación enviada" (pendiente de verificación)
             LaunchedEffect(state.savedPublicationId) {
                 state.savedPublicationId?.let(onPublishSuccess)
             }
@@ -162,13 +179,13 @@ fun CreatePublicationScreen(
                         when (step) {
                             1 -> {
                                 Text(
-                                    text = "Paso 1: Información Básica del Servicio",
+                                    text = stringResource(R.string.publication_step_1_title),
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Text(
-                                    text = "Escribe un título claro y selecciona la categoría que mejor describa tu servicio.",
+                                    text = stringResource(R.string.publication_step_1_desc),
                                     style = ServifyTextStyle.Small,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -182,66 +199,22 @@ fun CreatePublicationScreen(
                                     supportingText = state.titleError ?: "Ej: Plomero residencial con atención de emergencias"
                                 )
 
-                                CustomDropdownField(
-                                    label = "Categoría Principal",
-                                    selectedValue = state.categoryId,
-                                    options = categories,
-                                    onOptionSelected = viewModel::onCategoryChanged,
-                                    placeholder = "Selecciona una categoría"
-                                )
-
-                                if (subcategories.isNotEmpty()) {
-                                    CustomDropdownField(
-                                        label = "Subcategoría Especializada",
-                                        selectedValue = state.subcategoryId,
-                                        options = subcategories,
-                                        onOptionSelected = viewModel::onSubcategoryChanged,
-                                        placeholder = "Selecciona subcategoría"
-                                    )
-                                }
-
                                 PhotoPickerGrid(
                                     photoUrls = state.images,
                                     onAddPhotoClick = {
                                         if (state.images.size < 5) {
-                                            val nextMockPhoto = CreatePublicationMockData.samplePhotos[state.images.size % CreatePublicationMockData.samplePhotos.size]
-                                            viewModel.onAddImage(nextMockPhoto)
+                                            showPhotoDialog = true
                                         }
                                     },
-                                    onRemovePhotoClick = viewModel::onRemoveImage
+                                    onRemovePhotoClick = viewModel::onImageRemoved
                                 )
                             }
 
                             2 -> {
                                 Text(
-                                    text = "Paso 2: Detalles, Precios y Sugerencias de IA",
+                                    text = stringResource(R.string.publication_step_2_title),
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                                     color = MaterialTheme.colorScheme.onSurface
-                                )
-
-                                AiSuggestionCard(
-                                    isAnalyzing = state.isAiAnalyzing,
-                                    showSuggestion = state.showAiSuggestion,
-                                    suggestedTitle = state.aiSuggestedTitle,
-                                    suggestedDescription = state.aiSuggestedDescription,
-                                    suggestedCategory = state.aiSuggestedCategory,
-                                    suggestedPrice = state.aiSuggestedPrice,
-                                    onGenerateAiClick = {
-                                        viewModel.onApplyAiSuggestion(
-                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
-                                            category = "Hogar",
-                                            price = "80000"
-                                        )
-                                    },
-                                    onApplyAiClick = {
-                                        viewModel.onApplyAiSuggestion(
-                                            title = "Plomería Residencial Certificada y Atención de Emergencias 24/7",
-                                            desc = "Servicio profesional de plomería con 10 años de experiencia. Reparación de fugas, mantenimiento de tuberías y grifería con garantía de 6 meses por escrito.",
-                                            category = "Hogar",
-                                            price = "80000"
-                                        )
-                                    }
                                 )
 
                                 ServifyTextField(
@@ -253,39 +226,71 @@ fun CreatePublicationScreen(
                                     supportingText = state.descriptionError ?: "Describe tu experiencia, herramientas, horario y garantías."
                                 )
 
+                                AiSuggestionCard(
+                                    isAnalyzing = state.isAiAnalyzing,
+                                    suggestion = state.aiSuggestion,
+                                    onUseCategory = viewModel::onUseAiCategory,
+                                    onDismiss = viewModel::onDismissAiSuggestion
+                                )
+
+                                CustomDropdownField(
+                                    label = "Categoría Principal",
+                                    selectedValue = state.categoryName,
+                                    options = categories,
+                                    onOptionSelected = viewModel::onCategoryChanged,
+                                    placeholder = "Selecciona una categoría",
+                                    error = state.categoryError
+                                )
+
+                                if (subcategories.isNotEmpty()) {
+                                    CustomDropdownField(
+                                        label = "Subcategoría Especializada",
+                                        selectedValue = state.subcategoryId,
+                                        options = subcategories,
+                                        onOptionSelected = viewModel::onSubcategoryChanged,
+                                        placeholder = "Selecciona subcategoría",
+                                        error = state.subcategoryError
+                                    )
+                                }
+
                                 PriceRangeFields(
-                                    minPrice = state.price,
-                                    onMinPriceChange = viewModel::onPriceChanged,
-                                    maxPrice = state.price,
-                                    onMaxPriceChange = viewModel::onPriceChanged
+                                    minPrice = state.minPrice,
+                                    onMinPriceChange = viewModel::onMinPriceChanged,
+                                    maxPrice = state.maxPrice,
+                                    onMaxPriceChange = viewModel::onMaxPriceChanged,
+                                    minPriceError = state.minPriceError,
+                                    maxPriceError = state.maxPriceError
                                 )
 
                                 LocationPickerField(
                                     cityZone = state.locationName,
-                                    onCityZoneChange = viewModel::onLocationChanged
+                                    onCityZoneChange = viewModel::onLocationChanged,
+                                    onMapPickerClick = if (onNavigateToLocationPicker != null) {
+                                        { onNavigateToLocationPicker(state.latitude, state.longitude) }
+                                    } else null
                                 )
                             }
 
                             3 -> {
                                 Text(
-                                    text = "Paso 3: Vista Previa y Verificación Final",
+                                    text = stringResource(R.string.publication_step_3_title),
                                     style = ServifyTextStyle.TitleTight.copy(fontSize = 20.sp),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Text(
-                                    text = "Revisa cómo verán los clientes tu anuncio en el Marketplace antes de publicarlo.",
+                                    text = stringResource(R.string.publication_step_3_desc),
                                     style = ServifyTextStyle.Small,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
                                 val previewState = CreatePublicationUiState(
                                     title = state.title,
-                                    selectedCategory = state.categoryId,
+                                    selectedCategory = state.categoryName,
                                     selectedSubcategory = state.subcategoryId,
                                     description = state.description,
-                                    minPrice = state.price,
-                                    maxPrice = state.price,
+                                    minPrice = state.minPrice,
+                                    maxPrice = state.maxPrice,
                                     cityZone = state.locationName
                                 )
 
@@ -307,7 +312,7 @@ fun CreatePublicationScreen(
                                         )
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
-                                            text = "Tu anuncio cumplirá con las normas de convivencia de Servify y ganará puntos de reputación en tu perfil.",
+                                            text = stringResource(R.string.publication_terms_notice),
                                             style = ServifyTextStyle.Caption,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -320,6 +325,19 @@ fun CreatePublicationScreen(
             }
         }
     }
+
+    ImagePickerBottomSheet(
+        isVisible = showPhotoDialog,
+        onDismiss = { showPhotoDialog = false },
+        onImageSelected = { uri ->
+            viewModel.onUploadImage(uri.toString())
+        },
+        onImagesSelected = { uris ->
+            for (uri in uris) {
+                viewModel.onUploadImage(uri.toString())
+            }
+        }
+    )
 }
 
 // -----------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.domain.usecase.request
 
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.ServiceRequest
 import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
@@ -18,8 +19,8 @@ class CannotRequestOwnServiceException :
  * Caso de uso para la creación de solicitudes de servicio/citas.
  * Genera automáticamente una notificación [REQUEST_RECEIVED] para el proveedor.
  *
- * Un usuario no puede solicitar su propia publicación: el cliente y el proveedor serían la
- * misma persona y la solicitud quedaría sin un tercero que preste el servicio.
+ * El ID de la solicitud es determinista por publicación y horario (requestIdFor) para garantizar
+ * que un mismo cupo no pueda ser reservado de forma simultánea.
  */
 class CreateServiceRequestUseCase @Inject constructor(
     private val serviceRequestRepository: ServiceRequestRepository,
@@ -32,7 +33,8 @@ class CreateServiceRequestUseCase @Inject constructor(
         publicationId: String,
         scheduledDateTime: Long,
         note: String?,
-        totalAmount: Double
+        totalAmount: Double,
+        location: Location? = null
     ): ServiceRequest = withContext(Dispatchers.IO) {
         val currentUser = userRepository.observeCurrentUser().first()
         val publication = publicationRepository.getPublicationById(publicationId)
@@ -43,17 +45,31 @@ class CreateServiceRequestUseCase @Inject constructor(
         }
 
         val providerId = publication.authorId.ifBlank { publication.provider.id }
+        val requestId = requestIdFor(publicationId, scheduledDateTime)
+
         val newRequest = ServiceRequest(
-            id = "req_${System.currentTimeMillis()}",
+            id = requestId,
             publicationId = publicationId,
             clientId = currentUser.id,
             providerId = providerId,
             scheduledDateTime = scheduledDateTime,
             note = note,
+            location = location,
             totalAmount = totalAmount
         )
 
-        serviceRequestRepository.createRequest(newRequest)
+        try {
+            serviceRequestRepository.createRequest(newRequest)
+        } catch (e: CannotRequestOwnServiceException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            throw e
+        } catch (e: Exception) {
+            throw IllegalArgumentException(
+                e.message ?: "No se pudo crear la solicitud de servicio",
+                e
+            )
+        }
 
         // Generar notificación para el proveedor
         generateNotificationUseCase.generateRequestReceivedNotification(
@@ -65,4 +81,9 @@ class CreateServiceRequestUseCase @Inject constructor(
 
         newRequest
     }
+}
+
+private fun requestIdFor(publicationId: String, scheduledDateTime: Long): String {
+    val safePublicationId = publicationId.replace(Regex("[^A-Za-z0-9_-]"), "_")
+    return "req_${safePublicationId}_$scheduledDateTime"
 }

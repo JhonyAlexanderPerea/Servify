@@ -1,9 +1,11 @@
 package co.edu.uniquindio.servify.features.home.component
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -32,6 +34,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -56,6 +59,7 @@ import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.School
@@ -74,6 +78,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -82,10 +87,13 @@ import androidx.compose.ui.unit.sp
 import co.edu.uniquindio.servify.features.home.model.AppointmentBannerItem
 import co.edu.uniquindio.servify.features.home.model.CategoryItem
 import co.edu.uniquindio.servify.features.home.model.ServiceItem
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
+import co.edu.uniquindio.servify.ui.format.formatDistance
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
 import co.edu.uniquindio.servify.ui.theme.ServifyOnline
 import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 import co.edu.uniquindio.servify.ui.theme.contentColorOn
+import coil3.compose.AsyncImage
 import java.util.Locale
 
 // -----------------------------------------------------------------------------
@@ -97,6 +105,7 @@ fun HomeTopAppBar(
     userName: String,
     userCity: String,
     userInitials: String,
+    userAvatarUrl: String?,
     onLocationClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
@@ -112,7 +121,7 @@ fun HomeTopAppBar(
     ) {
         Column {
             Text(
-                text = "Hola, $userName 👋",
+                text = stringResource(R.string.home_greeting_format, userName),
                 style = ServifyTextStyle.TitleTight.copy(fontSize = 22.sp),
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -185,12 +194,21 @@ fun HomeTopAppBar(
                     .clickable(onClick = onProfileClick),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = userInitials,
-                    style = ServifyTextStyle.SmallMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                if (!userAvatarUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = userAvatarUrl,
+                        contentDescription = "Foto de perfil",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Text(
+                        text = userInitials,
+                        style = ServifyTextStyle.SmallMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -441,7 +459,7 @@ fun NextAppointmentBanner(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "PRÓXIMA CITA",
+                        text = stringResource(R.string.home_next_appointment),
                         style = ServifyTextStyle.Caption.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
@@ -605,22 +623,30 @@ fun ServiceFeedCard(
                     .height(160.dp)
                     .background(MaterialTheme.colorScheme.primaryContainer)
             ) {
-                Box(
-                    modifier = Modifier.matchParentSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.HomeRepairService,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Text(
-                            text = service.subcategory,
-                            style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                if (service.imageUrl.isNotBlank()) {
+                    ServifyAsyncImage(
+                        imageUrl = service.imageUrl,
+                        contentDescription = service.title,
+                        modifier = Modifier.matchParentSize()
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.matchParentSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.HomeRepairService,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Text(
+                                text = service.subcategory,
+                                style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 }
 
@@ -642,7 +668,7 @@ fun ServiceFeedCard(
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Text(
-                            text = "Verificado",
+                            text = stringResource(R.string.filter_verified),
                             style = ServifyTextStyle.Caption.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp
@@ -693,18 +719,29 @@ fun ServiceFeedCard(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(service.providerColor),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = service.providerInitials,
-                                style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
-                                color = contentColorOn(service.providerColor)
+                        if (!service.providerAvatarUrl.isNullOrBlank()) {
+                            ServifyAsyncImage(
+                                imageUrl = service.providerAvatarUrl,
+                                contentDescription = service.providerName,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape),
+                                fallbackIcon = Icons.Default.Person
                             )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(service.providerColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = service.providerInitials,
+                                    style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
+                                    color = contentColorOn(service.providerColor)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -737,21 +774,46 @@ fun ServiceFeedCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Place,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(
-                            text = service.zone,
-                            style = ServifyTextStyle.Caption,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Place,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = service.zone,
+                                style = ServifyTextStyle.Caption,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        val distanceStr = formatDistance(service.distanceKm)
+                        if (distanceStr != null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = distanceStr,
+                                    style = ServifyTextStyle.Caption.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
                     }
 
                     TrustIndexBadge(trustIndexPercent = service.trustIndex)
@@ -838,4 +900,38 @@ fun InterestButton(
             color = MaterialTheme.colorScheme.onSurface
         )
     }
+}
+
+/** Corazón de favorito con rebote al activarse y transición de color. */
+@Composable
+fun AnimatedFavoriteIcon(
+    isFavorite: Boolean,
+    modifier: Modifier = Modifier,
+    selectedTint: Color = ServifyExtra.favorite,
+    unselectedTint: Color = MaterialTheme.colorScheme.onSurfaceVariant
+) {
+    val scale = remember { Animatable(1f) }
+    var first by remember { mutableStateOf(true) }
+    LaunchedEffect(isFavorite) {
+        if (first) {
+            first = false
+        } else if (isFavorite) {
+            scale.animateTo(1.3f, tween(90))
+            scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+        }
+    }
+    val tint by animateColorAsState(
+        targetValue = if (isFavorite) selectedTint else unselectedTint,
+        animationSpec = tween(200),
+        label = "favoriteTint"
+    )
+    Icon(
+        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+        contentDescription = "Favorito",
+        tint = tint,
+        modifier = modifier.graphicsLayer {
+            scaleX = scale.value
+            scaleY = scale.value
+        }
+    )
 }

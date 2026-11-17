@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.domain.usecase.request
 
+import co.edu.uniquindio.servify.domain.model.Location
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.testutil.TestEnvironment
@@ -80,5 +81,34 @@ class CreateServiceRequestUseCaseTest {
 
         val stored = env.serviceRequests.observeRequests().first().first { it.id == request.id }
         assertEquals(request, stored)
+    }
+
+    @Test
+    fun `crea solicitud de servicio guardando ubicacion y nota limpia`() = runBlocking {
+        env.loginAs(TestEnvironment.JHONY_EMAIL)
+
+        val location = Location(
+            latitude = 4.53389,
+            longitude = -75.68111,
+            address = "Barrio Granada, Calle 12 # 14-20"
+        )
+
+        val request = env.createServiceRequest(
+            publicationId = "pub_juan_mudanzas",
+            scheduledDateTime = env.nowMillis,
+            note = "Por favor puntualidad",
+            totalAmount = 250_000.0,
+            location = location
+        )
+
+        assertEquals("pub_juan_mudanzas", request.publicationId)
+        assertEquals("Por favor puntualidad", request.note)
+        assertEquals(location, request.location)
+        assertEquals(4.53389, request.location?.latitude ?: 0.0, 0.0001)
+        assertEquals("Barrio Granada, Calle 12 # 14-20", request.location?.address)
+
+        val stored = env.serviceRequests.observeRequests().first().first { it.id == request.id }
+        assertEquals(location, stored.location)
+        assertEquals("Por favor puntualidad", stored.note)
     }
 }

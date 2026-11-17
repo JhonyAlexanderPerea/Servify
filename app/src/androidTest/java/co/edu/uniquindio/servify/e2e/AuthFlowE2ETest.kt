@@ -60,12 +60,13 @@ class AuthFlowE2ETest : BaseE2ETest() {
         openLoginFromOnboarding()
         clickText("¿Olvidaste tu contraseña?")
         waitForText("Recuperar contraseña")
+        waitForTextFields(1)
 
         typeInField(0, "jhony.ramirez@gmail.com")
         clickText("Enviar enlace")
 
         assertText("Correo enviado")
-        assertText("jhony.ramirez@gmail.com")
+        assertText("jhony.ramirez@gmail.com", substring = true)
     }
 
     @Test

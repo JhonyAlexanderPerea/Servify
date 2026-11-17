@@ -8,6 +8,10 @@ import co.edu.uniquindio.servify.domain.model.PublicationStatus
 import co.edu.uniquindio.servify.domain.model.User
 import co.edu.uniquindio.servify.domain.rules.PointEvent
 import co.edu.uniquindio.servify.domain.service.GamificationService
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -36,57 +40,102 @@ class GamificationServiceTest {
 
     @Test
     fun award_adds_points_and_persists_them() {
-        service.award("u1", PointEvent.PUBLICATION_CREATED)
-        assertEquals(20, repo.getById("u1")!!.points)
+        runBlocking {
+            service.award("u1", PointEvent.PUBLICATION_CREATED)
+            assertEquals(20, repo.getById("u1")!!.points)
+        }
     }
 
     @Test
     fun award_unknown_user_returns_null() {
-        assertNull(service.award("nope", PointEvent.COMMENT_POSTED))
+        runBlocking {
+            assertNull(service.award("nope", PointEvent.COMMENT_POSTED))
+        }
     }
 
     @Test
     fun crossing_a_threshold_reports_level_up() {
-        repo.update("u1") { it.copy(points = 190) }
-        val r = service.award("u1", PointEvent.PUBLICATION_CREATED)!!
-        assertEquals(Level.PRINCIPIANTE, r.levelBefore)
-        assertEquals(Level.PROFESIONAL, r.levelAfter)
-        assertTrue(r.leveledUp)
+        runBlocking {
+            repo.update("u1") { it.copy(points = 190) }
+            val r = service.award("u1", PointEvent.PUBLICATION_CREATED)!!
+            assertEquals(Level.PRINCIPIANTE, r.levelBefore)
+            assertEquals(Level.PROFESIONAL, r.levelAfter)
+            assertTrue(r.leveledUp)
+        }
     }
 
     @Test
     fun unlocking_a_badge_saves_it_and_notifies_exactly_once() {
-        pubs = listOf(publication())
-        val first = service.award("u1", PointEvent.PUBLICATION_CREATED)!!
-        assertEquals(setOf(Badge.PRIMERA_PUBLICACION), first.newBadges)
-        assertTrue(Badge.PRIMERA_PUBLICACION in repo.getById("u1")!!.badges)
-        assertEquals(listOf("u1" to Badge.PRIMERA_PUBLICACION), notified)
+        runBlocking {
+            pubs = listOf(publication())
+            val first = service.award("u1", PointEvent.PUBLICATION_CREATED)!!
+            assertEquals(setOf(Badge.PRIMERA_PUBLICACION), first.newBadges)
+            assertTrue(Badge.PRIMERA_PUBLICACION in repo.getById("u1")!!.badges)
+            assertEquals(listOf("u1" to Badge.PRIMERA_PUBLICACION), notified)
 
-        service.award("u1", PointEvent.COMMENT_POSTED) // no debe volver a notificar
-        assertEquals(1, notified.size)
+            service.award("u1", PointEvent.COMMENT_POSTED) // no debe volver a notificar
+            assertEquals(1, notified.size)
+        }
     }
 
     @Test
     fun hundred_points_badge_unlocks_from_points_alone() {
-        repo.update("u1") { it.copy(points = 95) }
-        val r = service.award("u1", PointEvent.COMMENT_POSTED)!!
-        assertTrue(Badge.CIEN_PUNTOS in r.newBadges)
+        runBlocking {
+            repo.update("u1") { it.copy(points = 95) }
+            val r = service.award("u1", PointEvent.COMMENT_POSTED)!!
+            assertTrue(Badge.CIEN_PUNTOS in r.newBadges)
+        }
     }
 
     @Test
     fun evaluateBadges_without_notify_is_silent() {
-        pubs = listOf(publication(verified = true))
-        service.evaluateBadges("u1", notify = false)
-        assertTrue(notified.isEmpty())
-        assertTrue(Badge.PRIMERA_VERIFICADA in repo.getById("u1")!!.badges)
+        runBlocking {
+            pubs = listOf(publication(verified = true))
+            service.evaluateBadges("u1", notify = false)
+            assertTrue(notified.isEmpty())
+            assertTrue(Badge.PRIMERA_VERIFICADA in repo.getById("u1")!!.badges)
+        }
+    }
+
+    @Test
+    fun award_persists_points_and_badges_and_observe_progress_reflects_them() {
+        runBlocking {
+            pubs = listOf(publication())
+
+            service.award("u1", PointEvent.PUBLICATION_CREATED)
+
+            val saved = repo.getById("u1")!!
+            assertEquals(20, saved.points)
+            assertTrue(Badge.PRIMERA_PUBLICACION in saved.badges)
+
+            val progress = service.observeProgress("u1").first()!!
+            assertEquals(20, progress.user.points)
+            assertTrue(Badge.PRIMERA_PUBLICACION in progress.user.badges)
+            assertTrue(progress.badges.first { it.badge == Badge.PRIMERA_PUBLICACION }.unlocked)
+        }
+    }
+
+    @Test
+    fun concurrent_awards_add_every_event_exactly_once() {
+        runBlocking {
+            coroutineScope {
+                repeat(20) {
+                    launch { service.award("u1", PointEvent.COMMENT_POSTED) }
+                }
+            }
+
+            assertEquals(20 * PointEvent.COMMENT_POSTED.points, repo.getById("u1")!!.points)
+        }
     }
 
     @Test
     fun progressOf_bundles_level_and_badges() {
-        repo.update("u1") { it.copy(points = 1_240) }
-        val p = service.progressOf("u1")!!
-        assertEquals(Level.EXPERTO, p.level.level)
-        assertEquals(7, p.totalCount)
-        assertTrue(p.unlockedCount >= 1) // CIEN_PUNTOS por puntos
+        runBlocking {
+            repo.update("u1") { it.copy(points = 1_240) }
+            val p = service.progressOf("u1")!!
+            assertEquals(Level.EXPERTO, p.level.level)
+            assertEquals(7, p.totalCount)
+            assertTrue(p.unlockedCount >= 1) // CIEN_PUNTOS por puntos
+        }
     }
 }

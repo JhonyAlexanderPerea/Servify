@@ -1,12 +1,8 @@
 package co.edu.uniquindio.servify.domain.rules
 
 import co.edu.uniquindio.servify.domain.model.Publication
-import co.edu.uniquindio.servify.domain.model.PublicationStatus
 
 enum class VoteDenied {
-    /** El autor no puede votar su propia publicación. */
-    OWN_PUBLICATION,
-
     /** Solo se vota sobre publicaciones verificadas (las visibles y activas en el feed). */
     NOT_ACTIVE
 }
@@ -23,10 +19,9 @@ sealed interface VoteOutcome {
 
 object VoteRules {
 
-    /** "Me interesa": un voto por usuario por publicación; tocar de nuevo lo retira. */
+    /** "Me interesa": un voto por usuario por publicación (incluso propias); tocar de nuevo lo retira. */
     fun toggle(publication: Publication, voterId: String): VoteOutcome {
-        if (voterId == publication.authorId) return VoteOutcome.Denied(VoteDenied.OWN_PUBLICATION)
-        if (publication.status != PublicationStatus.VERIFICADA) return VoteOutcome.Denied(VoteDenied.NOT_ACTIVE)
+        if (!FeedRules.isPublic(publication.status)) return VoteOutcome.Denied(VoteDenied.NOT_ACTIVE)
 
         val alreadyVoted = voterId in publication.interestedUserIds
         val updated = if (alreadyVoted) publication.interestedUserIds - voterId

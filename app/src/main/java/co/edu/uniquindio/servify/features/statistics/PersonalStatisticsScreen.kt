@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.statistics
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -204,13 +207,13 @@ fun ActivityChart(
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Gráfica de Rendimiento",
+                    text = stringResource(R.string.stats_performance_chart),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
             }
             Text(
-                text = "Actividad mensual",
+                text = stringResource(R.string.stats_monthly_activity),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -271,12 +274,12 @@ fun BreakdownSection() {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Desglose",
+                text = stringResource(R.string.stats_breakdown),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Categorías más solicitadas u ofrecidas",
+                text = stringResource(R.string.stats_breakdown_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

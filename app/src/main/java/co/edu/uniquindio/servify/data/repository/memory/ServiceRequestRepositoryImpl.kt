@@ -13,11 +13,16 @@ import javax.inject.Singleton
 @Singleton
 class ServiceRequestRepositoryImpl @Inject constructor() : ServiceRequestRepository {
 
-    private val _requests = MutableStateFlow(SampleData.requestsList)
+    private val _requests = MutableStateFlow<List<ServiceRequest>>(emptyList())
 
     override fun observeRequests(): Flow<List<ServiceRequest>> = _requests.asStateFlow()
 
+    override suspend fun getById(id: String): ServiceRequest? = _requests.value.find { it.id == id }
+
     override suspend fun createRequest(request: ServiceRequest) {
+        if (_requests.value.any { it.id == request.id }) {
+            throw IllegalArgumentException("Ya existe una solicitud para este horario")
+        }
         _requests.update { listOf(request) + it }
     }
 

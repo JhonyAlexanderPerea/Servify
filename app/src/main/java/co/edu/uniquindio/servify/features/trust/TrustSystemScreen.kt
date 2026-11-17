@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.trust
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -99,7 +102,7 @@ fun TrustSystemScreen(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = "Índice de Confianza y Reputación",
+                    text = stringResource(R.string.trust_screen_title),
                     style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
                     color = ServifyOnSurface
                 )
@@ -183,7 +186,7 @@ fun TrustSystemScreen(
                                 LevelBadge(level = details.level.name)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "• ${details.user.completedJobsCount} Trabajos completados",
+                                    text = stringResource(R.string.trust_jobs_completed_format, details.user.completedJobsCount),
                                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
                                     color = ServifyOnSurfaceVariant
                                 )
@@ -195,7 +198,7 @@ fun TrustSystemScreen(
                 // 2. ENCABEZADO Y LISTA DE FACTORES VERIFICADOS
                 item {
                     Text(
-                        text = "Factores de Confianza Verificados",
+                        text = stringResource(R.string.trust_factors_title),
                         style = ServifyTextStyle.TitleTight.copy(fontSize = 18.sp),
                         color = ServifyOnSurface
                     )
@@ -229,7 +232,7 @@ fun TrustSystemScreen(
 
                             Column {
                                 Text(
-                                    text = "¿Cómo se calcula el score?",
+                                    text = stringResource(R.string.trust_how_calculated),
                                     style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                                     color = ServifyOnSurface
                                 )

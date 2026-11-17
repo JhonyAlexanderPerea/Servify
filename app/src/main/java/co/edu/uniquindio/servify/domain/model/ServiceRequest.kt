@@ -11,6 +11,7 @@ data class ServiceRequest(
     val scheduledDateTime: Long,
     val status: RequestStatus = RequestStatus.PENDING,
     val note: String? = null,
+    val location: Location? = null,
     val totalAmount: Double,
     val createdAt: Long = System.currentTimeMillis()
 )

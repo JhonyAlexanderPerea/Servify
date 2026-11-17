@@ -7,6 +7,7 @@ import co.edu.uniquindio.servify.domain.rules.CredentialRules
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,13 +37,16 @@ class UserRepositoryImpl @Inject constructor() : UserRepository {
         initialUsers.find { it.id == SeedUsers.JHONY_ID || it.id == SampleData.currentUser.id } ?: SampleData.currentUser
     )
 
-    override val users: Flow<List<User>> = _users.asStateFlow()
+    val users: Flow<List<User>> = _users.asStateFlow()
 
     override fun observeCurrentUser(): Flow<User> = _currentUser.asStateFlow()
 
-    override fun getById(id: String): User? = _users.value.find { it.id == id }
+    override fun observeUserById(id: String): Flow<User?> =
+        users.map { list -> list.firstOrNull { it.id == id } }
 
-    override fun findByEmail(email: String): User? {
+    override suspend fun getById(id: String): User? = _users.value.find { it.id == id }
+
+    override suspend fun findByEmail(email: String): User? {
         val normalized = CredentialRules.normalizeEmail(email)
         val alias = when (normalized) {
             "juan.mejia@gmail.com" -> "juan.mejia@servify.demo"
@@ -59,13 +63,13 @@ class UserRepositoryImpl @Inject constructor() : UserRepository {
         }
     }
 
-    override fun add(user: User) {
+    override suspend fun add(user: User) {
         _users.update { current ->
             if (current.none { it.id == user.id }) current + user else current
         }
     }
 
-    override fun update(id: String, transform: (User) -> User): User? {
+    override suspend fun update(id: String, transform: (User) -> User): User? {
         var updatedUser: User? = null
         _users.update { list ->
             list.map { u ->

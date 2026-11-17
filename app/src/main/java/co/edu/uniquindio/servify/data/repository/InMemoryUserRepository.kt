@@ -13,23 +13,26 @@ class InMemoryUserRepository(seed: List<User> = emptyList()) : UserRepository {
     // LinkedHashMap preserva el orden de inserción; el mapa es inmutable por snapshot.
     private val state = MutableStateFlow(seed.associateBy { it.id })
 
-    override val users: Flow<List<User>> = state.map { it.values.toList() }
+    val users: Flow<List<User>> = state.map { it.values.toList() }
 
     override fun observeCurrentUser(): Flow<User> =
         users.map { it.firstOrNull() ?: User(id = "u_jhony", name = "Jhony", email = "") }
 
-    override fun getById(id: String): User? = state.value[id]
+    override fun observeUserById(id: String): Flow<User?> =
+        users.map { list -> list.firstOrNull { it.id == id } }
 
-    override fun findByEmail(email: String): User? {
+    override suspend fun getById(id: String): User? = state.value[id]
+
+    override suspend fun findByEmail(email: String): User? {
         val normalized = CredentialRules.normalizeEmail(email)
         return state.value.values.firstOrNull { CredentialRules.normalizeEmail(it.email) == normalized }
     }
 
-    override fun add(user: User) {
+    override suspend fun add(user: User) {
         state.update { it + (user.id to user) }
     }
 
-    override fun update(id: String, transform: (User) -> User): User? {
+    override suspend fun update(id: String, transform: (User) -> User): User? {
         var result: User? = null
         state.update { current ->
             val existing = current[id] ?: return@update current

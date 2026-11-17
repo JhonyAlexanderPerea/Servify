@@ -1,8 +1,17 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.gms.google.services)
+}
+
+// Claves y datos de firma locales (local.properties no se sube al repositorio).
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -18,15 +27,42 @@ android {
         minSdk = 28
         targetSdk = 37
 
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner =
             "co.edu.uniquindio.servify.HiltTestRunner"
+
+        // Tokens y claves: se definen en local.properties y se exponen como recursos string.
+        resValue("string", "mapbox_access_token", localProperties.getProperty("MAPBOX_ACCESS_TOKEN", ""))
+        resValue("string", "openrouter_api_key", localProperties.getProperty("OPENROUTER_API_KEY", ""))
+        resValue("string", "openrouter_model", localProperties.getProperty("OPENROUTER_MODEL", ""))
+        // Dominio de los enlaces de Firebase Auth: <project-id>.firebaseapp.com (definirlo en local.properties)
+        resValue("string", "firebase_auth_host", localProperties.getProperty("FIREBASE_AUTH_HOST", "localhost.invalid"))
+        // Cloudinary (almacenamiento de imágenes): se definen en local.properties; NUNCA el API Secret
+        resValue("string", "cloudinary_cloud_name", localProperties.getProperty("CLOUDINARY_CLOUD_NAME", ""))
+        resValue("string", "cloudinary_upload_preset", localProperties.getProperty("CLOUDINARY_UPLOAD_PRESET", ""))
+
+        // Mapbox solo incluye librerías nativas para estas arquitecturas.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            // Con ?.let el build debug no falla si no están definidos en local.properties.
+            storeFile = localProperties.getProperty("RELEASE_STORE_FILE")?.let { file(it) }
+            storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")
+            keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")
+            keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
+            // TODO(fase-3): activar R8 (enable = true) cuando los DTOs tengan @Keep.
             optimization {
                 enable = false
             }
@@ -40,6 +76,7 @@ android {
 
     buildFeatures {
         compose = true
+        resValues = true
     }
 }
 
@@ -70,6 +107,9 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.data.store)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // -----------------------------------------
     // Dependency Injection (Hilt & Inject)
@@ -133,4 +173,42 @@ dependencies {
     )
 
     implementation("androidx.compose.material:material-icons-extended")
+
+    // -----------------------------------------
+    // Imágenes (Coil)
+    // -----------------------------------------
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
+    // -----------------------------------------
+    // Firebase (Authentication + Firestore)
+    // -----------------------------------------
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.kotlinx.coroutines.play.services)
+
+    // -----------------------------------------
+    // Red (Retrofit + Gson)
+    // -----------------------------------------
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
+    // -----------------------------------------
+    // Mapas (Mapbox)
+    // -----------------------------------------
+
+    implementation(libs.mapbox.android)
+    implementation(libs.mapbox.compose)
+
+    // -----------------------------------------
+    // Credential Manager (Google Sign-In)
+    // -----------------------------------------
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
 }

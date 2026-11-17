@@ -1,17 +1,21 @@
 package co.edu.uniquindio.servify.domain.usecase.auth
 
 import co.edu.uniquindio.servify.domain.repository.AuthRepository
+import co.edu.uniquindio.servify.domain.repository.SessionRepository
 import javax.inject.Inject
 
 /**
  * Cierra la sesión y limpia el estado.
  *
- * Es `suspend` aunque el repositorio en memoria no lo sea: cuando la autenticación
- * pase a Firebase, el sign-out es una llamada remota y el caso de uso no debe cambiar.
+ * Cierra la autenticación en el origen de datos de usuarios y borra la sesión guardada.
  */
-class LogoutUseCase @Inject constructor(private val authRepository: AuthRepository) {
+class LogoutUseCase @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val sessionRepository: SessionRepository
+) {
 
     suspend operator fun invoke() {
         authRepository.logout()
+        sessionRepository.clearSession()
     }
 }

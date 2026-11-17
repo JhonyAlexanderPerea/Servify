@@ -2,10 +2,12 @@ package co.edu.uniquindio.servify.domain.usecase.auth
 
 import co.edu.uniquindio.servify.data.repository.InMemoryAuthRepository
 import co.edu.uniquindio.servify.data.repository.InMemoryUserRepository
+import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
 import co.edu.uniquindio.servify.data.seed.SeedUsers
 import co.edu.uniquindio.servify.domain.model.AuthError
 import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.UserRole
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -26,7 +28,7 @@ class LoginUserUseCaseTest {
     @Test
     fun opens_the_session_for_valid_credentials() = runBlocking {
         val repo = newRepo()
-        val result = LoginUserUseCase(repo)("jhony.ramirez@gmail.com", "12345678")
+        val result = LoginUserUseCase(repo, InMemorySessionRepository())("jhony.ramirez@gmail.com", "12345678")
 
         assertTrue(result is AuthResult.Success)
         assertEquals(SeedUsers.JHONY_ID, repo.currentUserSnapshot?.id)
@@ -34,7 +36,10 @@ class LoginUserUseCaseTest {
 
     @Test
     fun returns_the_role_so_the_screen_can_route() = runBlocking {
-        val user = LoginUserUseCase(newRepo())(SeedUsers.MODERATOR_EMAIL, "Moderador2026") as AuthResult.Success
+        val user = LoginUserUseCase(newRepo(), InMemorySessionRepository())(
+            SeedUsers.MODERATOR_EMAIL,
+            "Moderador2026"
+        ) as AuthResult.Success
 
         assertEquals(UserRole.MODERATOR, user.user.role)
     }
@@ -42,7 +47,7 @@ class LoginUserUseCaseTest {
     @Test
     fun does_not_open_a_session_on_wrong_credentials() = runBlocking {
         val repo = newRepo()
-        val result = LoginUserUseCase(repo)("jhony.ramirez@gmail.com", "malaClave")
+        val result = LoginUserUseCase(repo, InMemorySessionRepository())("jhony.ramirez@gmail.com", "malaClave")
 
         assertEquals(AuthError.INVALID_CREDENTIALS, failure(result))
         assertNull(repo.currentUserSnapshot)
@@ -50,8 +55,30 @@ class LoginUserUseCaseTest {
 
     @Test
     fun normalizes_the_email_before_validating() = runBlocking {
-        val result = LoginUserUseCase(newRepo())("  Jhony.Ramirez@GMAIL.com ", "12345678")
+        val result = LoginUserUseCase(newRepo(), InMemorySessionRepository())(
+            "  Jhony.Ramirez@GMAIL.com ",
+            "12345678"
+        )
 
         assertTrue(result is AuthResult.Success)
+    }
+
+    @Test
+    fun saves_the_session_with_the_user_id_and_role_on_success() = runBlocking {
+        val session = InMemorySessionRepository()
+        val result = LoginUserUseCase(newRepo(), session)("jhony.ramirez@gmail.com", "12345678") as AuthResult.Success
+
+        val saved = session.session.first()
+
+        assertEquals(result.user.id, saved?.userId)
+        assertEquals(result.user.role, saved?.role)
+    }
+
+    @Test
+    fun a_failed_login_does_not_save_a_session() = runBlocking {
+        val session = InMemorySessionRepository()
+        LoginUserUseCase(newRepo(), session)("jhony.ramirez@gmail.com", "malaClave")
+
+        assertNull(session.session.first())
     }
 }

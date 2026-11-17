@@ -1,6 +1,9 @@
 package co.edu.uniquindio.servify.features.profile.edit
 
 import android.content.res.Configuration
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,16 +15,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +39,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +55,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import co.edu.uniquindio.servify.features.profile.edit.component.DeleteAccountDialog
 import co.edu.uniquindio.servify.ui.components.dialog.ConfirmDialog
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyTheme
@@ -57,21 +65,18 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTheme
 @Composable
 fun EditProfileScreen(
     onBackClick: () -> Unit,
-    onNavigateToLogin: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSaveConfirmationDialog by remember { mutableStateOf(false) }
+    var showRemovePhotoDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.navigationEvent.collect { event ->
-            when (event) {
-                is NavigationEvent.NavigateToLogin -> {
-                    onNavigateToLogin()
-                }
-            }
-        }
+    // GetContent: el usuario elige de la galería y la app solo recibe permiso de lectura temporal
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.onPhotoSelected(it.toString()) }
     }
 
     LaunchedEffect(uiState.userMessage) {
@@ -97,14 +102,28 @@ fun EditProfileScreen(
     }
 
     if (uiState.showDeleteConfirmationDialog) {
+        DeleteAccountDialog(
+            password = uiState.deletePassword,
+            passwordError = uiState.deletePasswordError,
+            isDeleting = uiState.isDeletingAccount,
+            onPasswordChange = viewModel::onDeletePasswordChanged,
+            onConfirm = viewModel::onConfirmDeleteAccount,
+            onDismiss = viewModel::onDismissDeleteConfirmation
+        )
+    }
+
+    if (showRemovePhotoDialog) {
         ConfirmDialog(
-            title = "Eliminar cuenta",
-            message = "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+            title = "Eliminar foto de perfil",
+            message = "Tu foto actual se quitará y se mostrarán tus iniciales. ¿Deseas continuar?",
             confirmText = "Eliminar",
             dismissText = "Cancelar",
             isDestructive = true,
-            onConfirm = { viewModel.onConfirmDeleteAccount() },
-            onDismiss = { viewModel.onDismissDeleteConfirmation() }
+            onConfirm = {
+                showRemovePhotoDialog = false
+                viewModel.onRemovePhoto()
+            },
+            onDismiss = { showRemovePhotoDialog = false }
         )
     }
 
@@ -142,8 +161,26 @@ fun EditProfileScreen(
             // Avatar editable
             AvatarPicker(
                 avatarUrl = uiState.avatarUrl,
-                onPickImage = { /* Image picker logic */ }
+                isUploading = uiState.isUploadingPhoto || uiState.isRemovingPhoto,
+                onPickImage = { pickImageLauncher.launch("image/*") }
             )
+
+            if (!uiState.avatarUrl.isNullOrBlank()) {
+                TextButton(
+                    onClick = { showRemovePhotoDialog = true },
+                    enabled = !uiState.isUploadingPhoto && !uiState.isRemovingPhoto
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (uiState.isRemovingPhoto) "Eliminando..." else "Eliminar foto de perfil"
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -211,6 +248,7 @@ fun EditProfileScreen(
 @Composable
 fun AvatarPicker(
     avatarUrl: String?,
+    isUploading: Boolean,
     onPickImage: () -> Unit
 ) {
     Box(
@@ -222,22 +260,37 @@ fun AvatarPicker(
                 .size(120.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .clickable { onPickImage() },
+                .clickable(enabled = !isUploading) { onPickImage() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Avatar",
-                modifier = Modifier.size(60.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            if (!avatarUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "Avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Avatar",
+                    modifier = Modifier.size(60.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            if (isUploading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(36.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
-                .clickable { onPickImage() },
+                .clickable(enabled = !isUploading) { onPickImage() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -256,7 +309,6 @@ fun EditProfileScreenPreview() {
     ServifyTheme(darkTheme = false) {
         EditProfileScreen(
             onBackClick = {},
-            onNavigateToLogin = {}
         )
     }
 }
@@ -267,7 +319,6 @@ fun EditProfileScreenPreviewDark() {
     ServifyTheme(darkTheme = true) {
         EditProfileScreen(
             onBackClick = {},
-            onNavigateToLogin = {}
         )
     }
 }

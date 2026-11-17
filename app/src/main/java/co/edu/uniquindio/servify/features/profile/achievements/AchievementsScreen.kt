@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.profile.achievements
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -91,7 +94,7 @@ fun AchievementsContent(
                     onClick = onBackClick
                 )
                 Text(
-                    text = "Mis logros",
+                    text = stringResource(R.string.achievements_title),
                     style = ServifyTextStyle.Title,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 4.dp)
@@ -126,14 +129,14 @@ fun AchievementsContent(
 
             if (state.unlocked.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    SectionTitle("Desbloqueadas (${state.unlocked.size})")
+                    SectionTitle(stringResource(R.string.achievements_section_unlocked, state.unlocked.size))
                 }
                 items(state.unlocked, key = { it.badge.name }) { BadgeCard(it) }
             }
 
             if (state.locked.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    SectionTitle("Bloqueadas (${state.locked.size})")
+                    SectionTitle(stringResource(R.string.achievements_section_locked, state.locked.size))
                 }
                 items(state.locked, key = { it.badge.name }) { BadgeCard(it) }
             }
@@ -150,7 +153,7 @@ private fun SummaryCard(state: AchievementsUiState) {
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "${state.unlocked.size} de ${state.totalCount} insignias",
+                text = stringResource(R.string.achievements_unlocked_format, state.unlocked.size, state.totalCount),
                 style = ServifyTextStyle.Title,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -174,7 +177,7 @@ private fun NextAchievementCard(item: BadgeProgress) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Tu siguiente logro",
+                text = stringResource(R.string.achievements_next_title),
                 style = ServifyTextStyle.Caption,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

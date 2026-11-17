@@ -31,7 +31,9 @@ data class RequestItem(
     val status: RequestStatus,
     val dateLabel: String,
     val amountLabel: String,
-    val note: String?
+    val note: String?,
+    val locationAddress: String? = null,
+    val isReceivedAsProvider: Boolean = false
 )
 
 data class MyRequestsUiState(
@@ -64,6 +66,24 @@ class MyRequestsViewModel @Inject constructor(
             updateRequestStatusUseCase(requestId, RequestStatus.CANCELLED)
         }
     }
+
+    fun acceptRequest(requestId: String) {
+        viewModelScope.launch {
+            updateRequestStatusUseCase(requestId, RequestStatus.ACCEPTED)
+        }
+    }
+
+    fun rejectRequest(requestId: String) {
+        viewModelScope.launch {
+            updateRequestStatusUseCase(requestId, RequestStatus.REJECTED)
+        }
+    }
+
+    fun completeRequest(requestId: String) {
+        viewModelScope.launch {
+            updateRequestStatusUseCase(requestId, RequestStatus.COMPLETED)
+        }
+    }
 }
 
 private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
@@ -78,5 +98,7 @@ private fun MyRequest.toItem() = RequestItem(
         Instant.ofEpochMilli(request.scheduledDateTime).atZone(ZoneId.systemDefault())
     ),
     amountLabel = "$" + "%,d".format(request.totalAmount.toInt()).replace(',', '.'),
-    note = request.note?.takeIf { it.isNotBlank() }
+    note = request.note?.takeIf { it.isNotBlank() },
+    locationAddress = request.location?.address?.takeIf { it.isNotBlank() },
+    isReceivedAsProvider = isReceivedAsProvider
 )

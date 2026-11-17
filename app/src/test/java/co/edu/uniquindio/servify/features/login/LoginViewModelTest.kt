@@ -1,8 +1,16 @@
 package co.edu.uniquindio.servify.features.login
 
+import co.edu.uniquindio.servify.data.repository.memory.InMemorySessionRepository
+import co.edu.uniquindio.servify.domain.model.AuthError
+import co.edu.uniquindio.servify.domain.model.AuthResult
 import co.edu.uniquindio.servify.domain.model.UserRole
+import co.edu.uniquindio.servify.domain.usecase.auth.LoginUserUseCase
 import co.edu.uniquindio.servify.testutil.MainDispatcherRule
+import co.edu.uniquindio.servify.testutil.ScriptedAuthRepository
 import co.edu.uniquindio.servify.testutil.TestEnvironment
+import co.edu.uniquindio.servify.testutil.ThrowingAuthRepository
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -59,22 +67,25 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun user_login_reports_the_user_role() {
+    fun user_login_saves_the_session_with_the_user_role() {
         viewModel.onEmailChange(TestEnvironment.JHONY_EMAIL)
         viewModel.onPasswordChange(TestEnvironment.JHONY_PASSWORD)
         viewModel.login()
 
-        assertEquals(UserRole.USER, viewModel.uiState.value.loggedInRole)
+        val saved = runBlocking { env.session.session.first() }
+        assertEquals(env.auth.currentUserSnapshot?.id, saved?.userId)
+        assertEquals(UserRole.USER, saved?.role)
         assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
-    fun moderator_login_reports_the_moderator_role_so_the_screen_routes_to_the_panel() {
+    fun moderator_login_saves_the_moderator_session() {
         viewModel.onEmailChange(TestEnvironment.MODERATOR_EMAIL)
         viewModel.onPasswordChange("Moderador2026")
         viewModel.login()
 
-        assertEquals(UserRole.MODERATOR, viewModel.uiState.value.loggedInRole)
+        val saved = runBlocking { env.session.session.first() }
+        assertEquals(UserRole.MODERATOR, saved?.role)
     }
 
     @Test
@@ -84,8 +95,31 @@ class LoginViewModelTest {
         viewModel.login()
 
         assertEquals("Correo o contraseña incorrectos", viewModel.uiState.value.loginError)
-        assertNull(viewModel.uiState.value.loggedInRole)
+        assertNull(runBlocking { env.session.session.first() })
         assertNull(env.auth.currentUserSnapshot)
+    }
+
+    @Test
+    fun an_unverified_email_shows_the_message_and_does_not_open_a_session() {
+        val session = InMemorySessionRepository()
+        val vm = LoginViewModel(
+            LoginUserUseCase(
+                ScriptedAuthRepository(loginResult = AuthResult.Failure(AuthError.EMAIL_NOT_VERIFIED)),
+                session
+            )
+        )
+        vm.onEmailChange(TestEnvironment.JHONY_EMAIL)
+        vm.onPasswordChange(TestEnvironment.JHONY_PASSWORD)
+
+        vm.login()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        assertEquals(
+            "Verifica tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada y la carpeta de spam.",
+            state.loginError
+        )
+        assertNull(runBlocking { session.session.first() })
     }
 
     @Test
@@ -105,6 +139,24 @@ class LoginViewModelTest {
 
         assertNull(env.auth.currentUserSnapshot)
         assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun a_network_failure_shows_a_generic_message_and_does_not_open_a_session() {
+        val session = InMemorySessionRepository()
+        val vm = LoginViewModel(LoginUserUseCase(ThrowingAuthRepository(), session))
+        vm.onEmailChange(TestEnvironment.JHONY_EMAIL)
+        vm.onPasswordChange(TestEnvironment.JHONY_PASSWORD)
+
+        vm.login()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        assertEquals(
+            "No se pudo iniciar sesión. Revisa tu conexión e inténtalo de nuevo.",
+            state.loginError
+        )
+        assertNull(runBlocking { session.session.first() })
     }
 
     @Test

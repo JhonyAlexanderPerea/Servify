@@ -60,4 +60,14 @@ sealed class Screen(val route: String) {
     }
 
     data object EditProfile : Screen("edit_profile")
+
+    data object LocationPicker : Screen("location_picker?initialLat={initialLat}&initialLng={initialLng}") {
+        fun createRoute(initialLat: Double? = null, initialLng: Double? = null): String {
+            return if (initialLat != null && initialLng != null) {
+                "location_picker?initialLat=$initialLat&initialLng=$initialLng"
+            } else {
+                "location_picker"
+            }
+        }
+    }
 }

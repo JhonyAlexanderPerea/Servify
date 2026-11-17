@@ -30,9 +30,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,8 +47,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import co.edu.uniquindio.servify.domain.model.UserRole
+import co.edu.uniquindio.servify.R
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.button.ServifyTextButton
 import co.edu.uniquindio.servify.ui.components.display.ServifyLogo
@@ -55,17 +60,43 @@ import co.edu.uniquindio.servify.ui.theme.ServifyTextStyle
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (UserRole) -> Unit,
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
 
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val webClientId = stringResource(R.string.default_web_client_id)
 
-    // Al autenticarse, se navega según el rol (usuario -> Home, moderador -> panel de moderación).
-    LaunchedEffect(state.loggedInRole) {
-        state.loggedInRole?.let(onLoginSuccess)
+    val onGoogleClick: () -> Unit = {
+        coroutineScope.launch {
+            try {
+                val credentialManager = androidx.credentials.CredentialManager.create(context)
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(webClientId)
+                    .build()
+
+                val request = androidx.credentials.GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val result = credentialManager.getCredential(context, request)
+                val credential = result.credential
+                if (credential is androidx.credentials.CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    viewModel.loginWithGoogle(googleIdTokenCredential.idToken)
+                } else {
+                    viewModel.onGoogleClickFallback("Credencial de Google no válida")
+                }
+            } catch (e: Exception) {
+                if (e !is androidx.credentials.exceptions.GetCredentialCancellationException) {
+                    viewModel.onGoogleClickFallback(e.localizedMessage ?: "Error al iniciar sesión con Google")
+                }
+            }
+        }
     }
 
     Column(
@@ -99,13 +130,13 @@ fun LoginScreen(
             )
 
             Text(
-                text = "Bienvenido de nuevo",
+                text = stringResource(R.string.login_title),
                 style = ServifyTextStyle.Title,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = "Ingresa a tu cuenta de Servify",
+                text = stringResource(R.string.login_subtitle),
                 style = ServifyTextStyle.Small,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -121,7 +152,7 @@ fun LoginScreen(
             ServifyTextField(
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
-                label = "Correo electrónico",
+                label = stringResource(R.string.login_email_label),
                 leadingIcon = Icons.Outlined.Email,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email
@@ -134,14 +165,14 @@ fun LoginScreen(
             ServifyTextField(
                 value = state.password,
                 onValueChange = viewModel::onPasswordChange,
-                label = "Contraseña",
+                label = stringResource(R.string.login_password_label),
                 leadingIcon = Icons.Outlined.Lock,
                 trailingIcon =
                     if (state.showPassword)
                         Icons.Outlined.VisibilityOff
                     else
                         Icons.Outlined.Visibility,
-                trailingIconDescription = "Mostrar contraseña",
+                trailingIconDescription = stringResource(R.string.login_show_password_cd),
                 onTrailingIconClick = viewModel::togglePasswordVisibility,
                 visualTransformation =
                     if (state.showPassword)
@@ -173,7 +204,7 @@ fun LoginScreen(
                 )
 
                 Text(
-                    text = "Recordarme",
+                    text = stringResource(R.string.login_remember_me),
                     style = ServifyTextStyle.Small,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -188,7 +219,7 @@ fun LoginScreen(
             }
 
             ServifyFilledButton(
-                text = if (state.isLoading) "Ingresando…" else "Iniciar sesión",
+                text = if (state.isLoading) stringResource(R.string.login_signing_in) else stringResource(R.string.login_button),
                 onClick = viewModel::login,
                 enabled = state.isValid && !state.isLoading,
                 modifier = Modifier
@@ -202,7 +233,7 @@ fun LoginScreen(
             ) {
 
                 ServifyTextButton(
-                    text = "¿Olvidaste tu contraseña?",
+                    text = stringResource(R.string.login_forgot_password),
                     onClick = onForgotPasswordClick
                 )
             }
@@ -223,7 +254,7 @@ fun LoginScreen(
                 )
 
                 Text(
-                    text = "o continúa con",
+                    text = stringResource(R.string.login_continue_with),
                     style = ServifyTextStyle.Caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -237,7 +268,7 @@ fun LoginScreen(
             }
 
             GoogleButton(
-                onClick = viewModel::onGoogleClick
+                onClick = onGoogleClick
             )
 
             Row(
@@ -252,13 +283,13 @@ fun LoginScreen(
             ) {
 
                 Text(
-                    text = "¿No tienes cuenta?",
+                    text = stringResource(R.string.login_no_account),
                     style = ServifyTextStyle.Small,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 ServifyTextButton(
-                    text = "Crear cuenta",
+                    text = stringResource(R.string.login_create_account),
                     onClick = onRegisterClick
                 )
             }
@@ -301,7 +332,7 @@ private fun GoogleButton(
         )
 
         Text(
-            text = "Continuar con Google",
+            text = stringResource(R.string.google_continue),
             style = ServifyTextStyle.SmallMedium,
             color = MaterialTheme.colorScheme.onSurface
         )

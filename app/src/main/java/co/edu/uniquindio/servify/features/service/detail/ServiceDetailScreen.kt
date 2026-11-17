@@ -262,6 +262,16 @@ fun ServiceDetailScreen(
                     )
                 }
 
+                // 5.1 TARJETA DE UBICACIÓN Y MAPA
+                if (state.service?.location != null) {
+                    item {
+                        co.edu.uniquindio.servify.features.service.component.LocationCard(
+                            publication = state.service!!,
+                            addressState = state.addressState
+                        )
+                    }
+                }
+
                 // 6. ENCABEZADO DE COMENTARIOS
                 item {
                     Row(

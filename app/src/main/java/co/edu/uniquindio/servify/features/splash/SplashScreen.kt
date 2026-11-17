@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.splash
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseIn
@@ -96,7 +99,7 @@ fun SplashScreen(
                     )
 
                     Text(
-                        text = "Servicios locales de confianza",
+                        text = stringResource(R.string.splash_tagline),
                         style = ServifyTextStyle.BodyLight,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -120,7 +123,7 @@ fun SplashScreen(
         }
 
         Text(
-            text = "v1.0.0",
+            text = "v1.5.0",
             style = ServifyTextStyle.Caption,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.50f),
             modifier = Modifier

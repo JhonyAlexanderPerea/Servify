@@ -1,5 +1,8 @@
 package co.edu.uniquindio.servify.features.service.component
 
+import androidx.compose.ui.res.stringResource
+import co.edu.uniquindio.servify.R
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,6 +28,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
@@ -50,11 +55,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.uniquindio.servify.features.home.component.AnimatedFavoriteIcon
 import co.edu.uniquindio.servify.features.home.component.LevelBadge
 import co.edu.uniquindio.servify.features.home.component.StarRatingRow
 import co.edu.uniquindio.servify.features.service.model.CommentItemData
 import co.edu.uniquindio.servify.features.service.model.ServiceDetailData
+import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.TrustFactor
+import co.edu.uniquindio.servify.ui.components.ServifyAsyncImage
 import co.edu.uniquindio.servify.ui.components.button.ServifyFilledButton
 import co.edu.uniquindio.servify.ui.components.input.ServifyTextField
 import co.edu.uniquindio.servify.ui.theme.ServifyExtra
@@ -97,7 +105,7 @@ fun ServiceDetailTopBar(
         }
 
         Text(
-            text = "Detalle del Servicio",
+            text = stringResource(R.string.service_detail_title),
             style = ServifyTextStyle.SmallMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -111,10 +119,9 @@ fun ServiceDetailTopBar(
                     .clickable(onClick = onFavoriteToggle),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorito",
-                    tint = if (isFavorite) ServifyExtra.favorite else MaterialTheme.colorScheme.onSurface,
+                AnimatedFavoriteIcon(
+                    isFavorite = isFavorite,
+                    unselectedTint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -147,37 +154,43 @@ fun ImageGalleryBanner(
     detail: ServiceDetailData,
     modifier: Modifier = Modifier
 ) {
-    var activeImageIndex by remember { mutableStateOf(0) }
-
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(220.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
+        if (detail.images.isNotEmpty()) {
+            PublicationImageSlider(
+                images = detail.images,
+                aspectRatio = 16f / 10f,
+                showPageCounter = true
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 10f)
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(ServifyExtra.heroGradientStart, ServifyExtra.heroGradientEnd)
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.HomeRepairService,
+                        contentDescription = null,
+                        tint = ServifyExtra.onHero,
+                        modifier = Modifier.size(64.dp)
                     )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.HomeRepairService,
-                    contentDescription = null,
-                    tint = ServifyExtra.onHero,
-                    modifier = Modifier.size(64.dp)
-                )
-                Text(
-                    text = detail.subcategory,
-                    style = ServifyTextStyle.BodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = ServifyExtra.onHero
-                )
+                    Text(
+                        text = detail.subcategory,
+                        style = ServifyTextStyle.BodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = ServifyExtra.onHero
+                    )
+                }
             }
         }
 
@@ -194,26 +207,6 @@ fun ImageGalleryBanner(
                 style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(bottom = 12.dp)
-                .align(Alignment.BottomCenter),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            repeat(detail.images.size) { index ->
-                val isActive = index == activeImageIndex
-                Box(
-                    modifier = Modifier
-                        .size(if (isActive) 18.dp else 8.dp, 8.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isActive) ServifyExtra.onHero else ServifyExtra.onHero.copy(alpha = 0.5f)
-                        )
-                        .clickable { activeImageIndex = index }
-                )
-            }
         }
     }
 }
@@ -241,20 +234,31 @@ fun ProviderCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(detail.providerColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = detail.providerInitials,
-                            style = ServifyTextStyle.TitleTight.copy(
-                                color = contentColorOn(detail.providerColor),
-                                fontSize = 20.sp
-                            )
+                    if (!detail.providerAvatarUrl.isNullOrBlank()) {
+                        ServifyAsyncImage(
+                            imageUrl = detail.providerAvatarUrl,
+                            contentDescription = detail.providerName,
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape),
+                            fallbackIcon = Icons.Default.Person
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(detail.providerColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = detail.providerInitials,
+                                style = ServifyTextStyle.TitleTight.copy(
+                                    color = contentColorOn(detail.providerColor),
+                                    fontSize = 20.sp
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -286,7 +290,7 @@ fun ProviderCard(
                             LevelBadge(level = detail.providerLevel)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Desde ${detail.providerMemberSince}",
+                                text = stringResource(R.string.provider_member_since_format, detail.providerMemberSince),
                                 style = ServifyTextStyle.Caption,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -312,7 +316,7 @@ fun ProviderCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Trabajos",
+                        text = stringResource(R.string.stats_jobs_completed),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -328,7 +332,7 @@ fun ProviderCard(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     StarRatingRow(rating = detail.rating, reviewCount = detail.reviewCount)
                     Text(
-                        text = "Calificación",
+                        text = stringResource(R.string.service_detail_rating_label),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -352,7 +356,7 @@ fun ProviderCard(
                         softWrap = false
                     )
                     Text(
-                        text = "Confianza",
+                        text = stringResource(R.string.stats_trust_index),
                         style = ServifyTextStyle.Caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -409,14 +413,14 @@ fun TrustSystemCard(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Índice de Confianza Servify",
+                            text = stringResource(R.string.trust_index_title),
                             style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.secondary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Garantía y perfil verificado por el sistema",
+                            text = stringResource(R.string.trust_index_subtitle),
                             style = ServifyTextStyle.Caption,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -504,7 +508,7 @@ fun ExpandableDescriptionCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Descripción del servicio",
+                text = stringResource(R.string.service_description_title),
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -527,7 +531,7 @@ fun ExpandableDescriptionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (expanded) "Mostrar menos" else "Leer descripción completa",
+                    text = if (expanded) stringResource(R.string.service_read_less) else stringResource(R.string.service_read_more),
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -551,10 +555,96 @@ fun ExpandableDescriptionCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Zona de cobertura: $zone ($city)",
+                    text = stringResource(R.string.service_coverage_format, zone, city),
                     style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface
                 )
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// TARJETA DE UBICACIÓN Y MAPA DE SOLO LECTURA (TARJETAS 45 Y 48)
+// -----------------------------------------------------------------------------
+
+@Composable
+fun LocationCard(
+    publication: Publication,
+    addressState: co.edu.uniquindio.servify.features.service.detail.AddressState,
+    modifier: Modifier = Modifier
+) {
+    val location = publication.location ?: return
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.publication_location_label),
+                style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Detalle de la publicación: mapa pequeño de solo lectura (sección "Mapa de solo lectura" de la guía)
+            co.edu.uniquindio.servify.core.component.MapBox(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                center = com.mapbox.geojson.Point.fromLngLat(location.longitude, location.latitude),
+                zoom = 15.5,
+                publications = listOf(publication),
+                interactive = false
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            when (addressState) {
+                is co.edu.uniquindio.servify.features.service.detail.AddressState.Loading -> {
+                    Text(
+                        text = stringResource(R.string.location_picker_loading_address),
+                        style = ServifyTextStyle.Caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                is co.edu.uniquindio.servify.features.service.detail.AddressState.Success -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Place,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = addressState.address,
+                            style = ServifyTextStyle.Caption.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                is co.edu.uniquindio.servify.features.service.detail.AddressState.Error -> {
+                    Text(
+                        text = stringResource(R.string.service_address_error),
+                        style = ServifyTextStyle.Caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                co.edu.uniquindio.servify.features.service.detail.AddressState.Hidden -> {
+                    if (publication.locationName.isNotBlank()) {
+                        Text(
+                            text = publication.locationName,
+                            style = ServifyTextStyle.Caption,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
@@ -581,20 +671,31 @@ fun CommentItem(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(comment.authorAvatarColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = comment.authorInitials,
-                            style = ServifyTextStyle.Caption.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
+                    if (!comment.authorAvatarUrl.isNullOrBlank()) {
+                        ServifyAsyncImage(
+                            imageUrl = comment.authorAvatarUrl,
+                            contentDescription = comment.authorName,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                            fallbackIcon = Icons.Default.Person
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(comment.authorAvatarColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = comment.authorInitials,
+                                style = ServifyTextStyle.Caption.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -656,7 +757,7 @@ fun CommentInput(
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
-                text = "Deja tu opinión o consulta",
+                text = stringResource(R.string.service_detail_leave_review_title),
                 style = ServifyTextStyle.SmallMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -665,7 +766,7 @@ fun CommentInput(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Calificación: ",
+                    text = stringResource(R.string.service_detail_rating_prefix),
                     style = ServifyTextStyle.Caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -750,7 +851,7 @@ fun ServiceDetailBottomBar(
                     .padding(end = 12.dp)
             ) {
                 Text(
-                    text = "Tarifa estimada",
+                    text = stringResource(R.string.request_total_amount),
                     style = ServifyTextStyle.Caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

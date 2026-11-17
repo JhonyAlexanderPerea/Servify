@@ -18,8 +18,8 @@ data class RegisterUiState(
     val isLoading: Boolean = false,
     val emailError: String? = null,
     val registerError: String? = null,
-    /** true cuando la cuenta fue creada y la sesión quedó abierta. */
-    val registered: Boolean = false
+    /** Correo al que se envió el enlace de verificación; si no es null, se muestra la vista de verificación. */
+    val verificationEmail: String? = null
 ) {
 
     val firstStepValid: Boolean

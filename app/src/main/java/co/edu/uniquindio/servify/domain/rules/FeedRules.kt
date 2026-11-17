@@ -11,6 +11,9 @@ import co.edu.uniquindio.servify.domain.util.GeoDistanceCalculator
  */
 object FeedRules {
 
+    private const val DEFAULT_LAT = 4.5339
+    private const val DEFAULT_LNG = -75.6811
+
     fun isPublic(status: PublicationStatus): Boolean =
         status == PublicationStatus.VERIFICADA || status == PublicationStatus.APPROVED
 
@@ -18,7 +21,8 @@ object FeedRules {
         publications.filter { isPublic(it.status) }
 
     /**
-     * Asocia la distancia geodésica a cada publicación basada en la ubicación del usuario.
+     * Asocia la distancia geodésica a cada publicación basada en la ubicación del usuario
+     * (con fallback a Armenia, Quindío si no hay ubicación de GPS disponible).
      */
     fun attachDistances(
         publications: List<Publication>,
@@ -26,11 +30,12 @@ object FeedRules {
         userLng: Double?,
         calculator: GeoDistanceCalculator
     ): List<Publication> {
-        if (userLat == null || userLng == null) return publications
+        val lat = userLat ?: DEFAULT_LAT
+        val lng = userLng ?: DEFAULT_LNG
         return publications.map { pub ->
             val loc = pub.location
             if (loc != null && (loc.latitude != 0.0 || loc.longitude != 0.0)) {
-                val dist = calculator.calculateDistanceKm(userLat, userLng, loc.latitude, loc.longitude)
+                val dist = calculator.calculateDistanceKm(lat, lng, loc.latitude, loc.longitude)
                 pub.copy(distanceKm = if (dist < 10000.0) dist else null)
             } else {
                 pub.copy(distanceKm = null)
@@ -39,17 +44,31 @@ object FeedRules {
     }
 
     /**
-     * Filtra y ordena las publicaciones que se encuentran dentro del radio máximo (30 km)
-     * a partir de la ubicación del usuario para el filtro "Cerca de mí".
+     * Filtra y ordena las publicaciones que se encuentran dentro del radio máximo (por defecto 50 km,
+     * abarcando Armenia, Pereira y alrededores del Eje Cafetero) a partir de la ubicación del usuario.
      */
     fun filterNearMe(
         publications: List<Publication>,
         userLat: Double?,
         userLng: Double?,
-        maxRadiusKm: Double = 30.0
+        maxRadiusKm: Double = 50.0
     ): List<Publication> {
-        if (userLat == null || userLng == null) return emptyList()
+        val lat = userLat ?: DEFAULT_LAT
+        val lng = userLng ?: DEFAULT_LNG
+        val calculator = GeoDistanceCalculator()
+
         return publications
+            .map { pub ->
+                val dist = pub.distanceKm ?: run {
+                    val loc = pub.location
+                    if (loc != null && (loc.latitude != 0.0 || loc.longitude != 0.0)) {
+                        calculator.calculateDistanceKm(lat, lng, loc.latitude, loc.longitude)
+                    } else {
+                        Double.MAX_VALUE
+                    }
+                }
+                pub.copy(distanceKm = if (dist < 10000.0) dist else null)
+            }
             .filter { pub ->
                 val dist = pub.distanceKm
                 dist != null && dist <= maxRadiusKm

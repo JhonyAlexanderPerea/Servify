@@ -227,7 +227,7 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // Comentarios y reseñas
+    // Comentarios y reseñas3
     // Lectura pública. El autor crea/edita/elimina los suyos; el moderador
     // puede retirar contenido inapropiado.
     // -------------------------------------------------------------------------

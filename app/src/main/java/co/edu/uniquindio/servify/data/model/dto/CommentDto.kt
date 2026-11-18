@@ -1,11 +1,13 @@
 package co.edu.uniquindio.servify.data.model.dto
 
+import androidx.annotation.Keep
 import co.edu.uniquindio.servify.domain.model.Comment
 import co.edu.uniquindio.servify.domain.model.User
 
 /**
  * Data Transfer Object (DTO) para la colección "comments" en Cloud Firestore.
  */
+@Keep
 data class CommentDto(
     val id: String = "",
     val publicationId: String = "",

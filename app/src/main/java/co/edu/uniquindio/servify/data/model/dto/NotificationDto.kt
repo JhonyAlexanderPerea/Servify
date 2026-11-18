@@ -1,5 +1,6 @@
 package co.edu.uniquindio.servify.data.model.dto
 
+import androidx.annotation.Keep
 import co.edu.uniquindio.servify.domain.model.Notification
 import co.edu.uniquindio.servify.domain.model.NotificationType
 import com.google.firebase.firestore.PropertyName
@@ -7,6 +8,7 @@ import com.google.firebase.firestore.PropertyName
 /**
  * Data Transfer Object (DTO) para la colección "notifications" en Cloud Firestore.
  */
+@Keep
 data class NotificationDto(
     val id: String = "",
     val userId: String = "",

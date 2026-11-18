@@ -43,10 +43,6 @@ android {
         resValue("string", "cloudinary_cloud_name", localProperties.getProperty("CLOUDINARY_CLOUD_NAME", ""))
         resValue("string", "cloudinary_upload_preset", localProperties.getProperty("CLOUDINARY_UPLOAD_PRESET", ""))
 
-        // Mapbox solo incluye librerías nativas para estas arquitecturas.
-        ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
-        }
     }
 
     signingConfigs {
@@ -60,11 +56,21 @@ android {
     }
 
     buildTypes {
+        debug {
+            // x86_64 solo se necesita para emuladores; ambos ABIs en debug.
+            ndk {
+                abiFilters += listOf("arm64-v8a", "x86_64")
+            }
+        }
         release {
             signingConfig = signingConfigs.getByName("release")
-            // TODO(fase-3): activar R8 (enable = true) cuando los DTOs tengan @Keep.
+            // R8: reduce código y recursos. Los DTOs usados por Firestore/Gson llevan @Keep.
             optimization {
-                enable = false
+                enable = true
+            }
+            // Los dispositivos reales son arm64; x86_64 solo aplica a emuladores.
+            ndk {
+                abiFilters += "arm64-v8a"
             }
         }
     }

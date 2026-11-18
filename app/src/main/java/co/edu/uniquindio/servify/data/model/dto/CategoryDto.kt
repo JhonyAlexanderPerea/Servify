@@ -1,10 +1,12 @@
 package co.edu.uniquindio.servify.data.model.dto
 
+import androidx.annotation.Keep
 import co.edu.uniquindio.servify.domain.model.Category
 
 /**
  * Data Transfer Object (DTO) para la colección "categories" en Cloud Firestore.
  */
+@Keep
 data class CategoryDto(
     val id: String = "",
     val label: String = "",

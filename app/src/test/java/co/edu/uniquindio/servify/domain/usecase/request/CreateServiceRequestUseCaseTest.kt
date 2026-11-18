@@ -1,14 +1,31 @@
 package co.edu.uniquindio.servify.domain.usecase.request
 
 import co.edu.uniquindio.servify.domain.model.Location
+import co.edu.uniquindio.servify.domain.model.Notification
 import co.edu.uniquindio.servify.domain.model.Publication
 import co.edu.uniquindio.servify.domain.model.User
+import co.edu.uniquindio.servify.domain.repository.NotificationRepository
+import co.edu.uniquindio.servify.domain.usecase.notification.GenerateNotificationUseCase
 import co.edu.uniquindio.servify.testutil.TestEnvironment
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+
+private class FailingNotificationRepository : NotificationRepository {
+    override fun observeNotifications(): Flow<List<Notification>> = flowOf(emptyList())
+
+    override suspend fun addNotification(notification: Notification) {
+        throw IllegalStateException("Fallo simulado al guardar la notificación")
+    }
+
+    override suspend fun markAsRead(id: String) = Unit
+
+    override suspend fun markAllAsRead() = Unit
+}
 
 class CreateServiceRequestUseCaseTest {
 
@@ -110,5 +127,57 @@ class CreateServiceRequestUseCaseTest {
         val stored = env.serviceRequests.observeRequests().first().first { it.id == request.id }
         assertEquals(location, stored.location)
         assertEquals("Por favor puntualidad", stored.note)
+    }
+
+    @Test
+    fun `crea la solicitud aunque falle la notificacion al proveedor`() = runBlocking {
+        env.loginAs(TestEnvironment.JHONY_EMAIL)
+        val useCase = CreateServiceRequestUseCase(
+            serviceRequestRepository = env.serviceRequests,
+            publicationRepository = env.publications,
+            userRepository = env.users,
+            generateNotificationUseCase = GenerateNotificationUseCase(FailingNotificationRepository())
+        )
+
+        val request = useCase(
+            publicationId = "pub_juan_mudanzas",
+            scheduledDateTime = env.nowMillis,
+            note = "Nota de prueba",
+            totalAmount = 250_000.0
+        )
+
+        val stored = env.serviceRequests.observeRequests().first().firstOrNull { it.id == request.id }
+        assertEquals(request, stored)
+        assertTrue(env.notifications.observeNotifications().first().isEmpty())
+    }
+
+    @Test
+    fun `rechaza una publicacion sin proveedor valido sin crear la solicitud`() = runBlocking {
+        env.loginAs(TestEnvironment.JHONY_EMAIL)
+        env.addPublication(
+            Publication(
+                id = "pub_sin_proveedor",
+                title = "Servicio sin proveedor",
+                description = "Datos inválidos de prueba.",
+                authorId = "",
+                provider = User(id = "", name = "", email = "")
+            )
+        )
+
+        val result = runCatching {
+            env.createServiceRequest(
+                publicationId = "pub_sin_proveedor",
+                scheduledDateTime = env.nowMillis,
+                note = null,
+                totalAmount = 50_000.0
+            )
+        }
+
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        assertTrue(
+            env.serviceRequests.observeRequests().first().none {
+                it.publicationId == "pub_sin_proveedor"
+            }
+        )
     }
 }

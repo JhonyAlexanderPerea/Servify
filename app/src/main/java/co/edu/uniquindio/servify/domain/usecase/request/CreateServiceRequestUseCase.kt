@@ -6,6 +6,7 @@ import co.edu.uniquindio.servify.domain.repository.PublicationRepository
 import co.edu.uniquindio.servify.domain.repository.ServiceRequestRepository
 import co.edu.uniquindio.servify.domain.repository.UserRepository
 import co.edu.uniquindio.servify.domain.usecase.notification.GenerateNotificationUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -45,6 +46,9 @@ class CreateServiceRequestUseCase @Inject constructor(
         }
 
         val providerId = publication.authorId.ifBlank { publication.provider.id }
+        require(providerId.isNotBlank()) {
+            "La publicación no tiene un proveedor válido"
+        }
         val requestId = requestIdFor(publicationId, scheduledDateTime)
 
         val newRequest = ServiceRequest(
@@ -71,13 +75,17 @@ class CreateServiceRequestUseCase @Inject constructor(
             )
         }
 
-        // Generar notificación para el proveedor
-        generateNotificationUseCase.generateRequestReceivedNotification(
-            providerId = providerId,
-            clientName = currentUser.name,
-            serviceTitle = publication.title,
-            requestId = newRequest.id
-        )
+        try {
+            generateNotificationUseCase.generateRequestReceivedNotification(
+                providerId = providerId,
+                clientName = currentUser.name,
+                serviceTitle = publication.title,
+                requestId = newRequest.id
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+        }
 
         newRequest
     }

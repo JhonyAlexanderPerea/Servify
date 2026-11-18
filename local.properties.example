@@ -9,6 +9,12 @@ OPENROUTER_API_KEY=
 OPENROUTER_MODEL=
 # Token público de Mapbox (empieza por pk.)
 MAPBOX_ACCESS_TOKEN=
+# Dominio de los enlaces de Firebase Auth (<project-id>.firebaseapp.com)
+FIREBASE_AUTH_HOST=
+
+# Cloudinary (subida de imágenes; nunca el API Secret)
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_UPLOAD_PRESET=
 
 # Release Signing Config (Opcional)
 # RELEASE_STORE_FILE=app/release.jks
